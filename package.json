@@ -6,12 +6,20 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:migrate": "node scripts/migrate.js"
   },
   "dependencies": {
+    "@hookform/resolvers": "^3.3.4",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.38.4",
+    "framer-motion": "^11.18.2",
     "next": "16.1.6",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "react-hook-form": "^7.48.0",
+    "sonner": "^1.2.3",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
