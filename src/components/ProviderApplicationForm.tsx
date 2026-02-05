@@ -128,6 +128,8 @@ export function ProviderApplicationForm() {
       const fileExt = doc.file.name.split('.').pop();
       const fileName = `${userId}/${applicationId}/${docType}_${Date.now()}.${fileExt}`;
 
+      console.log(`[Upload] Uploading ${docType} to ${fileName}`);
+
       const { data, error } = await supabase.storage
         .from('provider-documents')
         .upload(fileName, doc.file, {
@@ -136,15 +138,23 @@ export function ProviderApplicationForm() {
         });
 
       if (error) {
-        console.error(`Error uploading ${docType}:`, error);
-        toast.error(`Failed to upload ${docType.replace('_', ' ')}`);
+        console.error(`[Upload Error] ${docType}:`, error);
+        toast.error(`Failed to upload ${docType.replace(/_/g, ' ')}: ${error.message}`);
+        setDocuments((prev) => ({
+          ...prev,
+          [docType]: { ...prev[docType], uploading: false },
+        }));
         return null;
       }
+
+      console.log(`[Upload Success] ${docType}:`, data);
 
       // Get the public URL
       const { data: urlData } = supabase.storage
         .from('provider-documents')
         .getPublicUrl(fileName);
+
+      console.log(`[Upload URL] ${docType}:`, urlData.publicUrl);
 
       setDocuments((prev) => ({
         ...prev,
@@ -153,7 +163,8 @@ export function ProviderApplicationForm() {
 
       return urlData.publicUrl;
     } catch (err) {
-      console.error(`Error uploading ${docType}:`, err);
+      console.error(`[Upload Exception] ${docType}:`, err);
+      toast.error(`Error uploading ${docType.replace(/_/g, ' ')}`);
       setDocuments((prev) => ({
         ...prev,
         [docType]: { ...prev[docType], uploading: false },
