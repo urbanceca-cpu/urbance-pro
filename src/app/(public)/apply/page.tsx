@@ -223,6 +223,7 @@ export default function ApplyPage() {
   const [step, setStep] = useState(1);
   const [stepsCompleted, setStepsCompleted] = useState<Record<number, boolean>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [showLanding, setShowLanding] = useState(true);
 
   // ── Form data ──
   const [basicInfo, setBasicInfo] = useState<BasicInfo>({ full_legal_name: '', business_name: '', email: '', phone: '', city: '', address_line1: '', postal_code: '' });
@@ -232,6 +233,13 @@ export default function ApplyPage() {
   const [docs, setDocs] = useState<UploadedDoc[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginMode, setLoginMode] = useState<'login' | 'signup'>('signup');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authName, setAuthName] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
 
   // ── Doc upload UI ──
   const [pendingCategory, setPendingCategory] = useState('');
@@ -241,7 +249,8 @@ export default function ApplyPage() {
   useEffect(() => {
     async function init() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push('/login'); return; }
+      // Not logged in — still show the form, just don't load saved data
+      if (!user) { setLoading(false); return; }
       setUserId(user.id);
       setUserEmail(user.email ?? '');
       setBasicInfo(b => ({ ...b, email: user.email ?? '' }));
@@ -346,6 +355,13 @@ export default function ApplyPage() {
     const errs = validateStep(step);
     if (Object.keys(errs).length) { setErrors(errs); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     setErrors({});
+    // Require login before moving past step 1
+    if (!userId && step === 1) {
+      setAuthName(basicInfo.full_legal_name);
+      setAuthEmail(basicInfo.email);
+      setShowLoginModal(true);
+      return;
+    }
     const newCompleted = { ...stepsCompleted, [step]: true };
     setStepsCompleted(newCompleted);
     if (appId) {
@@ -353,6 +369,48 @@ export default function ApplyPage() {
     }
     setStep(s => s + 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function handleAuth() {
+    setAuthError('');
+    setAuthLoading(true);
+    try {
+      let uid = '';
+      let email = '';
+      if (loginMode === 'signup') {
+        const { data, error } = await supabase.auth.signUp({ email: authEmail, password: authPassword, options: { data: { full_name: authName } } });
+        if (error) { setAuthError(error.message); setAuthLoading(false); return; }
+        uid = data.user?.id ?? '';
+        email = data.user?.email ?? authEmail;
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+        if (error) { setAuthError(error.message); setAuthLoading(false); return; }
+        uid = data.user?.id ?? '';
+        email = data.user?.email ?? authEmail;
+      }
+      setUserId(uid);
+      setUserEmail(email);
+      setBasicInfo(b => ({ ...b, email }));
+      // Create or load application
+      const { data: existing } = await supabase.from('provider_applications').select('id').eq('user_id', uid).single();
+      let aid = existing?.id;
+      if (!aid) {
+        const { data: created } = await supabase.from('provider_applications')
+          .insert({ user_id: uid, status: 'draft', step_completed: {}, basic_info: basicInfo, services_coverage: services, experience_standards: experience, pricing_availability: pricing })
+          .select('id').single();
+        aid = created?.id;
+      }
+      if (aid) setAppId(aid);
+      setShowLoginModal(false);
+      const newCompleted = { ...stepsCompleted, 1: true };
+      setStepsCompleted(newCompleted);
+      if (aid) await supabase.from('provider_applications').update({ step_completed: newCompleted, basic_info: basicInfo }).eq('id', aid);
+      setStep(2);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {
+      setAuthError('Something went wrong. Please try again.');
+    }
+    setAuthLoading(false);
   }
 
   function goBack() {
@@ -481,6 +539,109 @@ export default function ApplyPage() {
             </button>
           </div>
         </div>
+        <Footer />
+      </>
+    );
+  }
+
+  // ─── Landing screen ──────────────────────────────────────────────────────
+  if (showLanding) {
+    return (
+      <>
+        <Navbar />
+        <main style={{ fontFamily: "'Inter',-apple-system,BlinkMacSystemFont,sans-serif", backgroundColor: '#ffffff', color: '#111111' }}>
+          {/* Hero */}
+          <section style={{ padding: '140px 24px 80px', background: 'linear-gradient(135deg,#F0F6FF 0%,#F5F0FF 50%,#F0FFF8 100%)', borderBottom: '1px solid #EEEFF1', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: '-80px', right: '-80px', width: '400px', height: '400px', borderRadius: '50%', background: 'radial-gradient(circle,rgba(47,128,237,0.1) 0%,transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', bottom: '-60px', left: '-60px', width: '320px', height: '320px', borderRadius: '50%', background: 'radial-gradient(circle,rgba(124,58,237,0.08) 0%,transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ maxWidth: '760px', margin: '0 auto', textAlign: 'center', position: 'relative' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#EBF3FD', borderRadius: '100px', padding: '7px 16px', marginBottom: '24px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#2F80ED', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>Pro Application</span>
+              </div>
+              <h1 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 900, color: '#111111', letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 20px' }}>
+                Join Urbance as a<br /><span style={{ color: '#2F80ED' }}>Verified Pro</span>
+              </h1>
+              <p style={{ fontSize: '18px', color: '#6B7280', lineHeight: 1.7, margin: '0 0 40px', maxWidth: '540px', marginLeft: 'auto', marginRight: 'auto' }}>
+                Complete our 6-step application to get matched with local homeowners and grow your service business.
+              </p>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' as const, marginBottom: '56px' }}>
+                <button onClick={() => setShowLanding(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', padding: '16px 36px', borderRadius: '14px', backgroundColor: '#2F80ED', color: '#ffffff', fontSize: '16px', fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 24px rgba(47,128,237,0.3)' }}>
+                  Start My Application
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </button>
+                <a href="/how-it-works" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '16px 28px', borderRadius: '14px', backgroundColor: '#ffffff', color: '#111111', fontSize: '15px', fontWeight: 600, border: '1.5px solid #E5E7EB', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'none' }}>How It Works</a>
+              </div>
+              {/* Stat strip */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', backgroundColor: '#EEEFF1', borderRadius: '16px', overflow: 'hidden', maxWidth: '480px', margin: '0 auto' }}>
+                {[{ n: '~10 min', l: 'To complete' }, { n: '3–5 days', l: 'Review time' }, { n: '$0', l: 'Application fee' }].map(s => (
+                  <div key={s.l} style={{ backgroundColor: '#ffffff', padding: '20px 16px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#111111', letterSpacing: '-0.02em' }}>{s.n}</div>
+                    <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '3px' }}>{s.l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Steps overview */}
+          <section style={{ padding: '80px 24px', backgroundColor: '#ffffff' }}>
+            <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+              <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+                <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#111111', letterSpacing: '-0.03em', margin: '0 0 10px' }}>What You&apos;ll Need to Complete</h2>
+                <p style={{ fontSize: '15px', color: '#6B7280', margin: 0 }}>Six short steps — save your progress at any time.</p>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: '16px' }}>
+                {[
+                  { n: 1, color: '#2F80ED', light: '#EBF3FD', icon: '👤', title: 'Basic Info',             desc: 'Your name, phone number, and city.' },
+                  { n: 2, color: '#7C3AED', light: '#F5F3FF', icon: '🛠',  title: 'Services & Coverage',    desc: 'What you offer and where you work.' },
+                  { n: 3, color: '#059669', light: '#ECFDF5', icon: '⭐', title: 'Experience & Standards', desc: 'Years of experience, licensing, insurance.' },
+                  { n: 4, color: '#D97706', light: '#FFFBEB', icon: '💰', title: 'Pricing & Availability', desc: 'Your rates and available schedule.' },
+                  { n: 5, color: '#DC2626', light: '#FEF2F2', icon: '📎', title: 'Document Upload',        desc: 'ID, insurance certificate, and more.' },
+                  { n: 6, color: '#0F172A', light: '#F1F5F9', icon: '✅', title: 'Review & Submit',        desc: 'Check everything and submit.' },
+                ].map(s => (
+                  <div key={s.n} style={{ backgroundColor: '#FAFBFC', borderRadius: '16px', border: '1px solid #EEEFF1', padding: '24px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '12px', backgroundColor: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ fontSize: '18px' }}>{s.icon}</span>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#111111', marginBottom: '4px' }}>Step {s.n} — {s.title}</div>
+                      <div style={{ fontSize: '13px', color: '#6B7280', lineHeight: 1.6 }}>{s.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ textAlign: 'center', marginTop: '48px' }}>
+                <button onClick={() => setShowLanding(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', padding: '15px 40px', borderRadius: '14px', backgroundColor: '#111111', color: '#ffffff', fontSize: '16px', fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                  Begin Application →
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* What to prepare */}
+          <section style={{ padding: '0 24px 80px', backgroundColor: '#ffffff' }}>
+            <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+              <div style={{ backgroundColor: '#F8F9FC', borderRadius: '20px', border: '1px solid #EEEFF1', padding: '40px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#111111', margin: '0 0 24px', letterSpacing: '-0.02em' }}>📋 What to Prepare</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '16px' }}>
+                  {[
+                    { icon: '🪪', title: 'Government ID', desc: 'Driver\'s licence or passport' },
+                    { icon: '🏠', title: 'Proof of Address', desc: 'Utility bill or bank statement' },
+                    { icon: '🛡', title: 'Insurance Cert.', desc: 'If you carry liability insurance' },
+                    { icon: '💳', title: 'Banking Info', desc: 'For direct deposit of earnings' },
+                  ].map(i => (
+                    <div key={i.title} style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #EEEFF1', padding: '18px' }}>
+                      <div style={{ fontSize: '24px', marginBottom: '8px' }}>{i.icon}</div>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#111111', marginBottom: '4px' }}>{i.title}</div>
+                      <div style={{ fontSize: '12px', color: '#9CA3AF' }}>{i.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
         <Footer />
       </>
     );
@@ -1156,6 +1317,77 @@ export default function ApplyPage() {
 
         </div>
       </main>
+
+      {/* ── Login / Signup modal ── */}
+      {showLoginModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+          {/* Backdrop */}
+          <div onClick={() => setShowLoginModal(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} />
+          {/* Modal */}
+          <div style={{ position: 'relative', backgroundColor: '#ffffff', borderRadius: '24px', padding: '40px 36px', maxWidth: '440px', width: '100%', boxShadow: '0 24px 64px rgba(0,0,0,0.15)' }}>
+            <button onClick={() => setShowLoginModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#9CA3AF' }}>✕</button>
+
+            <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+              <div style={{ fontSize: '32px', marginBottom: '12px' }}>🔐</div>
+              <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#111111', margin: '0 0 8px', letterSpacing: '-0.02em' }}>
+                {loginMode === 'signup' ? 'Create Your Account' : 'Welcome Back'}
+              </h2>
+              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>
+                {loginMode === 'signup' ? 'Save your progress and continue your application.' : 'Sign in to continue where you left off.'}
+              </p>
+            </div>
+
+            {/* Toggle */}
+            <div style={{ display: 'flex', backgroundColor: '#F3F4F6', borderRadius: '10px', padding: '3px', marginBottom: '24px' }}>
+              {(['signup', 'login'] as const).map(m => (
+                <button key={m} type="button" onClick={() => { setLoginMode(m); setAuthError(''); }} style={{
+                  flex: 1, padding: '9px', borderRadius: '8px', fontSize: '13px', fontWeight: 600,
+                  border: 'none', cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit',
+                  backgroundColor: loginMode === m ? '#ffffff' : 'transparent',
+                  color: loginMode === m ? '#111111' : '#6B7280',
+                  boxShadow: loginMode === m ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                }}>{m === 'signup' ? 'Create Account' : 'Sign In'}</button>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {loginMode === 'signup' && (
+                <div>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '6px' }}>Full Name</label>
+                  <input value={authName} onChange={e => setAuthName(e.target.value)} placeholder="John Smith"
+                    style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1.5px solid #E5E7EB', fontSize: '14px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const }} />
+                </div>
+              )}
+              <div>
+                <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '6px' }}>Email Address</label>
+                <input type="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} placeholder="you@email.com"
+                  style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1.5px solid #E5E7EB', fontSize: '14px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '6px' }}>Password</label>
+                <input type="password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} placeholder="Min. 8 characters"
+                  style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1.5px solid #E5E7EB', fontSize: '14px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const }} />
+              </div>
+
+              {authError && (
+                <div style={{ backgroundColor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#DC2626' }}>
+                  ⚠ {authError}
+                </div>
+              )}
+
+              <button type="button" onClick={handleAuth} disabled={authLoading} style={{
+                width: '100%', padding: '14px', borderRadius: '12px', backgroundColor: '#2F80ED',
+                color: '#ffffff', fontSize: '15px', fontWeight: 700, border: 'none',
+                cursor: authLoading ? 'not-allowed' : 'pointer', opacity: authLoading ? 0.7 : 1,
+                fontFamily: 'inherit', marginTop: '4px',
+              }}>
+                {authLoading ? '⏳ Please wait…' : loginMode === 'signup' ? 'Create Account & Continue →' : 'Sign In & Continue →'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </>
   );
