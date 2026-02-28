@@ -16,6 +16,7 @@ interface BasicInfo {
   city: string;
   address_line1: string;
   postal_code: string;
+  password: string;
 }
 
 interface ServicesCoverage {
@@ -226,18 +227,15 @@ export default function ApplyPage() {
   const [showLanding, setShowLanding] = useState(true);
 
   // ── Form data ──
-  const [basicInfo, setBasicInfo] = useState<BasicInfo>({ full_legal_name: '', business_name: '', email: '', phone: '', city: '', address_line1: '', postal_code: '' });
+  const [basicInfo, setBasicInfo] = useState<BasicInfo>({ full_legal_name: '', business_name: '', email: '', phone: '', city: '', address_line1: '', postal_code: '', password: '' });
   const [services, setServices] = useState<ServicesCoverage>({ primary_category: '', sub_services: [], service_areas: [], max_travel_km: '', has_vehicle: '' });
   const [experience, setExperience] = useState<ExperienceStandards>({ years_experience: '', professional_bio: '', team_size: '', is_licensed: '', license_details: '', is_insured: '', policy_limit: '', background_check: '' });
   const [pricing, setPricing] = useState<PricingAvailability>({ pricing_model: '', min_job_price: '', availability: [], earliest_start: '', scheduling_notes: '' });
   const [docs, setDocs] = useState<UploadedDoc[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [loginMode, setLoginMode] = useState<'login' | 'signup'>('signup');
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authName, setAuthName] = useState('');
+  // Inline auth state (used when user is not yet logged in — step 1)
+  const [authMode, setAuthMode] = useState<'signup' | 'login'>('signup');
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
 
@@ -312,19 +310,28 @@ export default function ApplyPage() {
     }, 1200);
   }, [appId]);  // eslint-disable-line react-hooks/exhaustive-deps
 
-  // autosave on each section change
-  useEffect(() => { if (appId) autosave({ basic_info: basicInfo }); }, [basicInfo]);  // eslint-disable-line react-hooks/exhaustive-deps
+  // autosave on each section change — always strip password before saving to DB
+  useEffect(() => { if (appId) { const { password: _p, ...safeInfo } = basicInfo; autosave({ basic_info: safeInfo }); } }, [basicInfo]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (appId) autosave({ services_coverage: services }); }, [services]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (appId) autosave({ experience_standards: experience }); }, [experience]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (appId) autosave({ pricing_availability: pricing }); }, [pricing]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Validation ───────────────────────────────────────────────────────────
-  function validateStep(s: number): Record<string, string> {
+  function validateStep(s: number, skipAuth = false): Record<string, string> {
     const e: Record<string, string> = {};
     if (s === 1) {
       if (!basicInfo.full_legal_name.trim()) e.full_legal_name = 'Full legal name is required';
       if (!basicInfo.phone.trim()) e.phone = 'Phone number is required';
       if (!basicInfo.city.trim()) e.city = 'City is required';
+      // Only require email/password when not already logged in
+      if (!skipAuth && !userId) {
+        if (!basicInfo.email.trim() || !/^[^@]+@[^@]+\.[^@]+$/.test(basicInfo.email)) e.email = 'A valid email address is required';
+        if (authMode === 'signup') {
+          if (!basicInfo.password || basicInfo.password.length < 8) e.password = 'Password must be at least 8 characters';
+        } else {
+          if (!basicInfo.password) e.password = 'Password is required';
+        }
+      }
     }
     if (s === 2) {
       if (!services.primary_category) e.primary_category = 'Select a primary service category';
@@ -355,13 +362,62 @@ export default function ApplyPage() {
     const errs = validateStep(step);
     if (Object.keys(errs).length) { setErrors(errs); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     setErrors({});
-    // Require login before moving past step 1
-    if (!userId && step === 1) {
-      setAuthName(basicInfo.full_legal_name);
-      setAuthEmail(basicInfo.email);
-      setShowLoginModal(true);
+
+    // ── Step 1: create or sign-in account inline ──────────────────────────
+    if (step === 1 && !userId) {
+      setAuthError('');
+      setAuthLoading(true);
+      try {
+        let uid = '';
+        let resolvedEmail = basicInfo.email;
+        if (authMode === 'signup') {
+          const { data, error } = await supabase.auth.signUp({
+            email: basicInfo.email,
+            password: basicInfo.password,
+            options: { data: { full_name: basicInfo.full_legal_name } },
+          });
+          if (error) { setAuthError(error.message); setAuthLoading(false); return; }
+          uid = data.user?.id ?? '';
+          resolvedEmail = data.user?.email ?? basicInfo.email;
+        } else {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: basicInfo.email,
+            password: basicInfo.password,
+          });
+          if (error) { setAuthError(error.message); setAuthLoading(false); return; }
+          uid = data.user?.id ?? '';
+          resolvedEmail = data.user?.email ?? basicInfo.email;
+        }
+        setUserId(uid);
+        setUserEmail(resolvedEmail);
+        // Save email into basicInfo (strip password before storing)
+        const infoToSave = { ...basicInfo, email: resolvedEmail, password: '' };
+        setBasicInfo(infoToSave);
+        // Create or load draft application
+        const { data: existingApp } = await supabase.from('provider_applications').select('id').eq('user_id', uid).maybeSingle();
+        let aid = existingApp?.id;
+        if (!aid) {
+          const { data: created } = await supabase.from('provider_applications')
+            .insert({ user_id: uid, status: 'draft', step_completed: {}, basic_info: infoToSave, services_coverage: services, experience_standards: experience, pricing_availability: pricing })
+            .select('id').single();
+          aid = created?.id;
+        } else {
+          await supabase.from('provider_applications').update({ basic_info: infoToSave }).eq('id', aid);
+        }
+        if (aid) setAppId(aid);
+        const newCompleted = { ...stepsCompleted, 1: true };
+        setStepsCompleted(newCompleted);
+        if (aid) await supabase.from('provider_applications').update({ step_completed: newCompleted, basic_info: infoToSave }).eq('id', aid);
+        setAuthLoading(false);
+        setStep(2);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch {
+        setAuthError('Something went wrong. Please try again.');
+        setAuthLoading(false);
+      }
       return;
     }
+
     const newCompleted = { ...stepsCompleted, [step]: true };
     setStepsCompleted(newCompleted);
     if (appId) {
@@ -369,48 +425,6 @@ export default function ApplyPage() {
     }
     setStep(s => s + 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  async function handleAuth() {
-    setAuthError('');
-    setAuthLoading(true);
-    try {
-      let uid = '';
-      let email = '';
-      if (loginMode === 'signup') {
-        const { data, error } = await supabase.auth.signUp({ email: authEmail, password: authPassword, options: { data: { full_name: authName } } });
-        if (error) { setAuthError(error.message); setAuthLoading(false); return; }
-        uid = data.user?.id ?? '';
-        email = data.user?.email ?? authEmail;
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
-        if (error) { setAuthError(error.message); setAuthLoading(false); return; }
-        uid = data.user?.id ?? '';
-        email = data.user?.email ?? authEmail;
-      }
-      setUserId(uid);
-      setUserEmail(email);
-      setBasicInfo(b => ({ ...b, email }));
-      // Create or load application
-      const { data: existing } = await supabase.from('provider_applications').select('id').eq('user_id', uid).maybeSingle();
-      let aid = existing?.id;
-      if (!aid) {
-        const { data: created } = await supabase.from('provider_applications')
-          .insert({ user_id: uid, status: 'draft', step_completed: {}, basic_info: basicInfo, services_coverage: services, experience_standards: experience, pricing_availability: pricing })
-          .select('id').single();
-        aid = created?.id;
-      }
-      if (aid) setAppId(aid);
-      setShowLoginModal(false);
-      const newCompleted = { ...stepsCompleted, 1: true };
-      setStepsCompleted(newCompleted);
-      if (aid) await supabase.from('provider_applications').update({ step_completed: newCompleted, basic_info: basicInfo }).eq('id', aid);
-      setStep(2);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch {
-      setAuthError('Something went wrong. Please try again.');
-    }
-    setAuthLoading(false);
   }
 
   function goBack() {
@@ -421,9 +435,9 @@ export default function ApplyPage() {
 
   // ─── Final submit ─────────────────────────────────────────────────────────
   async function handleSubmit() {
-    // validate all steps
+    // validate all steps (skip auth check since user is already logged in by this point)
     for (let s = 1; s <= 5; s++) {
-      const e = validateStep(s);
+      const e = validateStep(s, true);
       if (Object.keys(e).length) {
         setErrors(e);
         setStep(s);
@@ -671,12 +685,76 @@ export default function ApplyPage() {
           </div>
 
           <SectionHead>Contact</SectionHead>
-          <div>
-            <FieldLabel required>Email Address</FieldLabel>
-            <StyledInput type="email" value={basicInfo.email} readOnly
-              style={{ backgroundColor: '#F9FAFB', color: '#6B7280' }} />
-            <FieldHint>Prefilled from your account. Contact support to change.</FieldHint>
-          </div>
+
+          {/* ── Account creation / sign-in block (only when not logged in) ── */}
+          {!userId && (
+            <div style={{ backgroundColor: '#F8F9FC', borderRadius: '16px', border: '1px solid #EEEFF1', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Toggle */}
+              <div style={{ display: 'flex', gap: '0', backgroundColor: '#EEEFF1', borderRadius: '10px', padding: '3px' }}>
+                {(['signup', 'login'] as const).map(m => (
+                  <button key={m} type="button" onClick={() => { setAuthMode(m); setAuthError(''); setErrors({}); }}
+                    style={{ flex: 1, padding: '8px', borderRadius: '8px', fontSize: '13px', fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+                      backgroundColor: authMode === m ? '#ffffff' : 'transparent',
+                      color: authMode === m ? '#111111' : '#9CA3AF',
+                      boxShadow: authMode === m ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                    }}>
+                    {m === 'signup' ? '✨ Create Account' : '🔑 Sign In'}
+                  </button>
+                ))}
+              </div>
+
+              {authMode === 'signup' && (
+                <p style={{ fontSize: '12px', color: '#6B7280', margin: 0, lineHeight: 1.6 }}>
+                  Your Urbance Pro account will be created with this email and password. You&apos;ll use them to log in later.
+                </p>
+              )}
+              {authMode === 'login' && (
+                <p style={{ fontSize: '12px', color: '#6B7280', margin: 0, lineHeight: 1.6 }}>
+                  Already applied before? Sign in to continue your existing application.
+                </p>
+              )}
+
+              {/* Email */}
+              <div>
+                <FieldLabel required>Email Address</FieldLabel>
+                <StyledInput type="email" placeholder="e.g. john@example.com"
+                  value={basicInfo.email}
+                  onChange={e => setBasicInfo(b => ({ ...b, email: e.target.value }))}
+                  error={errors.email} />
+                <FieldError msg={errors.email} />
+              </div>
+
+              {/* Password */}
+              <div>
+                <FieldLabel required>{authMode === 'signup' ? 'Create a Password' : 'Password'}</FieldLabel>
+                <StyledInput type="password"
+                  placeholder={authMode === 'signup' ? 'Min. 8 characters' : 'Enter your password'}
+                  value={basicInfo.password}
+                  onChange={e => setBasicInfo(b => ({ ...b, password: e.target.value }))}
+                  error={errors.password} />
+                {authMode === 'signup' && <FieldHint>Use at least 8 characters. You&apos;ll use this to log in to your dashboard.</FieldHint>}
+                <FieldError msg={errors.password} />
+              </div>
+
+              {/* Auth error */}
+              {authError && (
+                <div style={{ backgroundColor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', padding: '12px 14px' }}>
+                  <p style={{ fontSize: '13px', color: '#DC2626', margin: 0 }}>⚠️ {authError}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Email read-only when already logged in */}
+          {userId && (
+            <div>
+              <FieldLabel required>Email Address</FieldLabel>
+              <StyledInput type="email" value={basicInfo.email} readOnly
+                style={{ backgroundColor: '#F9FAFB', color: '#6B7280' }} />
+              <FieldHint>Logged in as {basicInfo.email}. Contact support to change.</FieldHint>
+            </div>
+          )}
+
           <div>
             <FieldLabel required>Phone Number</FieldLabel>
             <StyledInput type="tel" placeholder="e.g. (604) 555-0123" value={basicInfo.phone}
@@ -1280,15 +1358,19 @@ export default function ApplyPage() {
                         Back
                       </button>
                     )}
-                    <button type="button" onClick={goNext} style={{
+                    <button type="button" onClick={goNext} disabled={authLoading} style={{
                       flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                       padding: '13px 22px', borderRadius: '12px', border: 'none',
                       backgroundColor: color, color: '#ffffff', fontSize: '14px', fontWeight: 700,
-                      cursor: 'pointer', fontFamily: 'inherit',
-                      boxShadow: `0 4px 14px ${color}44`,
+                      cursor: authLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+                      boxShadow: `0 4px 14px ${color}44`, opacity: authLoading ? 0.75 : 1,
                     }}>
-                      {step === 5 ? 'Review Application' : `Save & Continue`}
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      {authLoading
+                        ? '⏳ Creating account…'
+                        : step === 1 && !userId
+                          ? (authMode === 'signup' ? 'Create Account & Continue' : 'Sign In & Continue')
+                          : step === 5 ? 'Review Application' : 'Save & Continue'}
+                      {!authLoading && <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </button>
                   </div>
                 )}
@@ -1317,76 +1399,6 @@ export default function ApplyPage() {
 
         </div>
       </main>
-
-      {/* ── Login / Signup modal ── */}
-      {showLoginModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-          {/* Backdrop */}
-          <div onClick={() => setShowLoginModal(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} />
-          {/* Modal */}
-          <div style={{ position: 'relative', backgroundColor: '#ffffff', borderRadius: '24px', padding: '40px 36px', maxWidth: '440px', width: '100%', boxShadow: '0 24px 64px rgba(0,0,0,0.15)' }}>
-            <button onClick={() => setShowLoginModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#9CA3AF' }}>✕</button>
-
-            <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>🔐</div>
-              <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#111111', margin: '0 0 8px', letterSpacing: '-0.02em' }}>
-                {loginMode === 'signup' ? 'Create Your Account' : 'Welcome Back'}
-              </h2>
-              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>
-                {loginMode === 'signup' ? 'Save your progress and continue your application.' : 'Sign in to continue where you left off.'}
-              </p>
-            </div>
-
-            {/* Toggle */}
-            <div style={{ display: 'flex', backgroundColor: '#F3F4F6', borderRadius: '10px', padding: '3px', marginBottom: '24px' }}>
-              {(['signup', 'login'] as const).map(m => (
-                <button key={m} type="button" onClick={() => { setLoginMode(m); setAuthError(''); }} style={{
-                  flex: 1, padding: '9px', borderRadius: '8px', fontSize: '13px', fontWeight: 600,
-                  border: 'none', cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit',
-                  backgroundColor: loginMode === m ? '#ffffff' : 'transparent',
-                  color: loginMode === m ? '#111111' : '#6B7280',
-                  boxShadow: loginMode === m ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                }}>{m === 'signup' ? 'Create Account' : 'Sign In'}</button>
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {loginMode === 'signup' && (
-                <div>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '6px' }}>Full Name</label>
-                  <input value={authName} onChange={e => setAuthName(e.target.value)} placeholder="John Smith"
-                    style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1.5px solid #E5E7EB', fontSize: '14px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const }} />
-                </div>
-              )}
-              <div>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '6px' }}>Email Address</label>
-                <input type="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} placeholder="you@email.com"
-                  style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1.5px solid #E5E7EB', fontSize: '14px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const }} />
-              </div>
-              <div>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '6px' }}>Password</label>
-                <input type="password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} placeholder="Min. 8 characters"
-                  style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1.5px solid #E5E7EB', fontSize: '14px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const }} />
-              </div>
-
-              {authError && (
-                <div style={{ backgroundColor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#DC2626' }}>
-                  ⚠ {authError}
-                </div>
-              )}
-
-              <button type="button" onClick={handleAuth} disabled={authLoading} style={{
-                width: '100%', padding: '14px', borderRadius: '12px', backgroundColor: '#2F80ED',
-                color: '#ffffff', fontSize: '15px', fontWeight: 700, border: 'none',
-                cursor: authLoading ? 'not-allowed' : 'pointer', opacity: authLoading ? 0.7 : 1,
-                fontFamily: 'inherit', marginTop: '4px',
-              }}>
-                {authLoading ? '⏳ Please wait…' : loginMode === 'signup' ? 'Create Account & Continue →' : 'Sign In & Continue →'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <Footer />
     </>
