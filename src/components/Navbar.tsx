@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 export function Navbar() {
@@ -13,9 +13,9 @@ export function Navbar() {
   const supabase = createClient();
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => {
@@ -44,66 +44,116 @@ export function Navbar() {
 
   return (
     <>
+      {/* Floating wrapper */}
       <div style={{
-        position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
-        width: 'calc(100% - 48px)', maxWidth: '1200px', zIndex: 1000,
-        transition: 'all 0.3s ease',
+        position: 'fixed',
+        top: '20px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: 'calc(100% - 48px)',
+        maxWidth: '1160px',
+        zIndex: 1000,
       }}>
+        {/* Nav pill */}
         <nav style={{
-          backgroundColor: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.85)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderRadius: '14px',
-          border: '1px solid rgba(0,0,0,0.08)',
-          boxShadow: scrolled ? '0 8px 32px rgba(0,0,0,0.12)' : '0 2px 16px rgba(0,0,0,0.07)',
-          padding: scrolled ? '12px 28px' : '16px 28px',
-          transition: 'all 0.3s ease',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          backgroundColor: scrolled ? 'rgba(255,255,255,0.94)' : 'rgba(255,255,255,0.88)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(0,0,0,0.07)',
+          borderRadius: '14px',
+          boxShadow: scrolled ? '0 8px 40px rgba(0,0,0,0.10)' : '0 2px 16px rgba(0,0,0,0.06)',
+          padding: scrolled ? '11px 24px' : '14px 24px',
+          transition: 'all 0.3s ease',
           fontFamily: "'Inter', -apple-system, sans-serif",
         }}>
+
           {/* Logo */}
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
-            <div style={{ width: '28px', height: '28px', backgroundColor: '#2F80ED', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M2 11L7 3L12 11" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M4.5 8h5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-            </div>
-            <span style={{ fontSize: '16px', fontWeight: 700, color: '#111111', letterSpacing: '-0.02em' }}>Urbance <span style={{ color: '#2F80ED' }}>Pros</span></span>
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', flexShrink: 0 }}>
+            <span style={{ fontSize: '22px', fontWeight: 700, color: '#111111', letterSpacing: '-0.03em' }}>
+              Urbance <span style={{ color: '#2F80ED' }}>Pros</span>
+            </span>
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="desk-nav" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {/* Desktop links */}
+          <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
             {[
-              { label: 'How It Works', href: '/#how-it-works' },
-              { label: 'Earnings', href: '/#earnings' },
-              { label: 'Requirements', href: '/#requirements' },
+              { label: 'How It Works', href: '/how-it-works' },
+              { label: 'Earnings', href: '/earnings' },
+              { label: 'Requirements', href: '/requirements' },
             ].map((item) => (
-              <a key={item.label} href={item.href} style={{ padding: '8px 14px', fontSize: '14px', fontWeight: 500, color: '#374151', textDecoration: 'none', borderRadius: '8px', transition: 'background 0.2s' }}
+              <a
+                key={item.label}
+                href={item.href}
+                style={{ padding: '8px 13px', fontSize: '14px', fontWeight: 500, color: '#374151', textDecoration: 'none', borderRadius: '8px', transition: 'background 0.15s' }}
                 onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F5F7FA')}
                 onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 {item.label}
               </a>
             ))}
-            <div style={{ width: '1px', height: '20px', backgroundColor: '#E5E7EB', margin: '0 8px' }} />
+
+            <div style={{ width: '1px', height: '18px', backgroundColor: '#E5E7EB', margin: '0 8px' }} />
+
             {user ? (
               <div ref={dropdownRef} style={{ position: 'relative' }}>
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#F5F7FA', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '14px', fontWeight: 500, color: '#111111', cursor: 'pointer', fontFamily: 'inherit' }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '7px 14px',
+                    backgroundColor: '#F5F7FA',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: '#111111',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
                 >
-                  <div style={{ width: '24px', height: '24px', backgroundColor: '#2F80ED', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '11px', fontWeight: 700 }}>
+                  <div style={{
+                    width: '22px',
+                    height: '22px',
+                    backgroundColor: '#2F80ED',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    flexShrink: 0,
+                  }}>
                     {(user.email || 'P')[0].toUpperCase()}
                   </div>
-                  <svg style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: '0.2s' }} width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg
+                    style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+                    width="11" height="11" viewBox="0 0 11 11" fill="none"
+                  >
+                    <path d="M2 4l3.5 3.5L9 4" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </button>
+
                 {dropdownOpen && (
-                  <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: '220px', backgroundColor: '#ffffff', border: '1px solid #E5E7EB', borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', padding: '8px', zIndex: 100 }}>
+                  <div style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: 'calc(100% + 8px)',
+                    width: '220px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: '12px',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                    padding: '8px',
+                    zIndex: 200,
+                  }}>
                     <div style={{ padding: '8px 12px 12px', borderBottom: '1px solid #F5F7FA', marginBottom: '4px' }}>
-                      <div style={{ fontSize: '12px', color: '#9CA3AF', marginBottom: '2px' }}>Signed in as</div>
+                      <div style={{ fontSize: '11px', color: '#9CA3AF', marginBottom: '2px', fontWeight: 500 }}>Signed in as</div>
                       <div style={{ fontSize: '13px', fontWeight: 600, color: '#111111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
                     </div>
                     {[
@@ -112,52 +162,99 @@ export function Navbar() {
                       { label: 'Payouts', href: '/dashboard/payouts' },
                       { label: 'Settings', href: '/dashboard/profile' },
                     ].map((item) => (
-                      <Link key={item.label} href={item.href} onClick={() => setDropdownOpen(false)} style={{ display: 'block', padding: '9px 12px', fontSize: '14px', color: '#374151', textDecoration: 'none', borderRadius: '8px' }}
+                      <Link
+                        key={item.label}
+                        href={item.href}
+                        onClick={() => setDropdownOpen(false)}
+                        style={{ display: 'block', padding: '9px 12px', fontSize: '14px', color: '#374151', textDecoration: 'none', borderRadius: '8px', transition: 'background 0.15s' }}
                         onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F5F7FA')}
                         onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
-                      >{item.label}</Link>
+                      >
+                        {item.label}
+                      </Link>
                     ))}
                     <div style={{ borderTop: '1px solid #F5F7FA', marginTop: '4px', paddingTop: '4px' }}>
-                      <button onClick={handleLogout} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '9px 12px', fontSize: '14px', color: '#EF4444', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', borderRadius: '8px', fontFamily: 'inherit' }}
+                      <button
+                        onClick={handleLogout}
+                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '9px 12px', fontSize: '14px', color: '#EF4444', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', borderRadius: '8px', fontFamily: 'inherit', transition: 'background 0.15s' }}
                         onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#FEF2F2')}
                         onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
-                      >Sign Out</button>
+                      >
+                        Sign Out
+                      </button>
                     </div>
                   </div>
                 )}
               </div>
             ) : (
               <>
-                <Link href="/login" style={{ padding: '8px 16px', fontSize: '14px', fontWeight: 500, color: '#374151', textDecoration: 'none', borderRadius: '8px' }}
+                <Link
+                  href="/login"
+                  style={{ padding: '8px 14px', fontSize: '14px', fontWeight: 500, color: '#374151', textDecoration: 'none', borderRadius: '8px', transition: 'background 0.15s' }}
                   onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F5F7FA')}
                   onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >Sign In</Link>
-                <Link href="/apply" style={{ padding: '9px 20px', fontSize: '14px', fontWeight: 600, color: '#ffffff', backgroundColor: '#2F80ED', borderRadius: '8px', textDecoration: 'none', letterSpacing: '-0.01em' }}>
+                >
+                  Sign In
+                </Link>
+                <Link href="/apply" style={{
+                  padding: '9px 20px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#ffffff',
+                  backgroundColor: '#2F80ED',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  letterSpacing: '-0.01em',
+                  marginLeft: '4px',
+                }}>
                   Apply
                 </Link>
               </>
             )}
           </div>
 
-          {/* Hamburger */}
-          <button className="hamburger" onClick={() => setMobileOpen(!mobileOpen)} style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#111111' }}>
+          {/* Hamburger (mobile) */}
+          <button
+            className="hamburger"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#111111' }}
+          >
             {mobileOpen ? (
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 4l12 12M16 4L4 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M4 4l12 12M16 4L4 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
             ) : (
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
             )}
           </button>
         </nav>
 
         {/* Mobile Menu */}
         {mobileOpen && (
-          <div style={{ marginTop: '8px', backgroundColor: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '14px', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', padding: '16px', fontFamily: "'Inter', sans-serif" }}>
+          <div style={{
+            marginTop: '8px',
+            backgroundColor: 'rgba(255,255,255,0.97)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderRadius: '14px',
+            border: '1px solid rgba(0,0,0,0.07)',
+            boxShadow: '0 8px 40px rgba(0,0,0,0.10)',
+            padding: '12px',
+            fontFamily: "'Inter', sans-serif",
+          }}>
             {[
-              { label: 'How It Works', href: '/#how-it-works' },
-              { label: 'Earnings', href: '/#earnings' },
-              { label: 'Requirements', href: '/#requirements' },
+              { label: 'How It Works', href: '/how-it-works' },
+              { label: 'Earnings', href: '/earnings' },
+              { label: 'Requirements', href: '/requirements' },
             ].map((item) => (
-              <a key={item.label} href={item.href} onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '12px 16px', fontSize: '15px', fontWeight: 500, color: '#374151', textDecoration: 'none', borderRadius: '8px' }}>
+              <a
+                key={item.label}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                style={{ display: 'block', padding: '12px 16px', fontSize: '15px', fontWeight: 500, color: '#374151', textDecoration: 'none', borderRadius: '8px' }}
+              >
                 {item.label}
               </a>
             ))}
@@ -170,7 +267,7 @@ export function Navbar() {
             ) : (
               <>
                 <Link href="/login" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '12px 16px', fontSize: '15px', color: '#374151', textDecoration: 'none', borderRadius: '8px' }}>Sign In</Link>
-                <Link href="/apply" onClick={() => setMobileOpen(false)} style={{ display: 'block', margin: '8px 0 0', padding: '13px 16px', fontSize: '15px', fontWeight: 600, color: '#ffffff', backgroundColor: '#2F80ED', borderRadius: '8px', textDecoration: 'none', textAlign: 'center' }}>Apply Now</Link>
+                <Link href="/apply" onClick={() => setMobileOpen(false)} style={{ display: 'block', margin: '8px 0 4px', padding: '13px 16px', fontSize: '15px', fontWeight: 600, color: '#ffffff', backgroundColor: '#2F80ED', borderRadius: '9px', textDecoration: 'none', textAlign: 'center' as const }}>Apply Now</Link>
               </>
             )}
           </div>
@@ -179,8 +276,8 @@ export function Navbar() {
 
       <style>{`
         @media (max-width: 768px) {
-          .desk-nav { display: none !important; }
-          .hamburger { display: flex !important; }
+          .nav-links  { display: none !important; }
+          .hamburger  { display: flex !important; }
         }
       `}</style>
     </>
