@@ -260,7 +260,7 @@ export default function ApplyPage() {
         .from('provider_applications')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         setAppId(existing.id);
@@ -392,7 +392,7 @@ export default function ApplyPage() {
       setUserEmail(email);
       setBasicInfo(b => ({ ...b, email }));
       // Create or load application
-      const { data: existing } = await supabase.from('provider_applications').select('id').eq('user_id', uid).single();
+      const { data: existing } = await supabase.from('provider_applications').select('id').eq('user_id', uid).maybeSingle();
       let aid = existing?.id;
       if (!aid) {
         const { data: created } = await supabase.from('provider_applications')

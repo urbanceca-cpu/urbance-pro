@@ -158,7 +158,7 @@ export default function SuccessStories() {
     <>
       <div className="relative">
         <div className="fixed top-0 left-0 right-0 h-24 bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 z-0"></div>
-        <Navbar variant="dark" />
+        <Navbar />
       </div>
       <main className="flex flex-col overflow-hidden">
         {/* HERO SECTION */}

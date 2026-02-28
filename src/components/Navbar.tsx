@@ -4,7 +4,11 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
-export function Navbar() {
+interface NavbarProps {
+  variant?: 'light' | 'dark';
+}
+
+export function Navbar({ variant: _variant }: NavbarProps = {}) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState<{ email?: string } | null>(null);

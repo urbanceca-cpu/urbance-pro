@@ -49,7 +49,7 @@ export default function Login() {
     <>
       <div className="relative">
         <div className="fixed top-0 left-0 right-0 h-24 bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 z-0"></div>
-        <Navbar variant="dark" />
+        <Navbar />
       </div>
 
       <main className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 pt-32 pb-20 flex items-start justify-center px-4">
