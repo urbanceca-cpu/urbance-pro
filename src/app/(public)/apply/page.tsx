@@ -17,6 +17,7 @@ interface BasicInfo {
   address_line1: string;
   postal_code: string;
   password: string;
+  confirmPassword: string;
 }
 
 interface ServicesCoverage {
@@ -227,7 +228,10 @@ export default function ApplyPage() {
   const [showLanding, setShowLanding] = useState(true);
 
   // ── Form data ──
-  const [basicInfo, setBasicInfo] = useState<BasicInfo>({ full_legal_name: '', business_name: '', email: '', phone: '', city: '', address_line1: '', postal_code: '', password: '' });
+  const [basicInfo, setBasicInfo] = useState<BasicInfo>({ full_legal_name: '', business_name: '', email: '', phone: '', city: '', address_line1: '', postal_code: '', password: '', confirmPassword: '' });
+  // Show/hide password toggles
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [services, setServices] = useState<ServicesCoverage>({ primary_category: '', sub_services: [], service_areas: [], max_travel_km: '', has_vehicle: '' });
   const [experience, setExperience] = useState<ExperienceStandards>({ years_experience: '', professional_bio: '', team_size: '', is_licensed: '', license_details: '', is_insured: '', policy_limit: '', background_check: '' });
   const [pricing, setPricing] = useState<PricingAvailability>({ pricing_model: '', min_job_price: '', availability: [], earliest_start: '', scheduling_notes: '' });
@@ -311,7 +315,7 @@ export default function ApplyPage() {
   }, [appId]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   // autosave on each section change — always strip password before saving to DB
-  useEffect(() => { if (appId) { const { password: _p, ...safeInfo } = basicInfo; autosave({ basic_info: safeInfo }); } }, [basicInfo]);  // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (appId) { const { password: _p, confirmPassword: _c, ...safeInfo } = basicInfo; autosave({ basic_info: safeInfo }); } }, [basicInfo]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (appId) autosave({ services_coverage: services }); }, [services]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (appId) autosave({ experience_standards: experience }); }, [experience]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (appId) autosave({ pricing_availability: pricing }); }, [pricing]);  // eslint-disable-line react-hooks/exhaustive-deps
@@ -328,6 +332,7 @@ export default function ApplyPage() {
         if (!basicInfo.email.trim() || !/^[^@]+@[^@]+\.[^@]+$/.test(basicInfo.email)) e.email = 'A valid email address is required';
         if (authMode === 'signup') {
           if (!basicInfo.password || basicInfo.password.length < 8) e.password = 'Password must be at least 8 characters';
+          if (basicInfo.password !== basicInfo.confirmPassword) e.confirmPassword = 'Passwords do not match';
         } else {
           if (!basicInfo.password) e.password = 'Password is required';
         }
@@ -348,8 +353,6 @@ export default function ApplyPage() {
       if (!experience.background_check) e.background_check = 'Please answer this question';
     }
     if (s === 4) {
-      if (!pricing.pricing_model) e.pricing_model = 'Select a pricing model';
-      if (!pricing.min_job_price.trim()) e.min_job_price = 'Enter your minimum job price';
       if (!pricing.availability.length) e.availability = 'Select at least one availability window';
     }
     if (s === 5) {
@@ -390,8 +393,8 @@ export default function ApplyPage() {
         }
         setUserId(uid);
         setUserEmail(resolvedEmail);
-        // Save email into basicInfo (strip password before storing)
-        const infoToSave = { ...basicInfo, email: resolvedEmail, password: '' };
+        // Save email into basicInfo (strip password + confirmPassword before storing)
+        const infoToSave = { ...basicInfo, email: resolvedEmail, password: '', confirmPassword: '' };
         setBasicInfo(infoToSave);
         // Create or load draft application
         const { data: existingApp } = await supabase.from('provider_applications').select('id').eq('user_id', uid).maybeSingle();
@@ -490,7 +493,9 @@ export default function ApplyPage() {
         .upload(path, file, { upsert: false });
 
       if (uploadError) {
+        console.error('Upload error:', uploadError.message);
         setDocs(d => d.map(x => x.id === uid ? { ...x, status: 'error', progress: 0 } : x));
+        setErrors(e => ({ ...e, docs: `Upload failed: ${uploadError.message}` }));
         continue;
       }
 
@@ -727,14 +732,41 @@ export default function ApplyPage() {
               {/* Password */}
               <div>
                 <FieldLabel required>{authMode === 'signup' ? 'Create a Password' : 'Password'}</FieldLabel>
-                <StyledInput type="password"
-                  placeholder={authMode === 'signup' ? 'Min. 8 characters' : 'Enter your password'}
-                  value={basicInfo.password}
-                  onChange={e => setBasicInfo(b => ({ ...b, password: e.target.value }))}
-                  error={errors.password} />
+                <div style={{ position: 'relative' }}>
+                  <StyledInput type={showPassword ? 'text' : 'password'}
+                    placeholder={authMode === 'signup' ? 'Min. 8 characters' : 'Enter your password'}
+                    value={basicInfo.password}
+                    onChange={e => setBasicInfo(b => ({ ...b, password: e.target.value }))}
+                    error={errors.password}
+                    style={{ paddingRight: '48px' }} />
+                  <button type="button" onClick={() => setShowPassword(v => !v)}
+                    style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#9CA3AF', padding: '4px' }}>
+                    {showPassword ? '🙈' : '👁'}
+                  </button>
+                </div>
                 {authMode === 'signup' && <FieldHint>Use at least 8 characters. You&apos;ll use this to log in to your dashboard.</FieldHint>}
                 <FieldError msg={errors.password} />
               </div>
+
+              {/* Confirm Password — signup only */}
+              {authMode === 'signup' && (
+                <div>
+                  <FieldLabel required>Confirm Password</FieldLabel>
+                  <div style={{ position: 'relative' }}>
+                    <StyledInput type={showConfirmPassword ? 'text' : 'password'}
+                      placeholder="Re-enter your password"
+                      value={basicInfo.confirmPassword}
+                      onChange={e => setBasicInfo(b => ({ ...b, confirmPassword: e.target.value }))}
+                      error={errors.confirmPassword}
+                      style={{ paddingRight: '48px' }} />
+                    <button type="button" onClick={() => setShowConfirmPassword(v => !v)}
+                      style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#9CA3AF', padding: '4px' }}>
+                      {showConfirmPassword ? '🙈' : '👁'}
+                    </button>
+                  </div>
+                  <FieldError msg={errors.confirmPassword} />
+                </div>
+              )}
 
               {/* Auth error */}
               {authError && (
@@ -964,27 +996,6 @@ export default function ApplyPage() {
       // ── STEP 4: Pricing & Availability ──────────────────────────────────
       case 4: return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <SectionHead>Pricing</SectionHead>
-          <div>
-            <FieldLabel required>Pricing Model</FieldLabel>
-            <StyledSelect value={pricing.pricing_model} error={errors.pricing_model}
-              onChange={e => setPricing(p => ({ ...p, pricing_model: e.target.value }))}>
-              <option value="">Select…</option>
-              <option value="hourly">Per Hour</option>
-              <option value="fixed">Fixed Price</option>
-              <option value="per_job">Per Job (custom quote)</option>
-            </StyledSelect>
-            <FieldError msg={errors.pricing_model} />
-          </div>
-          <div>
-            <FieldLabel required>Typical Minimum Job Price (CAD $)</FieldLabel>
-            <StyledInput type="number" min={0} placeholder="e.g. 80" value={pricing.min_job_price}
-              onChange={e => setPricing(p => ({ ...p, min_job_price: e.target.value }))}
-              error={errors.min_job_price} />
-            <FieldHint>The minimum amount you accept for any single job.</FieldHint>
-            <FieldError msg={errors.min_job_price} />
-          </div>
-
           <SectionHead>Availability</SectionHead>
           <div>
             <FieldLabel required>When Are You Available?</FieldLabel>
