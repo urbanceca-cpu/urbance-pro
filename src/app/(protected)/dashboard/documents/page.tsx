@@ -2,252 +2,141 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 
-interface Document {
-  id: string;
-  type: string;
-  url: string;
-  status: 'required' | 'submitted' | 'verified' | 'expired';
-  created_at: string;
-  expires_at?: string;
-}
+const S: Record<string, React.CSSProperties> = {
+  shell:   { display: 'flex', minHeight: '100vh', background: '#F8FAFC', fontFamily: "'Inter',-apple-system,sans-serif" },
+  main:    { flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 },
+  topbar:  { background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '0 32px', height: '64px', display: 'flex', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 },
+  content: { flex: 1, padding: '32px', maxWidth: '780px', width: '100%' },
+  card:    { background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(15,23,42,0.04)' },
+};
 
-const DOCUMENT_CONFIG = [
-  { type: 'government_id', label: 'Government ID', description: "Driver's license, passport, or provincial ID", required: true },
-  { type: 'insurance_certificate', label: 'Insurance Certificate', description: 'Proof of liability insurance', required: false },
-  { type: 'certification', label: 'Trade Certifications', description: 'Relevant trade licenses or certifications', required: false },
-  { type: 'profile_photo', label: 'Profile Photo', description: 'A clear, professional headshot', required: true },
-  { type: 'background_check', label: 'Background Check', description: 'Criminal record check results', required: true },
+const DOC_CONFIG = [
+  { type: 'government_id',        label: 'Government ID',          desc: "Driver's licence, passport, or provincial ID",     required: true  },
+  { type: 'profile_photo',        label: 'Profile Photo',          desc: 'A clear, professional headshot',                   required: true  },
+  { type: 'background_check',     label: 'Background Check',       desc: 'Criminal record check results',                    required: true  },
+  { type: 'insurance_certificate',label: 'Insurance Certificate',  desc: 'Proof of liability insurance',                     required: false },
+  { type: 'certification',        label: 'Trade Certifications',   desc: 'Relevant trade licences or certifications',        required: false },
 ];
 
+const statusStyle: Record<string, { label: string; color: string; bg: string }> = {
+  verified:  { label: 'Verified',   color: '#059669', bg: '#ECFDF5' },
+  submitted: { label: 'Submitted',  color: '#D97706', bg: '#FFFBEB' },
+  expired:   { label: 'Expired',    color: '#DC2626', bg: '#FEF2F2' },
+  required:  { label: 'Required',   color: '#6B7280', bg: '#F9FAFB' },
+};
+
+interface Doc { id: string; type: string; url: string; status: string; created_at: string; }
+
 export default function DocumentsPage() {
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [docs, setDocs]         = useState<Doc[]>([]);
+  const [isLoading, setLoading] = useState(true);
   const [uploading, setUploading] = useState<string | null>(null);
-  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const refs = useRef<Record<string, HTMLInputElement | null>>({});
   const supabase = createClient();
 
-  useEffect(() => {
-    fetchDocuments();
-  }, []);
+  useEffect(() => { fetchDocs(); }, []);
 
-  const fetchDocuments = async () => {
+  const fetchDocs = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from('documents').select('*').eq('provider_id', user.id).order('created_at', { ascending: false });
+    setDocs(data || []);
+    setLoading(false);
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, docType: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 20 * 1024 * 1024) { toast.error('File too large (max 20 MB)'); return; }
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from('documents')
-      .select('*')
-      .eq('provider_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching documents:', error);
-    } else {
-      setDocuments(data || []);
-    }
-    setIsLoading(false);
-  };
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>, docType: string) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('File size must be less than 10MB');
-      return;
-    }
-
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error('Only JPG, PNG, WebP and PDF files are allowed');
-      return;
-    }
-
     setUploading(docType);
-
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('You must be logged in to upload documents');
-        return;
-      }
+      const ext  = file.name.split('.').pop();
+      const path = `${user.id}/${docType}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('provider-documents').upload(path, file, { upsert: true });
+      if (upErr) { toast.error(upErr.message); return; }
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${docType}_${Date.now()}.${fileExt}`;
-
-      // Upload to storage
-      const { error: uploadError } = await supabase.storage
-        .from('provider-documents')
-        .upload(fileName, file, { cacheControl: '3600', upsert: false });
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        toast.error('Failed to upload document');
-        return;
-      }
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('provider-documents')
-        .getPublicUrl(fileName);
-
-      // Save document record
-      const { error: dbError } = await supabase
-        .from('documents')
-        .insert({
-          provider_id: user.id,
-          type: docType,
-          url: urlData.publicUrl,
-          status: 'submitted',
-        });
-
-      if (dbError) {
-        console.error('Database error:', dbError);
-        toast.error('Failed to save document record');
-        return;
-      }
-
-      toast.success('Document uploaded successfully!');
-      fetchDocuments();
-    } catch (err) {
-      console.error('Error uploading document:', err);
-      toast.error('Failed to upload document');
+      const { data: urlData } = supabase.storage.from('provider-documents').getPublicUrl(path);
+      await supabase.from('documents').upsert({ provider_id: user.id, type: docType, url: urlData.publicUrl, status: 'submitted' }, { onConflict: 'provider_id,type' });
+      toast.success(`${docType.replace(/_/g,' ')} uploaded`);
+      fetchDocs();
     } finally {
       setUploading(null);
+      if (refs.current[docType]) refs.current[docType]!.value = '';
     }
   };
 
-  const getDocumentForType = (type: string): Document | undefined => {
-    return documents.find(doc => doc.type === type);
-  };
-
-  const getStatusBadge = (status: string) => {
-    const styles: { [key: string]: string } = {
-      required: 'bg-amber-100 text-amber-800',
-      submitted: 'bg-blue-100 text-blue-800',
-      verified: 'bg-green-100 text-green-800',
-      expired: 'bg-red-100 text-red-800',
-    };
-    const labels: { [key: string]: string } = {
-      required: 'Required',
-      submitted: 'Under Review',
-      verified: 'Verified ✓',
-      expired: 'Expired',
-    };
-    return (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles[status] || styles.required}`}>
-        {labels[status] || 'Required'}
-      </span>
-    );
-  };
+  const getDoc = (type: string) => docs.find(d => d.type === type);
 
   return (
-    <div className="flex min-h-screen bg-blue-50">
+    <div style={S.shell}>
       <DashboardSidebar />
-      <div className="flex-1 p-8">
-        <div className="max-w-4xl">
-          <h1 className="text-3xl font-bold text-dark mb-2">Documents</h1>
-          <p className="text-medium-grey mb-8">Upload and manage your verification documents</p>
-
-          {/* Progress Card */}
-          <Card className="mb-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white border-0">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">Document Verification</h3>
-                  <p className="text-blue-100 text-sm mt-1">
-                    {documents.filter(d => d.status === 'verified').length} of {DOCUMENT_CONFIG.filter(d => d.required).length} required documents verified
-                  </p>
-                </div>
-                <div className="text-4xl font-bold">
-                  {Math.round((documents.filter(d => d.status === 'verified').length / DOCUMENT_CONFIG.filter(d => d.required).length) * 100)}%
-                </div>
+      <div style={S.main}>
+        <div style={S.topbar}>
+          <div>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>Documents</div>
+            <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '1px' }}>Upload & manage your files</div>
+          </div>
+        </div>
+        <div style={S.content}>
+          {isLoading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '60px' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '3px solid #E2E8F0', borderTopColor: '#3B82F6', animation: 'spin 0.7s linear infinite' }} />
+            </div>
+          ) : (
+            <div style={S.card}>
+              <div style={{ padding: '18px 24px', borderBottom: '1px solid #F1F5F9' }}>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Required & Optional Documents</div>
+                <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>Accepted: PDF, JPG, PNG, HEIC — max 20 MB each</div>
               </div>
-              <div className="mt-4 bg-blue-500/30 rounded-full h-2 overflow-hidden">
-                <div 
-                  className="bg-white h-full rounded-full transition-all duration-500"
-                  style={{ width: `${(documents.filter(d => d.status === 'verified').length / DOCUMENT_CONFIG.filter(d => d.required).length) * 100}%` }}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Documents</CardTitle>
-              <CardDescription>Upload documents to complete your profile verification</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="text-center py-8 text-medium-grey">Loading documents...</div>
-              ) : (
-                <div className="space-y-4">
-                  {DOCUMENT_CONFIG.map((config) => {
-                    const doc = getDocumentForType(config.type);
-                    return (
-                      <div key={config.type} className="flex items-center justify-between p-4 border border-medium-grey/10 rounded-xl hover:border-blue-200 transition-colors">
-                        <input
-                          type="file"
-                          ref={(el) => { fileInputRefs.current[config.type] = el; }}
-                          accept="image/jpeg,image/png,image/webp,application/pdf"
-                          className="hidden"
-                          onChange={(e) => handleFileSelect(e, config.type)}
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-medium text-dark">{config.label}</h4>
-                            {config.required && <span className="text-red-500 text-xs">*</span>}
-                          </div>
-                          <p className="text-sm text-medium-grey">{config.description}</p>
-                          {doc && (
-                            <p className="text-xs text-medium-grey mt-1">
-                              Uploaded: {new Date(doc.created_at).toLocaleDateString()}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3">
-                          {getStatusBadge(doc?.status || 'required')}
-                          {doc ? (
-                            <a href={doc.url} target="_blank" rel="noopener noreferrer">
-                              <Button size="sm" variant="outline">View</Button>
-                            </a>
-                          ) : (
-                            <Button 
-                              size="sm" 
-                              onClick={() => fileInputRefs.current[config.type]?.click()}
-                              isLoading={uploading === config.type}
-                            >
-                              {uploading === config.type ? 'Uploading...' : 'Upload'}
-                            </Button>
-                          )}
-                        </div>
+              {DOC_CONFIG.map((cfg, i) => {
+                const doc = getDoc(cfg.type);
+                const ss  = doc ? (statusStyle[doc.status] || statusStyle.submitted) : statusStyle.required;
+                const isUp = uploading === cfg.type;
+                return (
+                  <div key={cfg.type} style={{ padding: '18px 24px', borderBottom: i < DOC_CONFIG.length - 1 ? '1px solid #F8FAFC' : 'none', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    {/* Icon */}
+                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: doc ? '#ECFDF5' : '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={doc ? '#059669' : '#94A3B8'} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                      </svg>
+                    </div>
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                        <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#0F172A' }}>{cfg.label}</span>
+                        {cfg.required && <span style={{ fontSize: '10px', color: '#DC2626', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Required</span>}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Help Section */}
-          <Card className="mt-6">
-            <CardContent className="p-6">
-              <h3 className="font-semibold text-dark mb-2">Need Help?</h3>
-              <p className="text-sm text-medium-grey mb-4">
-                Having trouble uploading documents? Make sure your files are in JPG, PNG, WebP, or PDF format and under 10MB.
-              </p>
-              <Button variant="outline" size="sm">Contact Support</Button>
-            </CardContent>
-          </Card>
+                      <div style={{ fontSize: '12px', color: '#94A3B8' }}>{cfg.desc}</div>
+                      {doc && <div style={{ fontSize: '11px', color: '#CBD5E1', marginTop: '3px' }}>Uploaded {new Date(doc.created_at).toLocaleDateString()}</div>}
+                    </div>
+                    {/* Status + action */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                      <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 9px', borderRadius: '20px', background: ss.bg, color: ss.color }}>{ss.label}</span>
+                      <input type="file" accept=".pdf,.jpg,.jpeg,.png,.heic,.heif" ref={el => { refs.current[cfg.type] = el; }} onChange={e => handleUpload(e, cfg.type)} style={{ display: 'none' }} />
+                      <button
+                        onClick={() => refs.current[cfg.type]?.click()}
+                        disabled={isUp}
+                        style={{ padding: '7px 14px', borderRadius: '7px', border: '1px solid #E2E8F0', background: '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: '#374151', fontFamily: 'inherit', opacity: isUp ? 0.5 : 1 }}
+                      >
+                        {isUp ? 'Uploading…' : doc ? 'Replace' : 'Upload'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

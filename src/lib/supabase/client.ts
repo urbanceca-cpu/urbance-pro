@@ -1,29 +1,12 @@
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, getBaseUrl } from '@/lib/env';
 
 /**
  * Create a Supabase client for browser/client-side usage
- * Uses placeholder values during build to prevent errors
+ * Uses @supabase/ssr so session is stored in cookies (readable by middleware)
  */
 export function createClient() {
-  // Check if we're using real credentials or placeholders
-  const isPlaceholder = SUPABASE_URL.includes('placeholder');
-  
-  if (isPlaceholder && typeof window !== 'undefined') {
-    console.error('[Supabase] Missing configuration. Check your environment variables:');
-    console.error('  - NEXT_PUBLIC_SUPABASE_URL');
-    console.error('  - NEXT_PUBLIC_SUPABASE_ANON_KEY');
-  }
-
-  return createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: {
-      flowType: 'pkce',
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-      persistSession: true,
-      storageKey: 'urbance-pros-auth',
-    },
-  });
+  return createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
 /**

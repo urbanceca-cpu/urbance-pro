@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
 
 // Routes that require authentication
 const protectedRoutes = ['/dashboard', '/admin'];
@@ -26,12 +26,30 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check for auth token in cookies
-  const authToken = request.cookies.get('sb-fayscounjvfclnlyuddv-auth-token')?.value;
-  const hasSession = !!authToken;
-
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
+
+  // Build a response we can attach cookie mutations to
+  let response = NextResponse.next({ request });
+
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        response = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          response.cookies.set(name, value, options)
+        );
+      },
+    },
+  });
+
+  // Refresh session if expired — required for Server Components
+  const { data: { user } } = await supabase.auth.getUser();
+  const hasSession = !!user;
 
   // Not logged in → redirect to login
   if (isProtectedRoute && !hasSession) {
@@ -46,48 +64,38 @@ export async function proxy(request: NextRequest) {
   }
 
   // Dashboard gating: check application status
-  if (isProtectedRoute && hasSession) {
+  if (isProtectedRoute && hasSession && user) {
     try {
-      const cookieHeader = request.headers.get('cookie') ?? '';
-      const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-        global: { headers: { Cookie: cookieHeader } },
-      });
+      const { data: app } = await supabase
+        .from('provider_applications')
+        .select('status')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const status = app?.status;
 
-      if (user) {
-        const { data: app } = await supabase
-          .from('provider_applications')
-          .select('status')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        const status = app?.status;
-
-        // No application or still a draft → must complete application
-        if (!status || status === 'draft') {
-          const url = new URL('/apply', request.url);
-          url.searchParams.set('message', 'complete-application');
-          return NextResponse.redirect(url);
-        }
-
-        // Rejected → back to apply
-        if (status === 'rejected') {
-          const url = new URL('/apply', request.url);
-          url.searchParams.set('message', 'application-rejected');
-          return NextResponse.redirect(url);
-        }
-
-        // submitted/under_review → protected layout will show the "Under Review" screen
-        // approved → full access, fall through
+      // No application or still a draft → must complete application
+      if (!status || status === 'draft') {
+        const url = new URL('/apply', request.url);
+        url.searchParams.set('message', 'complete-application');
+        return NextResponse.redirect(url);
       }
+
+      // Rejected → back to apply
+      if (status === 'rejected') {
+        const url = new URL('/apply', request.url);
+        url.searchParams.set('message', 'application-rejected');
+        return NextResponse.redirect(url);
+      }
+
+      // submitted/under_review → protected layout will show the "Under Review" screen
+      // approved → full access, fall through
     } catch {
       // If DB check fails, let layout handle it
     }
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

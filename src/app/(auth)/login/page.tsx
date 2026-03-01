@@ -113,6 +113,25 @@ export default function Login() {
                   Forgot your password?
                 </Link>
               </div>
+
+              {/* Dev test account */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                  <p className="text-xs font-bold text-amber-700 mb-2">🧪 Dev Test Account</p>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setIsLoading(true);
+                      const { data, error } = await supabase.auth.signInWithPassword({ email: 'test@urbance.ca', password: 'Test1234!' });
+                      if (error) { alert(error.message); setIsLoading(false); return; }
+                      if (data.user) router.push('/dashboard');
+                    }}
+                    className="w-full text-xs font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg py-2 px-3 transition-colors"
+                  >
+                    ⚡ Sign in as test@urbance.ca
+                  </button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
