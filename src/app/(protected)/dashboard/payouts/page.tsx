@@ -11,8 +11,8 @@ const S: Record<string, React.CSSProperties> = {
   content: { flex: 1, padding: '32px', maxWidth: '860px', width: '100%' },
   card:    { background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(15,23,42,0.04)' },
   label:   { fontSize: '11px', fontWeight: 600, color: '#94A3B8', letterSpacing: '0.05em', textTransform: 'uppercase' as const, marginBottom: '6px', display: 'block' },
-  input:   { width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '13.5px', color: '#0F172A', outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'Inter',-apple-system,sans-serif", background: '#FAFAFA' },
-  btn:     { padding: '9px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, background: '#0F172A', color: '#FFFFFF', fontFamily: 'inherit' },
+  input:   { width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '13.5px', color: '#111', outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'Inter',-apple-system,sans-serif", background: '#FAFAFA' },
+  btn:     { padding: '9px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, background: '#111', color: '#FFFFFF', fontFamily: 'inherit' },
 };
 
 const DEMO_HISTORY = [
@@ -21,7 +21,7 @@ const DEMO_HISTORY = [
   { id: 'p3', period: 'Feb 10 – Feb 14, 2026', jobs: 4, gross: 710, fee: 71,  net: 639,  status: 'paid',    paid_on: 'Feb 15, 2026' },
 ];
 
-export default function PayoutsPage() {
+export default function EarningsPage() {
   const [method, setMethod]   = useState('etransfer');
   const [email,  setEmail]    = useState('');
   const [transit, setTransit] = useState('');
@@ -44,7 +44,7 @@ export default function PayoutsPage() {
       <div style={S.main}>
         <div style={S.topbar}>
           <div>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>Payouts</div>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Earnings</div>
             <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '1px' }}>Earnings, history & payment setup</div>
           </div>
         </div>
@@ -59,7 +59,7 @@ export default function PayoutsPage() {
             ].map(s => (
               <div key={s.label} style={{ ...S.card, padding: '20px 24px' }}>
                 <div style={{ fontSize: '11px', fontWeight: 600, color: '#94A3B8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '10px' }}>{s.label}</div>
-                <div style={{ fontSize: '26px', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.03em' }}>{s.value}</div>
+                <div style={{ fontSize: '26px', fontWeight: 700, color: '#111', letterSpacing: '-0.03em' }}>{s.value}</div>
                 <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '5px' }}>{s.sub}</div>
               </div>
             ))}
@@ -69,7 +69,7 @@ export default function PayoutsPage() {
             {/* History */}
             <div style={S.card}>
               <div style={{ padding: '18px 24px', borderBottom: '1px solid #F1F5F9' }}>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Payout History</div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#111' }}>Payout History</div>
                 <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>Weekly payouts every Friday</div>
               </div>
               {DEMO_HISTORY.map((p, i) => (
@@ -78,7 +78,7 @@ export default function PayoutsPage() {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>{p.period}</div>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#111' }}>{p.period}</div>
                     <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>{p.jobs} jobs · Paid {p.paid_on}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
@@ -89,14 +89,14 @@ export default function PayoutsPage() {
               ))}
               <div style={{ padding: '14px 24px', background: '#F8FAFC', borderTop: '1px solid #F1F5F9', borderRadius: '0 0 12px 12px', display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>Total</span>
-                <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>${totalEarned.toLocaleString()}.00</span>
+                <span style={{ fontSize: '14px', fontWeight: 700, color: '#111' }}>${totalEarned.toLocaleString()}.00</span>
               </div>
             </div>
 
             {/* Payout setup */}
             <div style={S.card}>
               <div style={{ padding: '18px 20px', borderBottom: '1px solid #F1F5F9' }}>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Payout Method</div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#111' }}>Payout Method</div>
                 <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>How you receive your earnings</div>
               </div>
               <div style={{ padding: '20px' }}>
@@ -107,10 +107,10 @@ export default function PayoutsPage() {
                     { key: 'direct',    label: '🏦 Direct Deposit', sub: 'Bank account' },
                   ].map(m => (
                     <button key={m.key} onClick={() => setMethod(m.key)} style={{
-                      padding: '10px', borderRadius: '9px', border: `1.5px solid ${method === m.key ? '#3B82F6' : '#E2E8F0'}`,
+                      padding: '10px', borderRadius: '9px', border: `1.5px solid ${method === m.key ? '#3B82F6' : '#E5E7EB'}`,
                       background: method === m.key ? '#EFF6FF' : '#fff', cursor: 'pointer', textAlign: 'center', fontFamily: 'inherit',
                     }}>
-                      <div style={{ fontSize: '12.5px', fontWeight: 700, color: method === m.key ? '#1D4ED8' : '#0F172A' }}>{m.label}</div>
+                      <div style={{ fontSize: '12.5px', fontWeight: 700, color: method === m.key ? '#2F80ED' : '#111' }}>{m.label}</div>
                       <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px' }}>{m.sub}</div>
                     </button>
                   ))}

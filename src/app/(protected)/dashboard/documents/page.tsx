@@ -80,7 +80,7 @@ export default function DocumentsPage() {
       <div style={S.main}>
         <div style={S.topbar}>
           <div>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>Documents</div>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Documents</div>
             <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '1px' }}>Upload & manage your files</div>
           </div>
         </div>
@@ -92,7 +92,7 @@ export default function DocumentsPage() {
           ) : (
             <div style={S.card}>
               <div style={{ padding: '18px 24px', borderBottom: '1px solid #F1F5F9' }}>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Required & Optional Documents</div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#111' }}>Required & Optional Documents</div>
                 <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>Accepted: PDF, JPG, PNG, HEIC — max 20 MB each</div>
               </div>
               {DOC_CONFIG.map((cfg, i) => {
@@ -111,7 +111,7 @@ export default function DocumentsPage() {
                     {/* Info */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                        <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#0F172A' }}>{cfg.label}</span>
+                        <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#111' }}>{cfg.label}</span>
                         {cfg.required && <span style={{ fontSize: '10px', color: '#DC2626', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Required</span>}
                       </div>
                       <div style={{ fontSize: '12px', color: '#94A3B8' }}>{cfg.desc}</div>

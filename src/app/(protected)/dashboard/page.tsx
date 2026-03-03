@@ -1,261 +1,252 @@
 'use client';
-
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
+import { useState, useEffect } from 'react';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
-import { toast } from 'sonner';
+import { createClient } from '@/lib/supabase/client';
 
-const S: Record<string, React.CSSProperties> = {
-  shell:   { display: 'flex', minHeight: '100vh', background: '#F8FAFC', fontFamily: "'Inter',-apple-system,sans-serif" },
-  main:    { flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 },
-  topbar:  { background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '0 32px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 },
-  content: { flex: 1, padding: '32px' },
-  card:    { background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(15,23,42,0.04)' },
+interface AppData {
+  status: string;
+  basic_info?: Record<string, string>;
+  services_coverage?: { sub_services?: string[]; service_areas?: string[] };
+  experience_standards?: { professional_bio?: string };
+  pricing_availability?: { available?: boolean; availability?: string[] };
+}
+
+const STATUS_MAP: Record<string, { label: string; color: string; bg: string; dot: string }> = {
+  approved:     { label: 'Approved',     color: '#059669', bg: '#ECFDF5', dot: '#059669' },
+  submitted:    { label: 'Under Review', color: '#D97706', bg: '#FFFBEB', dot: '#F59E0B' },
+  under_review: { label: 'Under Review', color: '#D97706', bg: '#FFFBEB', dot: '#F59E0B' },
+  draft:        { label: 'Draft',        color: '#6B7280', bg: '#F9FAFB', dot: '#9CA3AF' },
+  rejected:     { label: 'Rejected',     color: '#DC2626', bg: '#FEF2F2', dot: '#DC2626' },
 };
 
-export default function DashboardOverview() {
-  const [user, setUser]           = useState<{ id: string; email?: string } | null>(null);
-  const [app, setApp]             = useState<Record<string, unknown> | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [available, setAvailable] = useState(true);
-  const [togglingAvail, setTogglingAvail] = useState(false);
-  const router   = useRouter();
+function Sk({ w, h }: { w: string; h: number }) {
+  return <div style={{ width: w, height: `${h}px`, borderRadius: '8px', background: '#F1F5F9', animation: 'sk 1.4s infinite' }} />;
+}
+
+export default function OverviewPage() {
+  const [app, setApp] = useState<AppData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [available, setAvailable] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
     (async () => {
-      const { data: { user: u } } = await supabase.auth.getUser();
-      if (!u) { router.push('/login'); return; }
-      setUser(u);
-      const { data } = await supabase.from('provider_applications').select('*').eq('user_id', u.id).maybeSingle();
-      setApp(data);
-      const pa = (data?.pricing_availability as Record<string, unknown>) || {};
-      setAvailable(pa.available !== false);
-      setIsLoading(false);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
+      const { data } = await supabase
+        .from('provider_applications')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (data) {
+        setApp(data);
+        setAvailable(data.pricing_availability?.available ?? false);
+      }
+      setLoading(false);
     })();
-  }, []);
+  }, []); // eslint-disable-line
 
-  const toggleAvailability = async () => {
+  const toggleAvail = async () => {
+    const next = !available;
+    setAvailable(next);
+    if (!app) return;
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    setTogglingAvail(true);
-    const newVal = !available;
-    const cur = (app?.pricing_availability as Record<string, unknown>) || {};
-    const { error } = await supabase.from('provider_applications')
-      .update({ pricing_availability: { ...cur, available: newVal } })
-      .eq('user_id', user.id);
-    if (!error) {
-      setAvailable(newVal);
-      setApp(prev => prev ? { ...prev, pricing_availability: { ...cur, available: newVal } } : prev);
-      toast.success(newVal ? 'You are now available for jobs' : 'You are now set to unavailable');
-    }
-    setTogglingAvail(false);
+    const pa = { ...(app.pricing_availability || {}), available: next };
+    await supabase.from('provider_applications').update({ pricing_availability: pa }).eq('user_id', user.id);
   };
 
-  if (isLoading) return (
-    <div style={S.shell}><DashboardSidebar />
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '3px solid #E2E8F0', borderTopColor: '#3B82F6', animation: 'spin 0.7s linear infinite' }} />
-      </div>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
+  const st    = STATUS_MAP[app?.status ?? 'draft'] ?? STATUS_MAP.draft;
+  const name  = app?.basic_info?.full_legal_name?.split(' ')[0] ?? 'there';
+  const city  = app?.basic_info?.city ?? '';
+  const svcs  = app?.services_coverage?.sub_services ?? [];
+  const areas = app?.services_coverage?.service_areas ?? [];
+  const bio   = app?.experience_standards?.professional_bio ?? '';
+  const avw   = app?.pricing_availability?.availability ?? [];
+  const pct   = Math.round(
+    [name !== 'there', city, svcs.length > 0, areas.length > 0, bio.length > 40, avw.length > 0]
+      .filter(Boolean).length / 6 * 100
   );
 
-  const bi     = (app?.basic_info as Record<string, string>) || {};
-  const sc     = (app?.services_coverage as Record<string, unknown>) || {};
-  const exp    = (app?.experience_standards as Record<string, unknown>) || {};
-  const name   = bi.full_legal_name || user?.email?.split('@')[0] || 'Provider';
-  const initials = name.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase();
-  const status = (app?.status as string) || 'draft';
-  const city   = bi.city || '—';
-  const services: string[] = (sc.sub_services as string[]) || [];
-  const areas: string[]    = (sc.service_areas as string[]) || [];
-  const expYears = exp.years_experience as number || 0;
-
-  const statusMeta: Record<string, { label: string; color: string; bg: string }> = {
-    approved:     { label: 'Approved',     color: '#059669', bg: '#ECFDF5' },
-    submitted:    { label: 'Under Review', color: '#D97706', bg: '#FFFBEB' },
-    under_review: { label: 'Under Review', color: '#D97706', bg: '#FFFBEB' },
-    draft:        { label: 'Draft',        color: '#6B7280', bg: '#F9FAFB' },
-    rejected:     { label: 'Rejected',     color: '#DC2626', bg: '#FEF2F2' },
-  };
-  const sm = statusMeta[status] || statusMeta.draft;
+  const kpis = [
+    { label: 'Jobs Completed', v: '—',  sub: 'All time',       col: '#2F80ED', bg: '#EBF3FD' },
+    { label: 'Upcoming Jobs',  v: '—',  sub: 'Scheduled',      col: '#7C3AED', bg: '#F5F3FF' },
+    { label: 'Total Earnings', v: '$0', sub: 'Net payout',     col: '#059669', bg: '#ECFDF5' },
+    { label: 'Avg. Rating',    v: '—',  sub: 'From customers', col: '#D97706', bg: '#FFFBEB' },
+  ];
 
   return (
-    <div style={S.shell}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8FAFC', fontFamily: "'Inter',-apple-system,sans-serif" }}>
       <DashboardSidebar />
-      <div style={S.main}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
 
-        {/* Topbar */}
-        <div style={S.topbar}>
+        {/* Sticky header */}
+        <header style={{ background: '#FFF', borderBottom: '1px solid #F3F4F6', padding: '0 40px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, flexShrink: 0 }}>
           <div>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: '#0F172A' }}>Welcome back, {name.split(' ')[0]} 👋</div>
-            <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '1px' }}>{city}</div>
+            {loading
+              ? <Sk w="160px" h={16} />
+              : <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Welcome back, {name} &#x1F44B;</div>
+            }
+            <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px' }}>{city || 'Metro Vancouver'}</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            {/* Availability toggle */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>Available for jobs</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {!loading && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 12px', borderRadius: '20px', background: st.bg }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: st.dot }} />
+                <span style={{ fontSize: '12px', fontWeight: 600, color: st.color }}>{st.label}</span>
+              </div>
+            )}
+            <button style={{ width: '36px', height: '36px', borderRadius: '9px', border: '1px solid #F3F4F6', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 01-3.46 0" />
+              </svg>
+            </button>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#EBF3FD', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: '#2F80ED', flexShrink: 0 }}>
+              {name[0]?.toUpperCase() || 'U'}
+            </div>
+          </div>
+        </header>
+
+        <main style={{ flex: 1, padding: '40px', maxWidth: '1040px', width: '100%' }}>
+
+          {/* Status banner */}
+          {!loading && app && app.status !== 'approved' && (
+            <div style={{ marginBottom: '24px', background: '#FFF', borderRadius: '16px', border: '1px solid #F3F4F6', padding: '22px 26px', boxShadow: '0 1px 4px rgba(17,17,17,0.04)', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '11px', background: st.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '20px' }}>
+                {app.status === 'submitted' || app.status === 'under_review' ? '\u23F3' : app.status === 'rejected' ? '\u274C' : '\u{1F4DD}'}
+              </div>
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#111', marginBottom: '4px' }}>
+                  {app.status === 'submitted' || app.status === 'under_review'
+                    ? 'Your application is under review'
+                    : app.status === 'rejected'
+                      ? 'Application not approved'
+                      : 'Complete your application'}
+                </div>
+                <div style={{ fontSize: '13px', color: '#6B7280', lineHeight: 1.6 }}>
+                  {app.status === 'submitted' || app.status === 'under_review'
+                    ? 'Our team reviews within 3\u20135 business days. You\u2019ll receive an email once approved.'
+                    : app.status === 'rejected'
+                      ? 'Please contact support@urbance.ca to learn next steps.'
+                      : 'Finish your application to unlock full dashboard access.'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Availability toggle */}
+          {!loading && app?.status === 'approved' && (
+            <div style={{ marginBottom: '24px', background: '#FFF', borderRadius: '16px', border: '1px solid #F3F4F6', padding: '16px 24px', boxShadow: '0 1px 4px rgba(17,17,17,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+              <div>
+                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#111' }}>Availability</div>
+                <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px' }}>
+                  {available ? 'Visible to customers \u2014 you can receive new jobs' : 'Hidden from new job requests'}
+                </div>
+              </div>
               <button
-                onClick={toggleAvailability}
-                disabled={togglingAvail}
-                style={{
-                  width: '44px', height: '24px', borderRadius: '12px', border: 'none', cursor: 'pointer',
-                  background: available ? '#059669' : '#CBD5E1', position: 'relative', transition: 'background 0.2s', opacity: togglingAvail ? 0.6 : 1,
-                }}
+                onClick={toggleAvail}
+                style={{ width: '46px', height: '25px', borderRadius: '100px', border: 'none', cursor: 'pointer', background: available ? '#2F80ED' : '#E5E7EB', position: 'relative', transition: 'background 0.18s', flexShrink: 0 }}
               >
-                <span style={{
-                  position: 'absolute', top: '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff',
-                  transition: 'left 0.2s', left: available ? '23px' : '3px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                }} />
+                <div style={{ position: 'absolute', top: '3px', left: available ? '24px' : '3px', width: '19px', height: '19px', borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.18)', transition: 'left 0.18s' }} />
               </button>
             </div>
-            <span style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '20px', background: sm.bg, color: sm.color, fontWeight: 600 }}>{sm.label}</span>
-            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg,#3B82F6,#6366F1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '13px' }}>{initials}</div>
-          </div>
-        </div>
+          )}
 
-        {/* Content */}
-        <div style={S.content}>
-
-          {/* Stats row */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', marginBottom: '24px' }}>
-            {[
-              { label: 'Account Status', value: sm.label,                       sub: 'Current standing',     accent: sm.color },
-              { label: 'Services',       value: services.length || '—',         sub: 'Registered services',  accent: '#3B82F6' },
-              { label: 'Service Areas',  value: areas.length || '—',            sub: 'Coverage zones',       accent: '#8B5CF6' },
-              { label: 'Experience',     value: expYears ? `${expYears}y` : '—', sub: 'Years in trade',      accent: '#F59E0B' },
-            ].map(s => (
-              <div key={s.label} style={{ ...S.card, padding: '20px 22px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: '#94A3B8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '10px' }}>{s.label}</div>
-                <div style={{ fontSize: '26px', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.03em', lineHeight: 1 }}>{String(s.value)}</div>
-                <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '6px' }}>{s.sub}</div>
+          {/* KPI cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', marginBottom: '28px' }}>
+            {kpis.map(k => (
+              <div
+                key={k.label}
+                style={{ background: '#FFF', borderRadius: '16px', border: '1px solid #F3F4F6', padding: '20px 22px', boxShadow: '0 1px 4px rgba(17,17,17,0.04)', transition: 'transform 0.14s,box-shadow 0.14s', cursor: 'default' }}
+                onMouseEnter={e => { const d = e.currentTarget; d.style.transform = 'translateY(-2px)'; d.style.boxShadow = '0 6px 20px rgba(17,17,17,0.07)'; }}
+                onMouseLeave={e => { const d = e.currentTarget; d.style.transform = 'translateY(0)'; d.style.boxShadow = '0 1px 4px rgba(17,17,17,0.04)'; }}
+              >
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: k.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
+                  <div style={{ width: '16px', height: '16px', borderRadius: '4px', background: k.col, opacity: 0.7 }} />
+                </div>
+                {loading
+                  ? <Sk w="56px" h={22} />
+                  : <div style={{ fontSize: '24px', fontWeight: 800, color: '#111', letterSpacing: '-0.03em', lineHeight: 1 }}>{k.v}</div>
+                }
+                <div style={{ fontSize: '11.5px', color: '#9CA3AF', marginTop: '5px' }}>{k.sub}</div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#374151', marginTop: '8px' }}>{k.label}</div>
               </div>
             ))}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 320px', gap: '20px', alignItems: 'start' }}>
+          {/* Bottom 2-col */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 296px', gap: '20px', alignItems: 'start' }}>
 
-            {/* Services & areas */}
-            <div style={S.card}>
-              <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Your Services</div>
-                <Link href="/dashboard/profile" style={{ fontSize: '12px', color: '#3B82F6', textDecoration: 'none', fontWeight: 600 }}>Edit →</Link>
+            {/* Activity table */}
+            <div style={{ background: '#FFF', borderRadius: '16px', border: '1px solid #F3F4F6', boxShadow: '0 1px 4px rgba(17,17,17,0.04)', overflow: 'hidden' }}>
+              <div style={{ padding: '18px 24px', borderBottom: '1px solid #F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#111' }}>Recent Activity</div>
+                <span style={{ fontSize: '11px', color: '#C4C9D4' }}>Last 30 days</span>
               </div>
-              <div style={{ padding: '16px 20px' }}>
-                {services.length > 0 ? (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
-                    {services.map((s: string) => (
-                      <span key={s} style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '20px', background: '#EFF6FF', color: '#1D4ED8', fontWeight: 600 }}>
-                        {s.replace(/_/g,' ')}
-                      </span>
-                    ))}
+              <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 90px 70px', padding: '9px 24px', background: '#FAFAFA', borderBottom: '1px solid #F3F4F6' }}>
+                {['Date', 'Activity', 'Status', 'Amount'].map(h => (
+                  <span key={h} style={{ fontSize: '10px', fontWeight: 700, color: '#C4C9D4', letterSpacing: '0.07em', textTransform: 'uppercase' }}>{h}</span>
+                ))}
+              </div>
+              {loading
+                ? [1, 2, 3].map(i => (
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '110px 1fr 90px 70px', padding: '13px 24px', borderBottom: '1px solid #F8FAFC', gap: '8px', alignItems: 'center' }}>
+                    <Sk w="80px" h={12} /><Sk w="140px" h={12} /><Sk w="60px" h={12} /><Sk w="36px" h={12} />
                   </div>
-                ) : (
-                  <p style={{ fontSize: '13px', color: '#94A3B8' }}>No services added yet. <Link href="/dashboard/profile" style={{ color: '#3B82F6' }}>Add services →</Link></p>
-                )}
-                {areas.length > 0 && (
-                  <>
-                    <div style={{ fontSize: '11px', fontWeight: 600, color: '#94A3B8', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '16px 0 8px' }}>Coverage Areas</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                      {areas.map((a: string) => (
-                        <span key={a} style={{ fontSize: '12px', padding: '3px 9px', borderRadius: '20px', background: '#F5F3FF', color: '#6D28D9', fontWeight: 500 }}>{a}</span>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
+                ))
+                : [
+                  { date: 'Mar 2, 2026', event: 'Application submitted', s: 'submitted', amt: '' },
+                  { date: 'Mar 2, 2026', event: 'Account created',       s: 'complete',  amt: '' },
+                ].map((r, i, a) => (
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '110px 1fr 90px 70px', padding: '13px 24px', borderBottom: i < a.length - 1 ? '1px solid #F8FAFC' : 'none', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12px', color: '#9CA3AF' }}>{r.date}</span>
+                    <span style={{ fontSize: '13px', color: '#111', fontWeight: 500 }}>{r.event}</span>
+                    <span style={{ fontSize: '10.5px', fontWeight: 600, padding: '3px 8px', borderRadius: '20px', background: '#ECFDF5', color: '#059669', width: 'fit-content' }}>{r.s}</span>
+                    <span style={{ fontSize: '12.5px', color: '#9CA3AF' }}>{r.amt || '\u2014'}</span>
+                  </div>
+                ))
+              }
             </div>
 
-            {/* Quick actions */}
-            <div style={S.card}>
-              <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid #F1F5F9' }}>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Quick Actions</div>
+            {/* Right panel */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ background: '#FFF', borderRadius: '16px', border: '1px solid #F3F4F6', padding: '20px 22px', boxShadow: '0 1px 4px rgba(17,17,17,0.04)' }}>
+                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#111', marginBottom: '12px' }}>Profile Strength</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <div style={{ flex: 1, height: '6px', background: '#F3F4F6', borderRadius: '100px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${pct}%`, background: pct >= 80 ? '#059669' : pct >= 50 ? '#2F80ED' : '#F59E0B', borderRadius: '100px', transition: 'width 0.6s ease' }} />
+                  </div>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#111', minWidth: '30px' }}>{pct}%</span>
+                </div>
+                <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#9CA3AF' }}>
+                  {pct < 80 ? 'Complete your profile to attract more jobs.' : 'Great \u2014 you\'re ready to receive jobs.'}
+                </p>
+                <a href="/dashboard/profile" style={{ display: 'block', textAlign: 'center', padding: '8px', borderRadius: '9px', background: '#EBF3FD', color: '#2F80ED', fontSize: '12.5px', fontWeight: 600, textDecoration: 'none' }}>
+                  Edit Profile \u2192
+                </a>
               </div>
-              <div style={{ padding: '8px 10px' }}>
+              <div style={{ background: '#FFF', borderRadius: '16px', border: '1px solid #F3F4F6', padding: '20px 22px', boxShadow: '0 1px 4px rgba(17,17,17,0.04)' }}>
+                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#111', marginBottom: '10px' }}>Quick Actions</div>
                 {[
-                  { href: '/dashboard/profile',   label: 'Update Profile & Services', icon: '👤', sub: 'Edit contact, services, areas' },
-                  { href: '/dashboard/documents',  label: 'Manage Documents',          icon: '📄', sub: 'Upload ID, insurance, certs' },
-                  { href: '/dashboard/jobs',       label: 'Browse Jobs',               icon: '💼', sub: 'View available work' },
-                  { href: '/dashboard/payouts',    label: 'Payout Settings',           icon: '💳', sub: 'Manage bank & earnings' },
-                  { href: '/dashboard/support',    label: 'Get Support',               icon: '💬', sub: 'Open a ticket' },
-                ].map(q => (
-                  <Link key={q.href} href={q.href} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', borderRadius: '8px', textDecoration: 'none', transition: 'background 0.1s' }}
-                    onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = '#F8FAFC'}
-                    onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'}>
-                    <div style={{ fontSize: '18px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', borderRadius: '8px', flexShrink: 0 }}>{q.icon}</div>
-                    <div>
-                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>{q.label}</div>
-                      <div style={{ fontSize: '11.5px', color: '#94A3B8' }}>{q.sub}</div>
-                    </div>
-                    <svg style={{ marginLeft: 'auto', flexShrink: 0 }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                  </Link>
+                  { href: '/dashboard/documents', label: 'Upload Documents' },
+                  { href: '/dashboard/jobs',      label: 'Browse Jobs' },
+                  { href: '/dashboard/payouts',   label: 'View Earnings' },
+                  { href: '/dashboard/support',   label: 'Get Help' },
+                ].map(link => (
+                  <a key={link.href} href={link.href} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px solid #F8FAFC', textDecoration: 'none', color: '#374151', fontSize: '13px', fontWeight: 500 }}>
+                    {link.label}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
+                    </svg>
+                  </a>
                 ))}
               </div>
             </div>
-
-            {/* Onboarding + profile strength */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Onboarding */}
-              <div style={S.card}>
-                <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid #F1F5F9' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Onboarding</div>
-                </div>
-                <div style={{ padding: '12px 20px 16px' }}>
-                  {[
-                    { label: 'Account created',       done: true },
-                    { label: 'Application submitted',  done: status !== 'draft' },
-                    { label: 'Documents uploaded',     done: false },
-                    { label: 'Identity verified',      done: status === 'approved' },
-                    { label: 'Ready to earn',          done: status === 'approved' },
-                  ].map((step, i, arr) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderBottom: i < arr.length - 1 ? '1px solid #F8FAFC' : 'none' }}>
-                      <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: step.done ? '#ECFDF5' : '#F1F5F9', border: `1.5px solid ${step.done ? '#059669' : '#E2E8F0'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        {step.done
-                          ? <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="#059669" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                          : <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#CBD5E1' }} />}
-                      </div>
-                      <span style={{ fontSize: '12.5px', color: step.done ? '#0F172A' : '#94A3B8', fontWeight: step.done ? 500 : 400 }}>{step.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Profile strength */}
-              <div style={S.card}>
-                <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid #F1F5F9' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Profile Strength</div>
-                </div>
-                <div style={{ padding: '16px 20px' }}>
-                  {(() => {
-                    const checks = [!!bi.full_legal_name, !!bi.phone, !!bi.city, services.length > 0, areas.length > 0, expYears > 0];
-                    const pct = Math.round((checks.filter(Boolean).length / checks.length) * 100);
-                    const color = pct >= 80 ? '#059669' : pct >= 50 ? '#D97706' : '#DC2626';
-                    return (
-                      <>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                          <span style={{ fontSize: '13px', color: '#64748B' }}>{pct}% complete</span>
-                          <span style={{ fontSize: '13px', fontWeight: 700, color }}>{pct >= 80 ? 'Strong' : pct >= 50 ? 'Good' : 'Needs work'}</span>
-                        </div>
-                        <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '3px', overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: '3px', transition: 'width 0.5s' }} />
-                        </div>
-                        {pct < 100 && (
-                          <Link href="/dashboard/profile" style={{ display: 'block', marginTop: '10px', fontSize: '12px', color: '#3B82F6', textDecoration: 'none', fontWeight: 600 }}>
-                            Complete your profile →
-                          </Link>
-                        )}
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-            </div>
           </div>
-        </div>
+        </main>
       </div>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <style>{`@keyframes sk{0%{opacity:1}50%{opacity:0.4}100%{opacity:1}}`}</style>
     </div>
   );
 }

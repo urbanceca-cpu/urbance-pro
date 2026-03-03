@@ -13,8 +13,8 @@ const S: Record<string, React.CSSProperties> = {
   content: { flex: 1, padding: '32px', maxWidth: '820px', width: '100%' },
   card:    { background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(15,23,42,0.04)' },
   label:   { fontSize: '11px', fontWeight: 600, color: '#94A3B8', letterSpacing: '0.05em', textTransform: 'uppercase' as const, marginBottom: '6px', display: 'block' },
-  input:   { width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '13.5px', color: '#0F172A', outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'Inter',-apple-system,sans-serif", background: '#FAFAFA', transition: 'border-color 0.15s' },
-  btnPri:  { padding: '9px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, background: '#0F172A', color: '#FFFFFF', fontFamily: 'inherit' },
+  input:   { width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '13.5px', color: '#111', outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'Inter',-apple-system,sans-serif", background: '#FAFAFA', transition: 'border-color 0.15s' },
+  btnPri:  { padding: '9px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, background: '#111', color: '#FFFFFF', fontFamily: 'inherit' },
   btnSec:  { padding: '9px 20px', borderRadius: '8px', border: '1px solid #E2E8F0', cursor: 'pointer', fontSize: '13px', fontWeight: 500, background: '#fff', color: '#374151', fontFamily: 'inherit' },
 };
 
@@ -98,7 +98,7 @@ export default function ProfilePage() {
       <div style={S.main}>
         <div style={S.topbar}>
           <div>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>Profile</div>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Profile</div>
             <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '1px' }}>Manage all your information</div>
           </div>
           <button style={{ ...S.btnPri, opacity: isSaving ? 0.7 : 1 }} onClick={handleSave} disabled={isSaving}>
@@ -111,7 +111,7 @@ export default function ProfilePage() {
           <div style={{ ...S.card, padding: '20px 24px', display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
             <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'linear-gradient(135deg,#3B82F6,#6366F1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '17px', flexShrink: 0 }}>{initials}</div>
             <div>
-              <div style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>{name}</div>
+              <div style={{ fontSize: '16px', fontWeight: 700, color: '#111' }}>{name}</div>
               <div style={{ fontSize: '13px', color: '#64748B' }}>{user?.email}</div>
             </div>
             <span style={{ marginLeft: 'auto', fontSize: '12px', padding: '4px 10px', borderRadius: '20px', background: '#ECFDF5', color: '#059669', fontWeight: 600 }}>
@@ -124,7 +124,7 @@ export default function ProfilePage() {
             {TABS.map((t, i) => (
               <button key={t} onClick={() => setTab(i)} style={{
                 flex: 1, padding: '8px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: tab === i ? 700 : 500,
-                background: tab === i ? '#FFFFFF' : 'transparent', color: tab === i ? '#0F172A' : '#64748B',
+                background: tab === i ? '#FFFFFF' : 'transparent', color: tab === i ? '#111' : '#64748B',
                 boxShadow: tab === i ? '0 1px 3px rgba(15,23,42,0.08)' : 'none', fontFamily: 'inherit', transition: 'all 0.15s',
               }}>{t}</button>
             ))}
@@ -134,7 +134,7 @@ export default function ProfilePage() {
           {tab === 0 && (
             <div style={S.card}>
               <div style={{ padding: '18px 24px', borderBottom: '1px solid #F1F5F9' }}>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Basic Information</div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#111' }}>Basic Information</div>
                 <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>Your personal and contact details</div>
               </div>
               <div style={{ padding: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
@@ -162,7 +162,7 @@ export default function ProfilePage() {
           {tab === 1 && (
             <div style={S.card}>
               <div style={{ padding: '18px 24px', borderBottom: '1px solid #F1F5F9' }}>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Services & Coverage Areas</div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#111' }}>Services & Coverage Areas</div>
                 <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>What you offer and where</div>
               </div>
               <div style={{ padding: '24px' }}>
@@ -221,7 +221,7 @@ export default function ProfilePage() {
           {tab === 2 && (
             <div style={S.card}>
               <div style={{ padding: '18px 24px', borderBottom: '1px solid #F1F5F9' }}>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Experience & Credentials</div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#111' }}>Experience & Credentials</div>
                 <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>Your background and qualifications</div>
               </div>
               <div style={{ padding: '24px' }}>
@@ -265,14 +265,14 @@ export default function ProfilePage() {
           {tab === 3 && (
             <div style={S.card}>
               <div style={{ padding: '18px 24px', borderBottom: '1px solid #F1F5F9' }}>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Availability Schedule</div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#111' }}>Availability Schedule</div>
                 <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>When you're available to take jobs</div>
               </div>
               <div style={{ padding: '24px' }}>
                 {/* Active toggle */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: '#F8FAFC', borderRadius: '10px', marginBottom: '22px', border: '1px solid #E2E8F0' }}>
                   <div>
-                    <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#0F172A' }}>Currently Available</div>
+                    <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#111' }}>Currently Available</div>
                     <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>Toggle off when you're on vacation or fully booked</div>
                   </div>
                   <button onClick={() => setAvail(p => ({ ...p, available: !p.available }))} style={{

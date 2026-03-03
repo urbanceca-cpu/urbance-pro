@@ -11,8 +11,8 @@ const S: Record<string, React.CSSProperties> = {
   content: { flex: 1, padding: '32px', maxWidth: '860px', width: '100%' },
   card:    { background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(15,23,42,0.04)' },
   label:   { fontSize: '11px', fontWeight: 600, color: '#94A3B8', letterSpacing: '0.05em', textTransform: 'uppercase' as const, marginBottom: '6px', display: 'block' },
-  input:   { width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '13.5px', color: '#0F172A', outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'Inter',-apple-system,sans-serif", background: '#FAFAFA' },
-  btn:     { padding: '9px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, background: '#0F172A', color: '#FFFFFF', fontFamily: 'inherit' },
+  input:   { width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '13.5px', color: '#111', outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'Inter',-apple-system,sans-serif", background: '#FAFAFA' },
+  btn:     { padding: '9px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, background: '#111', color: '#FFFFFF', fontFamily: 'inherit' },
 };
 
 const CATEGORIES = ['Account & Billing', 'Job Issues', 'App Bug', 'Payments', 'Documents', 'Other'];
@@ -58,7 +58,7 @@ export default function SupportPage() {
       <div style={S.main}>
         <div style={S.topbar}>
           <div>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>Support</div>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Support</div>
             <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '1px' }}>Get help from our team</div>
           </div>
           {view === 'list' ? (
@@ -74,13 +74,13 @@ export default function SupportPage() {
               {/* Ticket list */}
               <div style={S.card}>
                 <div style={{ padding: '18px 24px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Your Tickets</div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#111' }}>Your Tickets</div>
                   <span style={{ fontSize: '12px', padding: '3px 9px', borderRadius: '20px', background: '#F1F5F9', color: '#64748B', fontWeight: 600 }}>{tickets.length} total</span>
                 </div>
                 {tickets.length === 0 ? (
                   <div style={{ padding: '48px 24px', textAlign: 'center' }}>
                     <div style={{ fontSize: '28px', marginBottom: '10px' }}>✉️</div>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A' }}>No tickets yet</div>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#111' }}>No tickets yet</div>
                     <div style={{ fontSize: '13px', color: '#94A3B8', marginTop: '4px' }}>Submit a ticket if you need help.</div>
                   </div>
                 ) : (
@@ -94,7 +94,7 @@ export default function SupportPage() {
                           </svg>
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.subject}</div>
+                          <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.subject}</div>
                           <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>{t.category} · {t.created}</div>
                         </div>
                         <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 9px', borderRadius: '20px', background: ss.bg, color: ss.color, flexShrink: 0 }}>
@@ -110,7 +110,7 @@ export default function SupportPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={S.card}>
                   <div style={{ padding: '16px 20px', borderBottom: '1px solid #F1F5F9' }}>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Quick Answers</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#111' }}>Quick Answers</div>
                   </div>
                   {[
                     ['How long does approval take?',   '3–5 business days after all documents are verified.'],
@@ -119,14 +119,14 @@ export default function SupportPage() {
                     ['How do I report a no-show?',     'Open a ticket under "Job Issues" with the job ID.'],
                   ].map(([q, a]) => (
                     <div key={q} style={{ padding: '13px 20px', borderBottom: '1px solid #F8FAFC' }}>
-                      <div style={{ fontSize: '12.5px', fontWeight: 600, color: '#0F172A', marginBottom: '3px' }}>{q}</div>
+                      <div style={{ fontSize: '12.5px', fontWeight: 600, color: '#111', marginBottom: '3px' }}>{q}</div>
                       <div style={{ fontSize: '12px', color: '#64748B', lineHeight: 1.5 }}>{a}</div>
                     </div>
                   ))}
                 </div>
                 <div style={{ ...S.card, padding: '16px 20px', textAlign: 'center' }}>
                   <div style={{ fontSize: '22px', marginBottom: '8px' }}>��</div>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>Need urgent help?</div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#111', marginBottom: '4px' }}>Need urgent help?</div>
                   <div style={{ fontSize: '12px', color: '#64748B' }}>Email us at<br /><strong>support@urbance.ca</strong></div>
                 </div>
               </div>
@@ -136,7 +136,7 @@ export default function SupportPage() {
             <div style={{ maxWidth: '620px' }}>
               <div style={S.card}>
                 <div style={{ padding: '18px 24px', borderBottom: '1px solid #F1F5F9' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>New Support Ticket</div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#111' }}>New Support Ticket</div>
                   <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>We typically respond within a few hours</div>
                 </div>
                 <form onSubmit={handleSubmit} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
@@ -145,7 +145,7 @@ export default function SupportPage() {
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
                       {CATEGORIES.map(c => (
                         <button key={c} type="button" onClick={() => setCategory(c)} style={{
-                          padding: '6px 12px', borderRadius: '20px', border: `1.5px solid ${category === c ? '#3B82F6' : '#E2E8F0'}`,
+                          padding: '6px 12px', borderRadius: '20px', border: `1.5px solid ${category === c ? '#3B82F6' : '#E5E7EB'}`,
                           background: category === c ? '#EFF6FF' : '#fff', color: category === c ? '#1D4ED8' : '#374151',
                           fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
                         }}>{c}</button>
@@ -156,7 +156,7 @@ export default function SupportPage() {
                     <label style={S.label}>Priority</label>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       {[['normal','Normal','#64748B','#F1F5F9'], ['high','High','#D97706','#FFFBEB'], ['urgent','Urgent','#DC2626','#FEF2F2']].map(([k,l,c,b]) => (
-                        <button key={k} type="button" onClick={() => setPriority(k)} style={{ padding: '6px 14px', borderRadius: '8px', border: `1.5px solid ${priority === k ? c : '#E2E8F0'}`, background: priority === k ? b : '#fff', color: priority === k ? c : '#374151', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{l}</button>
+                        <button key={k} type="button" onClick={() => setPriority(k)} style={{ padding: '6px 14px', borderRadius: '8px', border: `1.5px solid ${priority === k ? c : '#E5E7EB'}`, background: priority === k ? b : '#fff', color: priority === k ? c : '#374151', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{l}</button>
                       ))}
                     </div>
                   </div>
