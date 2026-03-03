@@ -15,7 +15,6 @@ export function getBaseUrl(): string {
   
   // Prevent localhost in production builds
   if (process.env.NODE_ENV === 'production' && origin.includes('localhost')) {
-    console.warn('[ENV] Detected localhost in production, using fallback URL');
     return 'https://pros.urbance.ca';
   }
   
@@ -62,19 +61,4 @@ export function isProduction(): boolean {
   return process.env.NODE_ENV === 'production';
 }
 
-/**
- * Log environment diagnostics (for debugging)
- */
-export function logEnvDiagnostics(): void {
-  if (typeof window !== 'undefined') {
-    console.group('[Urbance Pros] Environment Diagnostics');
-    console.log('Host:', window.location.host);
-    console.log('Origin:', window.location.origin);
-    console.log('BASE_URL:', getBaseUrl());
-    console.log('MAIN_SITE_URL:', MAIN_SITE_URL);
-    console.log('SUPABASE_URL:', SUPABASE_URL ? '✓ Configured' : '✗ Missing');
-    console.log('SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? '✓ Configured' : '✗ Missing');
-    console.log('Environment:', process.env.NODE_ENV);
-    console.groupEnd();
-  }
-}
+

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
-import { RevealStagger, RevealItem } from '@/components/RevealStagger';
 
 interface Story {
   id: number;
@@ -300,7 +299,7 @@ function StoriesSection({ stories }: { stories: Story[] }) {
           <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-200 via-pink-200 to-rose-200 transform -translate-x-1/2 hidden lg:block"></div>
 
           {/* Cards with Apple-style reveal - Alternating left and right */}
-          <RevealStagger className="space-y-24">
+          <div className="space-y-24">
             {stories.map((story, index) => {
               // Different color gradients for each number
               const colorGradients = [
@@ -317,7 +316,7 @@ function StoriesSection({ stories }: { stories: Story[] }) {
               const gradient = colorGradients[index];
 
               return (
-                <RevealItem key={story.id}>
+                <div key={story.id}>
                   <div className={`lg:grid lg:grid-cols-2 gap-16 items-center ${index % 2 === 0 ? 'lg:text-left' : 'lg:text-right'}`}>
                     {/* Card Container */}
                     <div className={index % 2 === 0 ? '' : 'lg:order-2'}>
@@ -355,10 +354,10 @@ function StoriesSection({ stories }: { stories: Story[] }) {
                       }}></div>
                     </div>
                   </div>
-                </RevealItem>
+                </div>
               );
             })}
-          </RevealStagger>
+          </div>
         </div>
       </div>
     </section>

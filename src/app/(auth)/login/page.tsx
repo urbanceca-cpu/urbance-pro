@@ -38,8 +38,7 @@ export default function Login() {
         toast.success('Signed in successfully!');
         router.push('/dashboard');
       }
-    } catch (error) {
-      console.error('Login error:', error);
+    } catch {
       toast.error('An error occurred during sign in');
       setIsLoading(false);
     }
@@ -123,7 +122,7 @@ export default function Login() {
                     onClick={async () => {
                       setIsLoading(true);
                       const { data, error } = await supabase.auth.signInWithPassword({ email: 'test@urbance.ca', password: 'Test1234!' });
-                      if (error) { alert(error.message); setIsLoading(false); return; }
+                      if (error) { toast.error(error.message); setIsLoading(false); return; }
                       if (data.user) router.push('/dashboard');
                     }}
                     className="w-full text-xs font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg py-2 px-3 transition-colors"

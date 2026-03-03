@@ -128,7 +128,7 @@ export function ProviderApplicationForm() {
       const fileExt = doc.file.name.split('.').pop();
       const fileName = `${userId}/${applicationId}/${docType}_${Date.now()}.${fileExt}`;
 
-      console.log(`[Upload] Uploading ${docType} to ${fileName}`);
+  
 
       const { data, error } = await supabase.storage
         .from('provider-documents')
@@ -147,14 +147,14 @@ export function ProviderApplicationForm() {
         return null;
       }
 
-      console.log(`[Upload Success] ${docType}:`, data);
+  
 
       // Get the public URL
       const { data: urlData } = supabase.storage
         .from('provider-documents')
         .getPublicUrl(fileName);
 
-      console.log(`[Upload URL] ${docType}:`, urlData.publicUrl);
+  
 
       setDocuments((prev) => ({
         ...prev,
