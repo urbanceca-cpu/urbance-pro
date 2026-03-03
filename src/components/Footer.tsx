@@ -57,12 +57,10 @@ export function Footer() {
           <div>
             <div style={{ fontSize: '11px', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase' as const, letterSpacing: '0.1em', marginBottom: '18px' }}>Platform</div>
             {[
-              { label: 'How It Works',    href: '/how-it-works' },
-              { label: 'Earnings',        href: '/earnings' },
-              { label: 'Services',        href: '/services' },
-              { label: 'Requirements',    href: '/requirements' },
-              { label: 'Success Stories', href: '/success-stories' },
-              { label: 'Apply Now',       href: '/apply' },
+              { label: 'How It Works',  href: '/how-it-works' },
+              { label: 'Earnings',      href: '/earnings' },
+              { label: 'Requirements',  href: '/requirements' },
+              { label: 'Apply Now',     href: '/apply' },
             ].map((item) => (
               <Link
                 key={item.label}

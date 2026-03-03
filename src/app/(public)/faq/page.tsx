@@ -1,394 +1,257 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { RevealStagger, RevealItem } from '@/components/RevealStagger';
 
-export default function FAQ() {
+function useFadeIn() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.style.opacity = '1';
+          el.style.transform = 'translateY(0)';
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.06 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+const CATEGORIES = [
+  { id: 'all',             label: 'All Questions' },
+  { id: 'getting-started', label: 'Getting Started' },
+  { id: 'payments',        label: 'Payments & Earnings' },
+  { id: 'jobs',            label: 'Jobs & Clients' },
+  { id: 'account',         label: 'Account & Support' },
+];
+
+const CAT_COLOR: Record<string, { color: string; bg: string }> = {
+  'getting-started': { color: '#2F80ED', bg: '#EBF3FD' },
+  'payments':        { color: '#059669', bg: '#ECFDF5' },
+  'jobs':            { color: '#7C3AED', bg: '#F5F3FF' },
+  'account':         { color: '#D97706', bg: '#FFFBEB' },
+};
+
+const FAQS = [
+  // Getting Started
+  { cat: 'getting-started', q: 'How much does it cost to join?',        a: 'Joining Urbance is 100% free. There are no signup fees, monthly fees, or hidden costs. We only take a 10% commission on completed jobs — you earn, we earn. That\'s it.' },
+  { cat: 'getting-started', q: 'How long does approval take?',          a: 'Most applications are reviewed within 3–5 business days. Background checks typically take 2–3 days. Once approved, you can start accepting jobs immediately.' },
+  { cat: 'getting-started', q: 'What areas do you serve?',              a: 'We currently operate throughout British Columbia, with the highest demand in Metro Vancouver (Vancouver, Surrey, Burnaby, Richmond, Coquitlam, Langley, and surrounding areas). We\'re expanding to other cities soon.' },
+  { cat: 'getting-started', q: 'Do I need insurance?',                  a: 'Yes, liability insurance ($2M minimum) is required for most services. If you don\'t have it yet, we can recommend affordable providers during onboarding.' },
+  { cat: 'getting-started', q: 'What documents do I need to apply?',    a: 'You\'ll need a valid government-issued ID, proof of eligibility to work in Canada, relevant certifications or trade licenses, proof of insurance, and professional references.' },
+  { cat: 'getting-started', q: 'Can I work for other platforms?',       a: 'Absolutely. Urbance is flexible — you\'re free to work independently or with other services. We only ask that you deliver quality work on the jobs you accept from us.' },
+  // Payments
+  { cat: 'payments', q: 'When do I get paid?',               a: 'Payments are processed weekly via direct deposit or e-Transfer every Friday for the prior week\'s completed jobs. Track your earnings in real-time through the dashboard.' },
+  { cat: 'payments', q: 'How much can I earn?',              a: 'Earnings vary by service type and how much you work. On average, our professionals earn $3,500–$8,000 per month. Top earners make $10,000+ monthly. You set your own rates and schedule.' },
+  { cat: 'payments', q: 'What is the commission rate?',      a: 'Urbance takes a 10% commission on completed jobs. This covers payment processing, insurance, customer support, marketing, and platform maintenance. There are no other fees.' },
+  { cat: 'payments', q: 'Can I set my own rates?',           a: 'Yes. You have complete control over your pricing. We provide market-rate guidance to help you stay competitive, but the final decision is always yours.' },
+  { cat: 'payments', q: 'Are there any hidden fees?',        a: 'No hidden fees whatsoever. The 10% commission is our only charge. No monthly subscriptions, no lead fees, no withdrawal fees.' },
+  // Jobs
+  { cat: 'jobs', q: 'Can I choose which jobs to accept?',          a: 'Yes. Browse available jobs, see all details (location, pay, scope), and only accept the ones that fit your schedule. No pressure to accept everything.' },
+  { cat: 'jobs', q: 'How do I get more jobs?',                     a: 'Build a strong profile with a detailed bio and service descriptions. Complete jobs on time and earn 5-star reviews. Respond quickly to requests — top-rated pros get priority placement.' },
+  { cat: 'jobs', q: 'What if I need to cancel a job?',             a: 'You can cancel jobs, but we ask for as much notice as possible. Frequent cancellations may affect your rating and job priority. Contact support if you\'re facing an emergency.' },
+  { cat: 'jobs', q: 'Can I bring my existing clients?',            a: 'Yes. You can invite your existing clients to book through Urbance. They\'ll enjoy easy payment processing and scheduling tools, while you benefit from platform support and payment security.' },
+  { cat: 'jobs', q: 'How do reviews and ratings work?',            a: 'Clients rate you 1–5 stars after job completion. Your overall rating is the average of all reviews. High ratings lead to more job opportunities and better placement in search results.' },
+  // Account
+  { cat: 'account', q: 'Can I pause my account temporarily?',     a: 'Yes. Set your availability to "unavailable" anytime — you won\'t receive new job requests, but can still complete scheduled jobs. Reactivate whenever you\'re ready.' },
+  { cat: 'account', q: 'How do I update my services or rates?',   a: 'Log into your dashboard, go to Profile, and update your services, rates, availability, and bio anytime.' },
+  { cat: 'account', q: 'What happens if I get injured on the job?', a: 'As an independent contractor, you\'re responsible for your own WCB coverage. We strongly recommend proper insurance. Contact support immediately if an incident occurs.' },
+  { cat: 'account', q: 'How do I contact support?',               a: 'Email support@urbance.ca or open a ticket directly in your dashboard. We aim to respond within 24 hours on weekdays, faster for urgent issues.' },
+  { cat: 'account', q: 'Can I delete my account?',                a: 'Yes, you can delete your account anytime from Account Settings. Complete all scheduled jobs and ensure there are no pending payments first. Deletion is permanent.' },
+];
+
+function AccordionItem({ q, a, cat, defaultOpen }: { q: string; a: string; cat: string; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen ?? false);
+  const cc = CAT_COLOR[cat] ?? CAT_COLOR['getting-started'];
+  return (
+    <div
+      style={{ background: '#FFF', borderRadius: '14px', border: `1px solid ${open ? cc.color + '33' : '#F3F4F6'}`, overflow: 'hidden', transition: 'border-color 0.18s', boxShadow: '0 1px 4px rgba(17,17,17,0.04)' }}
+    >
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{ width: '100%', padding: '20px 24px', display: 'flex', alignItems: 'center', gap: '16px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: "'Inter',-apple-system,sans-serif" }}
+      >
+        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: cc.color, flexShrink: 0, marginTop: '1px' }} />
+        <span style={{ flex: 1, fontSize: '15px', fontWeight: 600, color: '#111', lineHeight: 1.4 }}>{q}</span>
+        <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: open ? cc.bg : '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.18s' }}>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+            <path d="M2 4l4 4 4-4" stroke={open ? cc.color : '#9CA3AF'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      </button>
+      {open && (
+        <div style={{ padding: '0 24px 20px 48px' }}>
+          <p style={{ margin: 0, fontSize: '14.5px', color: '#6B7280', lineHeight: 1.75 }}>{a}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function FAQPage() {
   const [activeCategory, setActiveCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [search, setSearch] = useState('');
+  const heroRef    = useFadeIn();
+  const filterRef  = useFadeIn();
+  const listRef    = useFadeIn();
+  const ctaRef     = useFadeIn();
 
-  const categories = [
-    { id: 'all', name: 'All Questions', icon: '🌟' },
-    { id: 'getting-started', name: 'Getting Started', icon: '🚀' },
-    { id: 'payments', name: 'Payments & Earnings', icon: '💰' },
-    { id: 'jobs', name: 'Jobs & Clients', icon: '👥' },
-    { id: 'account', name: 'Account & Support', icon: '⚙️' },
-  ];
-
-  const faqs = [
-    // Getting Started
-    {
-      category: 'getting-started',
-      question: 'How much does it cost to join?',
-      answer: 'Joining Urbance is 100% free. There are no signup fees, monthly fees, or hidden costs. We only take a 15% commission on completed jobs—you earn, we earn. That\'s it.',
-    },
-    {
-      category: 'getting-started',
-      question: 'How long does the approval process take?',
-      answer: 'Most applications are reviewed within 3-5 business days. Background checks typically take 2-3 days. Once approved, you can start working immediately and accepting jobs.',
-    },
-    {
-      category: 'getting-started',
-      question: 'What areas do you serve?',
-      answer: 'We currently operate throughout British Columbia, with the highest demand in Metro Vancouver (Vancouver, Surrey, Burnaby, Richmond, Coquitlam, Langley, and surrounding areas). We\'re expanding to other cities soon.',
-    },
-    {
-      category: 'getting-started',
-      question: 'Do I need insurance?',
-      answer: 'Yes, liability insurance ($2M minimum) is required for most services. If you don\'t have it yet, we can recommend affordable providers during onboarding. Some services may have additional requirements.',
-    },
-    {
-      category: 'getting-started',
-      question: 'What documents do I need to apply?',
-      answer: 'You\'ll need a valid government-issued ID, proof of eligibility to work in Canada, relevant certifications or trade licenses, proof of insurance, and professional references. We\'ll guide you through what\'s needed during the application process.',
-    },
-    {
-      category: 'getting-started',
-      question: 'Can I work for other platforms?',
-      answer: 'Absolutely! Urbance is flexible. You\'re free to work independently or with other services. We only ask that you deliver quality work on the jobs you accept from us.',
-    },
-
-    // Payments & Earnings
-    {
-      category: 'payments',
-      question: 'When do I get paid?',
-      answer: 'Payments are processed weekly via direct deposit every Friday. You can track your earnings in real-time through the dashboard and see exactly when funds will arrive.',
-    },
-    {
-      category: 'payments',
-      question: 'How much can I earn?',
-      answer: 'Earnings vary by service type, experience, and how much you work. On average, our professionals earn $3,500-$8,000 per month. Top earners make $10,000+ monthly. You set your own rates and schedule.',
-    },
-    {
-      category: 'payments',
-      question: 'What is the commission rate?',
-      answer: 'Urbance takes a 15% commission on completed jobs. This covers payment processing, insurance, customer support, marketing, and platform maintenance. There are no other fees.',
-    },
-    {
-      category: 'payments',
-      question: 'Can I set my own rates?',
-      answer: 'Yes! You have complete control over your pricing. We provide market rate guidance to help you stay competitive, but the final decision is yours.',
-    },
-    {
-      category: 'payments',
-      question: 'What payment methods do you support?',
-      answer: 'We pay via direct deposit to your Canadian bank account. Payments are secure, automated, and processed every Friday for the previous week\'s completed work.',
-    },
-    {
-      category: 'payments',
-      question: 'Are there any hidden fees?',
-      answer: 'No hidden fees whatsoever. The 15% commission is our only charge. No monthly subscriptions, no lead fees, no withdrawal fees. What you see is what you get.',
-    },
-
-    // Jobs & Clients
-    {
-      category: 'jobs',
-      question: 'Can I choose which jobs to accept?',
-      answer: 'Yes! You have complete control. Browse available jobs, see all details (location, pay, scope), and only accept the ones that fit your schedule and preferences. No pressure to accept everything.',
-    },
-    {
-      category: 'jobs',
-      question: 'How do I get more jobs?',
-      answer: 'Build a strong profile with great photos and detailed service descriptions. Complete jobs on time and deliver quality work to earn 5-star reviews. Respond quickly to job requests. Top-rated pros get priority placement.',
-    },
-    {
-      category: 'jobs',
-      question: 'What if I need to cancel a job?',
-      answer: 'Life happens! You can cancel jobs, but we ask for as much notice as possible. Frequent cancellations may affect your rating and job priority. Contact support if you\'re facing an emergency.',
-    },
-    {
-      category: 'jobs',
-      question: 'Can I bring my existing clients to the platform?',
-      answer: 'Yes! You can invite your existing clients to book through Urbance. They\'ll enjoy protection, easy payment processing, and scheduling tools. You\'ll benefit from platform support and payment security.',
-    },
-    {
-      category: 'jobs',
-      question: 'What if a client is unsatisfied?',
-      answer: 'We provide mediation for disputes and work to find fair solutions. Our support team reviews each case individually. We protect both clients and professionals, ensuring fair treatment for everyone.',
-    },
-    {
-      category: 'jobs',
-      question: 'How do reviews and ratings work?',
-      answer: 'Clients can rate you 1-5 stars and leave written reviews after job completion. Your overall rating is the average of all reviews. High ratings lead to more job opportunities and higher earnings.',
-    },
-
-    // Account & Support
-    {
-      category: 'account',
-      question: 'What if I have an issue with a customer?',
-      answer: 'Our support team is here to help. We provide mediation for disputes, handle payment issues, and offer 24/7 support for urgent matters. Customer satisfaction is important, but so is fair treatment of our pros.',
-    },
-    {
-      category: 'account',
-      question: 'Can I pause my account temporarily?',
-      answer: 'Yes! You can set your availability to "unavailable" anytime. You won\'t receive new job requests, but you can still complete scheduled jobs. Reactivate whenever you\'re ready.',
-    },
-    {
-      category: 'account',
-      question: 'How do I update my services or rates?',
-      answer: 'Log into your dashboard and go to Profile Settings. You can add/remove services, update rates, change your availability, upload new photos, and edit your bio anytime.',
-    },
-    {
-      category: 'account',
-      question: 'What happens if I get injured on the job?',
-      answer: 'As an independent contractor, you\'re responsible for your own WCB coverage. We strongly recommend having proper insurance. Contact support immediately if an incident occurs for guidance and documentation.',
-    },
-    {
-      category: 'account',
-      question: 'How do I contact support?',
-      answer: 'Email support@urbance.ca, call our hotline (1-888-URBANCE), or use live chat in your dashboard. We aim to respond within 24 hours on weekdays, faster for urgent issues.',
-    },
-    {
-      category: 'account',
-      question: 'Can I delete my account?',
-      answer: 'Yes, you can delete your account anytime from Account Settings. Complete all scheduled jobs first and ensure there are no pending payments. Account deletion is permanent and cannot be undone.',
-    },
-  ];
-
-  const filteredFaqs = faqs.filter(faq => {
-    const matchesCategory = activeCategory === 'all' || faq.category === activeCategory;
-    const matchesSearch = searchQuery === '' || 
-      faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+  const filtered = FAQS.filter(f => {
+    const byCategory = activeCategory === 'all' || f.cat === activeCategory;
+    const bySearch   = !search || f.q.toLowerCase().includes(search.toLowerCase()) || f.a.toLowerCase().includes(search.toLowerCase());
+    return byCategory && bySearch;
   });
 
   return (
     <>
-      <div className="relative">
-        <div className="fixed top-0 left-0 right-0 h-24 bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 z-0"></div>
-        <Navbar />
-      </div>
+      <Navbar />
 
-      <main className="flex flex-col overflow-hidden">
-        {/* HERO SECTION */}
-        <section className="relative min-h-[70vh] flex items-center overflow-hidden bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 -mt-20 pt-20">
-          {/* Animated background blobs */}
-          <div className="absolute inset-0">
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/30 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-            <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-pink-600/30 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
-            <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-blue-600/30 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
-          </div>
+      <main style={{ fontFamily: "'Inter',-apple-system,BlinkMacSystemFont,sans-serif", color: '#111', background: '#fff' }}>
 
-          <div className="max-w-7xl mx-auto px-6 py-24 relative z-10 w-full">
-            <div className="text-center max-w-4xl mx-auto space-y-10">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-sm border border-white/10 rounded-full">
-                <span className="text-white text-sm font-semibold">💡 Got Questions? We've Got Answers</span>
-              </div>
+        {/* ── HERO ── */}
+        <section style={{ padding: '160px 24px 100px', position: 'relative', overflow: 'hidden', backgroundColor: '#0F172A' }}>
+          <img
+            src="/images/ChatGPT Image Feb 27, 2026, 12_38_33 PM.png"
+            alt=""
+            aria-hidden="true"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', zIndex: 0, pointerEvents: 'none' }}
+          />
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.54)', zIndex: 1, pointerEvents: 'none' }} />
 
-              {/* Main Headline */}
-              <div className="space-y-6">
-                <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.1]">
-                  Frequently Asked
-                  <br />
-                  <span className="relative inline-block">
-                    <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 bg-clip-text text-transparent">
-                      Questions
-                    </span>
-                    <svg className="absolute -bottom-2 left-0 w-full" height="12" viewBox="0 0 300 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M2 10C50 2 100 2 150 6C200 10 250 10 298 6" stroke="url(#gradient)" strokeWidth="3" strokeLinecap="round"/>
-                      <defs>
-                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#C084FC" />
-                          <stop offset="50%" stopColor="#F472B6" />
-                          <stop offset="100%" stopColor="#FB7185" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                  </span>
-                </h1>
-                <p className="text-xl md:text-2xl text-gray-300 leading-relaxed">
-                  Everything you need to know about joining Urbance and earning on your terms.
-                </p>
-              </div>
-
-              {/* Search Bar */}
-              <div className="max-w-2xl mx-auto">
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Search for answers..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-16 pr-6 py-5 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-lg"
-                  />
-                </div>
-              </div>
-
-              {/* Quick Stats */}
-              <div className="grid grid-cols-3 gap-8 pt-8 max-w-3xl mx-auto">
-                <div className="space-y-2">
-                  <div className="text-4xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">{faqs.length}+</div>
-                  <div className="text-sm text-gray-400">Questions Answered</div>
-                </div>
-                <div className="space-y-2">
-                  <div className="text-4xl font-black bg-gradient-to-r from-pink-400 to-rose-400 bg-clip-text text-transparent">24/7</div>
-                  <div className="text-sm text-gray-400">Support Available</div>
-                </div>
-                <div className="space-y-2">
-                  <div className="text-4xl font-black bg-gradient-to-r from-rose-400 to-orange-400 bg-clip-text text-transparent">&lt;24h</div>
-                  <div className="text-sm text-gray-400">Response Time</div>
-                </div>
+          <div style={{ maxWidth: '900px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
+            <div ref={heroRef} style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.9s ease, transform 0.9s ease', textAlign: 'center' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#60A5FA', letterSpacing: '0.16em', textTransform: 'uppercase', margin: '0 0 20px' }}>FAQ</p>
+              <h1 style={{ fontSize: 'clamp(36px, 5vw, 64px)', fontWeight: 700, letterSpacing: '-0.03em', color: '#fff', margin: '0 0 20px', lineHeight: 1.08 }}>
+                Frequently asked<br />questions
+              </h1>
+              <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.60)', lineHeight: 1.75, margin: '0 auto 40px', maxWidth: '520px' }}>
+                Everything you need to know about joining and working with Urbance Pros.
+              </p>
+              {/* Search */}
+              <div style={{ position: 'relative', maxWidth: '460px', margin: '0 auto' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                  style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                  <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search questions..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  style={{ width: '100%', padding: '14px 18px 14px 44px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(10px)', fontSize: '15px', color: '#fff', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
+                />
               </div>
             </div>
           </div>
         </section>
 
-        {/* CATEGORY FILTERS */}
-        <section className="sticky top-20 z-40 bg-white border-b border-gray-200 shadow-sm">
-          <div className="max-w-7xl mx-auto px-6 py-4">
-            <div className="flex gap-3 overflow-x-auto scrollbar-hide">
-              {categories.map((category) => (
+        {/* ── CATEGORY FILTER + FAQ LIST ── */}
+        <section style={{ padding: '72px 24px 80px', background: '#F8FAFC' }}>
+          <div style={{ maxWidth: '820px', margin: '0 auto' }}>
+
+            {/* Filter pills */}
+            <div ref={filterRef} style={{ opacity: 0, transform: 'translateY(20px)', transition: 'opacity 0.7s ease, transform 0.7s ease', display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '36px', justifyContent: 'center' }}>
+              {CATEGORIES.map(c => (
                 <button
-                  key={category.id}
-                  onClick={() => setActiveCategory(category.id)}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold whitespace-nowrap transition-all duration-300 ${
-                    activeCategory === category.id
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30 scale-105'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  key={c.id}
+                  onClick={() => setActiveCategory(c.id)}
+                  style={{
+                    padding: '8px 18px', borderRadius: '100px', border: 'none', cursor: 'pointer', fontSize: '13.5px', fontWeight: 600, fontFamily: 'inherit', transition: 'all 0.15s',
+                    background: activeCategory === c.id ? '#111' : '#FFF',
+                    color:      activeCategory === c.id ? '#FFF' : '#6B7280',
+                    boxShadow:  activeCategory === c.id ? '0 2px 8px rgba(17,17,17,0.18)' : '0 1px 3px rgba(17,17,17,0.06)',
+                  }}
                 >
-                  <span className="text-xl">{category.icon}</span>
-                  <span>{category.name}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                    activeCategory === category.id
-                      ? 'bg-white/20 text-white'
-                      : 'bg-white text-gray-600'
-                  }`}>
-                    {category.id === 'all' 
-                      ? faqs.length 
-                      : faqs.filter(f => f.category === category.id).length}
-                  </span>
+                  {c.label}
                 </button>
               ))}
             </div>
+
+            {/* Count */}
+            <div style={{ fontSize: '12.5px', color: '#9CA3AF', marginBottom: '16px', fontWeight: 500 }}>
+              {filtered.length} {filtered.length === 1 ? 'question' : 'questions'}
+              {search && <span> matching &ldquo;{search}&rdquo;</span>}
+            </div>
+
+            {/* Accordion list */}
+            <div ref={listRef} style={{ opacity: 0, transform: 'translateY(20px)', transition: 'opacity 0.7s ease, transform 0.7s ease', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {filtered.length === 0 ? (
+                <div style={{ background: '#FFF', borderRadius: '16px', border: '1px solid #F3F4F6', padding: '56px 24px', textAlign: 'center', boxShadow: '0 1px 4px rgba(17,17,17,0.04)' }}>
+                  <div style={{ fontSize: '28px', marginBottom: '10px' }}>🔍</div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#111', marginBottom: '6px' }}>No results found</div>
+                  <div style={{ fontSize: '14px', color: '#9CA3AF' }}>Try different keywords or browse all questions.</div>
+                  <button onClick={() => { setSearch(''); setActiveCategory('all'); }} style={{ marginTop: '16px', padding: '9px 20px', borderRadius: '9px', border: 'none', background: '#EBF3FD', color: '#2F80ED', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    Clear filters
+                  </button>
+                </div>
+              ) : (
+                filtered.map((f, i) => (
+                  <AccordionItem key={i} q={f.q} a={f.a} cat={f.cat} defaultOpen={i === 0 && activeCategory !== 'all'} />
+                ))
+              )}
+            </div>
           </div>
         </section>
 
-        {/* FAQ SECTION */}
-        <section className="py-24 px-6 bg-gradient-to-b from-white to-gray-50">
-          <div className="max-w-4xl mx-auto">
-            {searchQuery && (
-              <div className="mb-8 text-center">
-                <p className="text-gray-600">
-                  Found <span className="font-bold text-purple-600">{filteredFaqs.length}</span> result{filteredFaqs.length !== 1 ? 's' : ''} for "{searchQuery}"
-                </p>
+        {/* ── STATS STRIP ── */}
+        <section style={{ padding: '64px 24px', background: '#fff', borderTop: '1px solid #F3F4F6', borderBottom: '1px solid #F3F4F6' }}>
+          <div style={{ maxWidth: '900px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '24px', textAlign: 'center' }}>
+            {[
+              { v: '10%',       label: 'Platform fee only', sub: 'No hidden costs' },
+              { v: '3–5 days',  label: 'Approval time',     sub: 'Fast review process' },
+              { v: '$6,200',    label: 'Average earnings',   sub: 'Per month for active pros' },
+              { v: '24 hrs',    label: 'Support response',   sub: 'On weekdays' },
+            ].map(s => (
+              <div key={s.v}>
+                <div style={{ fontSize: '28px', fontWeight: 800, color: '#111', letterSpacing: '-0.04em', lineHeight: 1 }}>{s.v}</div>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginTop: '6px' }}>{s.label}</div>
+                <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px' }}>{s.sub}</div>
               </div>
-            )}
+            ))}
+          </div>
+        </section>
 
-            {filteredFaqs.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="text-6xl mb-6">🔍</div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">No results found</h3>
-                <p className="text-gray-600 mb-8">Try a different search term or browse by category</p>
-                <button
-                  onClick={() => {
-                    setSearchQuery('');
-                    setActiveCategory('all');
-                  }}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+        {/* ── STILL HAVE QUESTIONS CTA ── */}
+        <section style={{ padding: '96px 24px' }}>
+          <div style={{ maxWidth: '640px', margin: '0 auto' }}>
+            <div
+              ref={ctaRef}
+              style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.8s ease, transform 0.8s ease', background: '#F8FAFC', borderRadius: '24px', border: '1px solid #E5E7EB', padding: '56px 48px', textAlign: 'center' }}
+            >
+              <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: '#EBF3FD', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '22px' }}>💬</div>
+              <h2 style={{ fontSize: '26px', fontWeight: 700, color: '#111', letterSpacing: '-0.03em', margin: '0 0 10px' }}>Still have questions?</h2>
+              <p style={{ fontSize: '15px', color: '#6B7280', lineHeight: 1.7, margin: '0 0 32px' }}>
+                Our team is happy to help. Reach out by email and we&apos;ll respond within 24 hours.
+              </p>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <a
+                  href="mailto:support@urbance.ca"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '13px 28px', borderRadius: '10px', background: '#2F80ED', color: '#FFF', fontSize: '14.5px', fontWeight: 600, textDecoration: 'none', boxShadow: '0 4px 18px rgba(47,128,237,0.28)' }}
                 >
-                  View All Questions
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredFaqs.map((faq, index) => (
-                  <div key={index}>
-                    <FAQItem faq={faq} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* STILL HAVE QUESTIONS SECTION */}
-        <section className="py-24 px-6 bg-gradient-to-br from-purple-600 via-pink-600 to-rose-600 relative overflow-hidden">
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-0 left-1/4 w-96 h-96 bg-white rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white rounded-full blur-3xl"></div>
-          </div>
-
-          <div className="max-w-4xl mx-auto text-center relative z-10">
-            <div className="text-6xl mb-6">💬</div>
-            <h2 className="text-4xl md:text-5xl font-black text-white mb-6">
-              Still Have Questions?
-            </h2>
-            <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto">
-              Our support team is here to help. Get answers within 24 hours.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="mailto:support@urbance.ca">
-                <button className="px-8 py-4 bg-white text-purple-600 font-bold text-lg rounded-xl shadow-2xl hover:shadow-white/50 transition-all duration-300 transform hover:scale-105 flex items-center gap-3">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  <span>Email Support</span>
-                </button>
-              </a>
-              <a href="tel:1-888-URBANCE">
-                <button className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white font-semibold text-lg rounded-xl border-2 border-white/30 hover:bg-white/20 transition-all duration-300 flex items-center gap-3">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  <span>Call Us</span>
-                </button>
-              </a>
-            </div>
-
-            <div className="mt-10 flex items-center justify-center gap-8 text-white/80 text-sm">
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Fast response</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Expert help</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Friendly team</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16v16H4z" rx="2" /><path d="M22 6l-10 7L2 6" /></svg>
+                  Email Support
+                </a>
+                <Link
+                  href="/apply"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '13px 28px', borderRadius: '10px', background: '#F3F4F6', color: '#111', fontSize: '14.5px', fontWeight: 600, textDecoration: 'none' }}
+                >
+                  Apply Now
+                  <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </Link>
               </div>
             </div>
           </div>
         </section>
 
-        {/* CTA SECTION */}
-        <section className="py-24 px-6 bg-white">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">
-              Ready to Get Started?
-            </h2>
-            <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-              Join thousands of professionals earning on their terms. Application takes just 10 minutes.
-            </p>
-
-            <a href="/apply">
-              <button className="px-12 py-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black text-lg rounded-xl shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 inline-flex items-center gap-3">
-                <span>Start Your Application</span>
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </button>
-            </a>
-          </div>
-        </section>
       </main>
 
       <Footer />
@@ -396,52 +259,3 @@ export default function FAQ() {
   );
 }
 
-// FAQ Item Component
-function FAQItem({ faq }: { faq: { category: string; question: string; answer: string } }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const categoryColors = {
-    'getting-started': 'from-blue-500 to-cyan-500',
-    'payments': 'from-emerald-500 to-teal-500',
-    'jobs': 'from-purple-500 to-pink-500',
-    'account': 'from-orange-500 to-red-500',
-  };
-
-  const categoryIcons = {
-    'getting-started': '🚀',
-    'payments': '💰',
-    'jobs': '👥',
-    'account': '⚙️',
-  };
-
-  return (
-    <div className="group bg-white rounded-2xl border-2 border-gray-200 hover:border-purple-300 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-lg">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full p-6 flex items-start gap-4 text-left"
-      >
-        <div className={`flex-shrink-0 w-12 h-12 bg-gradient-to-br ${categoryColors[faq.category as keyof typeof categoryColors]} rounded-xl flex items-center justify-center text-2xl shadow-lg`}>
-          {categoryIcons[faq.category as keyof typeof categoryIcons]}
-        </div>
-        <div className="flex-1">
-          <h3 className="font-bold text-gray-900 text-lg mb-1 group-hover:text-purple-600 transition-colors">
-            {faq.question}
-          </h3>
-          {isOpen && (
-            <p className="text-gray-600 leading-relaxed mt-3">
-              {faq.answer}
-            </p>
-          )}
-        </div>
-        <svg 
-          className={`flex-shrink-0 w-6 h-6 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-    </div>
-  );
-}
