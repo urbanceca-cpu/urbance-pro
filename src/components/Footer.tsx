@@ -115,7 +115,7 @@ export function Footer() {
                   onMouseEnter={e => (e.currentTarget.style.color = '#111111')}
                   onMouseLeave={e => (e.currentTarget.style.color = '#374151')}
                 >
-                  {item.label} ↗
+                  {item.label}
                 </a>
               ) : (
                 <Link
