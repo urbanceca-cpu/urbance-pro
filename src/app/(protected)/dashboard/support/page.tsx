@@ -56,7 +56,7 @@ export default function SupportPage() {
     <div style={S.shell}>
       <DashboardSidebar />
       <div style={S.main}>
-        <div style={S.topbar}>
+        <div style={S.topbar} className="dsupp-topbar">
           <div>
             <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Support</div>
             <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '1px' }}>Get help from our team</div>
@@ -68,9 +68,9 @@ export default function SupportPage() {
           )}
         </div>
 
-        <div style={S.content}>
+        <div style={S.content} className="dsupp-content">
           {view === 'list' ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px', alignItems: 'start' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px', alignItems: 'start' }} className="dsupp-layout">
               {/* Ticket list */}
               <div style={S.card}>
                 <div style={{ padding: '18px 24px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -180,6 +180,13 @@ export default function SupportPage() {
           )}
         </div>
       </div>
+      <style>{`
+        @media (max-width: 768px) {
+          .dsupp-topbar  { padding: 0 16px 0 56px !important; }
+          .dsupp-content { padding: 20px 16px !important; }
+          .dsupp-layout  { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }

@@ -49,7 +49,7 @@ export function Navbar({ variant: _variant }: NavbarProps = {}) {
   return (
     <>
       {/* Floating wrapper */}
-      <div style={{
+      <div className="nav-pill-wrapper" style={{
         position: 'fixed',
         top: '20px',
         left: '50%',
@@ -59,7 +59,7 @@ export function Navbar({ variant: _variant }: NavbarProps = {}) {
         zIndex: 1000,
       }}>
         {/* Nav pill */}
-        <nav style={{
+        <nav className="nav-pill" style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -76,7 +76,7 @@ export function Navbar({ variant: _variant }: NavbarProps = {}) {
 
           {/* Logo */}
           <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', flexShrink: 0 }}>
-            <span style={{ fontSize: '22px', fontWeight: 700, color: '#111111', letterSpacing: '-0.03em' }}>
+            <span className="nav-logo-text" style={{ fontSize: '22px', fontWeight: 700, color: '#111111', letterSpacing: '-0.03em' }}>
               Urbance <span style={{ color: '#2F80ED' }}>Pros</span>
             </span>
           </Link>
@@ -237,7 +237,7 @@ export function Navbar({ variant: _variant }: NavbarProps = {}) {
 
         {/* Mobile Menu */}
         {mobileOpen && (
-          <div style={{
+          <div className="nav-mobile-menu" style={{
             marginTop: '8px',
             backgroundColor: 'rgba(255,255,255,0.97)',
             backdropFilter: 'blur(20px)',
@@ -282,6 +282,23 @@ export function Navbar({ variant: _variant }: NavbarProps = {}) {
         @media (max-width: 768px) {
           .nav-links  { display: none !important; }
           .hamburger  { display: flex !important; }
+        }
+        /* Mobile: tighten the floating nav pill */
+        @media (max-width: 600px) {
+          .nav-pill-wrapper {
+            top: 12px !important;
+            width: calc(100% - 24px) !important;
+          }
+          .nav-pill {
+            padding: 11px 16px !important;
+            border-radius: 12px !important;
+          }
+          .nav-logo-text {
+            font-size: 19px !important;
+          }
+          .nav-mobile-menu {
+            border-radius: 12px !important;
+          }
         }
       `}</style>
     </>

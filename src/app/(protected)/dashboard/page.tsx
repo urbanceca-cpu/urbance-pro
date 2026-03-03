@@ -78,10 +78,10 @@ export default function OverviewPage() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#F8FAFC', fontFamily: "'Inter',-apple-system,sans-serif" }}>
       <DashboardSidebar />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }} className="dash-main-col">
 
         {/* Sticky header */}
-        <header style={{ background: '#FFF', borderBottom: '1px solid #F3F4F6', padding: '0 40px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, flexShrink: 0 }}>
+        <header className="dash-header" style={{ background: '#FFF', borderBottom: '1px solid #F3F4F6', padding: '0 40px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, flexShrink: 0 }}>
           <div>
             {loading
               ? <Sk w="160px" h={16} />
@@ -108,7 +108,7 @@ export default function OverviewPage() {
           </div>
         </header>
 
-        <main style={{ flex: 1, padding: '40px', maxWidth: '1040px', width: '100%' }}>
+        <main className="dash-content" style={{ flex: 1, padding: '40px', maxWidth: '1040px', width: '100%' }}>
 
           {/* Status banner */}
           {!loading && app && app.status !== 'approved' && (
@@ -154,7 +154,7 @@ export default function OverviewPage() {
           )}
 
           {/* KPI cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', marginBottom: '28px' }}>
+          <div className="dash-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', marginBottom: '28px' }}>
             {kpis.map(k => (
               <div
                 key={k.label}
@@ -176,10 +176,10 @@ export default function OverviewPage() {
           </div>
 
           {/* Bottom 2-col */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 296px', gap: '20px', alignItems: 'start' }}>
+          <div className="dash-bottom-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 296px', gap: '20px', alignItems: 'start' }}>
 
             {/* Activity table */}
-            <div style={{ background: '#FFF', borderRadius: '16px', border: '1px solid #F3F4F6', boxShadow: '0 1px 4px rgba(17,17,17,0.04)', overflow: 'hidden' }}>
+            <div className="dash-activity-card" style={{ background: '#FFF', borderRadius: '16px', border: '1px solid #F3F4F6', boxShadow: '0 1px 4px rgba(17,17,17,0.04)', overflow: 'hidden' }}>
               <div style={{ padding: '18px 24px', borderBottom: '1px solid #F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ fontSize: '14px', fontWeight: 700, color: '#111' }}>Recent Activity</div>
                 <span style={{ fontSize: '11px', color: '#C4C9D4' }}>Last 30 days</span>
@@ -246,7 +246,20 @@ export default function OverviewPage() {
           </div>
         </main>
       </div>
-      <style>{`@keyframes sk{0%{opacity:1}50%{opacity:0.4}100%{opacity:1}}`}</style>
+      <style>{`@keyframes sk{0%{opacity:1}50%{opacity:0.4}100%{opacity:1}}
+        @media (max-width: 768px) {
+          /* Header padding: leave room for hamburger on left */
+          .dash-header { padding: 0 16px 0 56px !important; }
+          /* Main content padding */
+          .dash-content { padding: 20px 16px !important; }
+          /* KPI cards: 2x2 grid */
+          .dash-kpi-grid { grid-template-columns: repeat(2,1fr) !important; gap: 12px !important; }
+          /* Bottom section: stack */
+          .dash-bottom-grid { grid-template-columns: 1fr !important; }
+          /* Activity table: scrollable */
+          .dash-activity-card { overflow-x: auto !important; }
+        }
+      `}</style>
     </div>
   );
 }

@@ -108,10 +108,10 @@ export default function TermsPage() {
         </section>
 
         {/* ─── TWO-COLUMN LAYOUT ─── */}
-        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '72px 24px 96px', display: 'grid', gridTemplateColumns: '220px 1fr', gap: '64px', alignItems: 'start' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '72px 24px 96px', display: 'grid', gridTemplateColumns: '220px 1fr', gap: '64px', alignItems: 'start' }} className="legal-layout">
 
           {/* ─── STICKY TOC ─── */}
-          <aside ref={tocRef} style={{ ...fadeStyle, position: 'sticky', top: '100px' }}>
+          <aside ref={tocRef} style={{ ...fadeStyle, position: 'sticky', top: '100px' }} className="legal-toc">
             <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#9CA3AF', margin: '0 0 16px' }}>Contents</p>
             <nav>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -273,7 +273,7 @@ export default function TermsPage() {
                 <SectionLabel>06 — Fees &amp; Payments</SectionLabel>
                 <SH>How pricing and payouts work</SH>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }} className="terms-inner-grid">
                   {[
                     { v: '10%',    label: 'Platform commission',  sub: 'On completed jobs only' },
                     { v: 'Weekly', label: 'Payout schedule',       sub: 'Every Friday' },
@@ -348,7 +348,7 @@ export default function TermsPage() {
                   Urbance reserves the right to suspend, restrict, or permanently terminate any Provider account, with or without notice, where Urbance determines in its reasonable discretion that there has been a violation of these Terms, applicable law, or platform policies. Grounds include but are not limited to:
                 </Body>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '10px', marginBottom: '22px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '10px', marginBottom: '22px' }} className="terms-inner-grid">
                   {[
                     { icon: '🚫', t: 'Fraud or misrepresentation',        d: 'Providing false identity, credentials, or business information.' },
                     { icon: '⚠️', t: 'Safety violations',                   d: 'Conduct that endangers customer, public, or occupational safety.' },
@@ -468,7 +468,7 @@ export default function TermsPage() {
                   If you have questions, concerns, or requests related to these Terms of Service, please contact us through one of the following channels:
                 </Body>
                 <div style={{ background: '#F5F7FA', borderRadius: '16px', padding: '32px', border: '1px solid #E5E7EB', marginBottom: '24px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' }} className="terms-inner-grid">
                     <div>
                       <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#9CA3AF', margin: '0 0 6px', fontFamily: FONT }}>Legal Enquiries</p>
                       <a href="mailto:legal@urbance.ca" style={{ fontSize: '15px', fontWeight: 600, color: '#2F80ED', textDecoration: 'none', fontFamily: FONT }}>legal@urbance.ca</a>
@@ -523,6 +523,16 @@ export default function TermsPage() {
         </div>
 
       </main>
+
+      <style>{`
+        *, *::before, *::after { box-sizing: border-box; }
+        body { overflow-x: hidden; }
+        @media (max-width: 768px) {
+          .legal-layout      { grid-template-columns: 1fr !important; padding: 40px 16px 60px !important; }
+          .legal-toc         { display: none !important; }
+          .terms-inner-grid  { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
 
       <Footer />
     </>

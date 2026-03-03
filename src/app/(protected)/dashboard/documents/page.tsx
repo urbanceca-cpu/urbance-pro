@@ -78,13 +78,13 @@ export default function DocumentsPage() {
     <div style={S.shell}>
       <DashboardSidebar />
       <div style={S.main}>
-        <div style={S.topbar}>
+        <div style={S.topbar} className="ddocs-topbar">
           <div>
             <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Documents</div>
             <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '1px' }}>Upload & manage your files</div>
           </div>
         </div>
-        <div style={S.content}>
+        <div style={S.content} className="ddocs-content">
           {isLoading ? (
             <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '60px' }}>
               <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '3px solid #E2E8F0', borderTopColor: '#3B82F6', animation: 'spin 0.7s linear infinite' }} />
@@ -118,7 +118,7 @@ export default function DocumentsPage() {
                       {doc && <div style={{ fontSize: '11px', color: '#CBD5E1', marginTop: '3px' }}>Uploaded {new Date(doc.created_at).toLocaleDateString()}</div>}
                     </div>
                     {/* Status + action */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                    <div className="ddocs-action-row" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
                       <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 9px', borderRadius: '20px', background: ss.bg, color: ss.color }}>{ss.label}</span>
                       <input type="file" accept=".pdf,.jpg,.jpeg,.png,.heic,.heif" ref={el => { refs.current[cfg.type] = el; }} onChange={e => handleUpload(e, cfg.type)} style={{ display: 'none' }} />
                       <button
@@ -136,7 +136,15 @@ export default function DocumentsPage() {
           )}
         </div>
       </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 768px) {
+          .ddocs-topbar  { padding: 0 16px 0 56px !important; }
+          .ddocs-content { padding: 20px 16px !important; }
+        }
+        @media (max-width: 500px) {
+          .ddocs-action-row { flex-direction: column !important; align-items: flex-start !important; gap: 6px !important; }
+        }
+      `}</style>
     </div>
   );
 }

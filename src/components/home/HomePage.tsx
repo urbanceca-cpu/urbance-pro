@@ -87,7 +87,7 @@ export function HomePage() {
           }} />
 
           {/* Content */}
-          <div style={{ position: 'relative', zIndex: 2, width: '100%', padding: '160px 24px 100px' }}>
+          <div className="home-hero-content" style={{ position: 'relative', zIndex: 2, width: '100%', padding: '160px 24px 100px' }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
 
               <div
@@ -99,7 +99,7 @@ export function HomePage() {
                   maxWidth: '620px',
                 }}
               >
-                <div style={{
+                <div className="home-hero-badge" style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
@@ -129,7 +129,7 @@ export function HomePage() {
                   Build a stronger service business with Urbance.
                 </h1>
 
-                <p style={{
+                <p className="home-hero-sub" style={{
                   fontSize: '18px',
                   lineHeight: 1.75,
                   color: '#6B7280',
@@ -139,7 +139,7 @@ export function HomePage() {
                   We connect trusted professionals with high-quality clients across British Columbia.
                 </p>
 
-                <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' as const }}>
+                <div className="home-hero-cta" style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' as const }}>
                   <Link href="/apply" style={{
                     display: 'inline-block',
                     backgroundColor: '#2F80ED',
@@ -198,10 +198,10 @@ export function HomePage() {
               ref={valuesRef}
               style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.9s ease, transform 0.9s ease' }}
             >
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: '1px solid #F0F0F0' }}>
+              <div className="home-why-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: '1px solid #F0F0F0' }}>
 
                 {/* Left sticky panel */}
-                <div style={{
+                <div className="home-why-left" style={{
                   padding: '96px 72px 96px 0',
                   borderRight: '1px solid #F0F0F0',
                   position: 'sticky' as const,
@@ -244,7 +244,7 @@ export function HomePage() {
                 </div>
 
                 {/* Right: feature rows with coloured left borders */}
-                <div style={{ paddingLeft: '72px' }}>
+                <div className="home-why-right" style={{ paddingLeft: '72px' }}>
                   {[
                     {
                       title: 'Jobs matched to you — no bidding',
@@ -308,7 +308,7 @@ export function HomePage() {
         </section>
 
         {/* HOW IT WORKS */}
-        <section id="how-it-works" style={{
+        <section id="how-it-works" className="home-hiw-section" style={{
           padding: '140px 24px',
           backgroundColor: '#ffffff',
           borderTop: '1px solid #F0F0F0',
@@ -321,9 +321,9 @@ export function HomePage() {
               style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.8s ease, transform 0.8s ease' }}
             >
               {/* Header */}
-              <div style={{ marginBottom: '72px' }}>
+              <div className="home-hiw-header" style={{ marginBottom: '72px' }}>
                 <p style={{ fontSize: '11px', fontWeight: 700, color: '#2F80ED', letterSpacing: '0.16em', textTransform: 'uppercase' as const, margin: '0 0 20px' }}>Process</p>
-                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '24px' }}>
+                <div className="home-hiw-header-row" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '24px' }}>
                   <h2 style={{ fontSize: 'clamp(32px, 3.4vw, 52px)', fontWeight: 700, letterSpacing: '-0.03em', color: '#111111', margin: 0, lineHeight: 1.1 }}>
                     From application<br />to payday.
                   </h2>
@@ -334,7 +334,7 @@ export function HomePage() {
               </div>
 
               {/* Process banner image */}
-              <div style={{
+              <div className="home-process-img" style={{
                 borderRadius: '20px',
                 overflow: 'hidden',
                 marginBottom: '28px',
@@ -349,7 +349,7 @@ export function HomePage() {
               </div>
 
               {/* Steps — 5 equal columns */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', alignItems: 'stretch' }}>
+              <div className="home-steps-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', alignItems: 'stretch' }}>
                 {[
                   {
                     n: '01',
@@ -440,14 +440,14 @@ export function HomePage() {
         </section>
 
         {/* EARNINGS */}
-        <section id="earnings" style={{ padding: '140px 24px', backgroundColor: '#F8F9FC', borderTop: '1px solid #F0F0F0' }}>
+        <section id="earnings" className="home-earnings-section" style={{ padding: '140px 24px', backgroundColor: '#F8F9FC', borderTop: '1px solid #F0F0F0' }}>
           <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
             <div
               ref={earningsRef}
               style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.8s ease, transform 0.8s ease' }}
             >
               {/* Two-column layout */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
+              <div className="home-earnings-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
 
                 {/* Left — image */}
                 <div style={{
@@ -515,11 +515,11 @@ export function HomePage() {
         </section>
 
         {/* SELECTIVE PARTNERS */}
-        <section id="requirements" style={{ padding: '120px 24px', backgroundColor: '#ffffff', borderTop: '1px solid #F0F0F0' }}>
+        <section id="requirements" className="home-requirements-section" style={{ padding: '120px 24px', backgroundColor: '#ffffff', borderTop: '1px solid #F0F0F0' }}>
           <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
             <div
               ref={partnersRef}
-              className="partners-grid"
+              className="partners-grid home-requirements-grid"
               style={{
                 display: 'grid',
                 gap: '100px',
@@ -577,7 +577,7 @@ export function HomePage() {
         </section>
 
         {/* APPLICATION CTA */}
-        <section style={{
+        <section className="home-cta-section" style={{
           padding: '140px 24px',
           background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
           position: 'relative' as const,
@@ -598,7 +598,7 @@ export function HomePage() {
               <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.65)', margin: '0 0 52px', lineHeight: 1.75 }}>
                 Apply in under 5 minutes. No fees, no commitment — just more work, better clients, and weekly pay.
               </p>
-              <Link href="/apply" style={{
+              <Link href="/apply" className="home-cta-btn" style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '10px',
@@ -628,7 +628,7 @@ export function HomePage() {
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
           *, *::before, *::after { box-sizing: border-box; }
           html { scroll-behavior: smooth; }
-          body { -webkit-font-smoothing: antialiased; }
+          body { -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 
           .hero-grid     { grid-template-columns: 1fr 1fr; }
           .value-grid    { grid-template-columns: repeat(3, 1fr); }
@@ -639,9 +639,121 @@ export function HomePage() {
             .hero-grid     { grid-template-columns: 1fr !important; }
             .hero-image    { display: none !important; }
             .value-grid    { grid-template-columns: 1fr !important; }
-            .steps-grid    { grid-template-columns: 1fr !important; }
+            .steps-grid    { grid-template-columns: 1fr 1fr !important; }
             .step-item     { border-left: none !important; padding-left: 0 !important; border-top: 1px solid #F0F0F0; padding-top: 28px; }
             .partners-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
+          }
+
+          /* ── Mobile-specific overrides ── */
+          @media (max-width: 640px) {
+            /* Hero */
+            .home-hero-content {
+              padding: 120px 16px 72px !important;
+            }
+            .home-hero-badge {
+              font-size: 10px !important;
+              padding: 5px 10px !important;
+              margin-bottom: 24px !important;
+            }
+            .home-hero-sub {
+              font-size: 15px !important;
+              margin-bottom: 32px !important;
+            }
+            .home-hero-cta {
+              flex-direction: column !important;
+              gap: 10px !important;
+            }
+            .home-hero-cta a {
+              width: 100% !important;
+              text-align: center !important;
+              justify-content: center !important;
+            }
+
+            /* Social proof strip */
+            .home-strip p {
+              font-size: 10px !important;
+            }
+
+            /* Why Urbance — two-col grid -> single col */
+            .home-why-grid {
+              grid-template-columns: 1fr !important;
+            }
+            .home-why-left {
+              position: static !important;
+              padding: 48px 16px 32px !important;
+              border-right: none !important;
+              border-bottom: 1px solid #F0F0F0 !important;
+            }
+            .home-why-right {
+              padding-left: 0 !important;
+            }
+            .home-why-right > div {
+              padding: 32px 16px !important;
+            }
+
+            /* How It Works section */
+            .home-hiw-section {
+              padding: 72px 16px !important;
+            }
+            .home-hiw-header {
+              margin-bottom: 40px !important;
+            }
+            .home-hiw-header-row {
+              flex-direction: column !important;
+              align-items: flex-start !important;
+              gap: 12px !important;
+            }
+            .home-steps-grid {
+              grid-template-columns: 1fr !important;
+              gap: 12px !important;
+            }
+
+            /* Earnings section */
+            .home-earnings-section {
+              padding: 72px 16px !important;
+            }
+            .home-earnings-grid {
+              grid-template-columns: 1fr !important;
+              gap: 32px !important;
+            }
+            .home-earnings-table-row {
+              flex-direction: column !important;
+              align-items: flex-start !important;
+              gap: 4px !important;
+              padding: 14px 20px !important;
+            }
+            .home-earnings-table-right {
+              flex-direction: row-reverse !important;
+              gap: 8px !important;
+            }
+
+            /* Partners / Requirements section */
+            .home-requirements-section {
+              padding: 64px 16px !important;
+            }
+            .home-requirements-grid {
+              grid-template-columns: 1fr !important;
+              gap: 32px !important;
+            }
+
+            /* Apply CTA */
+            .home-cta-section {
+              padding: 80px 16px !important;
+            }
+            .home-cta-btn {
+              width: 100% !important;
+              justify-content: center !important;
+              padding: 16px 24px !important;
+            }
+
+            /* Process image */
+            .home-process-img {
+              border-radius: 14px !important;
+            }
+          }
+
+          @media (max-width: 400px) {
+            .steps-grid { grid-template-columns: 1fr !important; }
           }
         `}</style>
       </main>

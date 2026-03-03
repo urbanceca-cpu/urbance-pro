@@ -126,10 +126,10 @@ export default function PrivacyPage() {
         </section>
 
         {/* ─── LAYOUT WRAPPER ─── */}
-        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '72px 24px 96px', display: 'grid', gridTemplateColumns: '220px 1fr', gap: '64px', alignItems: 'start' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '72px 24px 96px', display: 'grid', gridTemplateColumns: '220px 1fr', gap: '64px', alignItems: 'start' }} className="legal-layout">
 
           {/* ─── STICKY TABLE OF CONTENTS ─── */}
-          <aside ref={tocRef} style={{ ...fadeStyle, position: 'sticky', top: '100px' }}>
+          <aside ref={tocRef} style={{ ...fadeStyle, position: 'sticky', top: '100px' }} className="legal-toc">
             <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#9CA3AF', margin: '0 0 16px' }}>Contents</p>
             <nav>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -455,6 +455,15 @@ export default function PrivacyPage() {
         </div>
 
       </main>
+
+      <style>{`
+        *, *::before, *::after { box-sizing: border-box; }
+        body { overflow-x: hidden; }
+        @media (max-width: 768px) {
+          .legal-layout { grid-template-columns: 1fr !important; padding: 40px 16px 60px !important; }
+          .legal-toc    { display: none !important; }
+        }
+      `}</style>
 
       <Footer />
     </>

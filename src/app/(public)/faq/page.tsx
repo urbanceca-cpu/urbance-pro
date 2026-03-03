@@ -77,6 +77,7 @@ function AccordionItem({ q, a, cat, defaultOpen }: { q: string; a: string; cat: 
       style={{ background: '#FFF', borderRadius: '14px', border: `1px solid ${open ? cc.color + '33' : '#F3F4F6'}`, overflow: 'hidden', transition: 'border-color 0.18s', boxShadow: '0 1px 4px rgba(17,17,17,0.04)' }}
     >
       <button
+        className="faq-accordion-btn"
         onClick={() => setOpen(o => !o)}
         style={{ width: '100%', padding: '20px 24px', display: 'flex', alignItems: 'center', gap: '16px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: "'Inter',-apple-system,sans-serif" }}
       >
@@ -89,7 +90,7 @@ function AccordionItem({ q, a, cat, defaultOpen }: { q: string; a: string; cat: 
         </div>
       </button>
       {open && (
-        <div style={{ padding: '0 24px 20px 48px' }}>
+        <div className="faq-accordion-answer" style={{ padding: '0 24px 20px 48px' }}>
           <p style={{ margin: 0, fontSize: '14.5px', color: '#6B7280', lineHeight: 1.75 }}>{a}</p>
         </div>
       )}
@@ -118,7 +119,7 @@ export default function FAQPage() {
       <main style={{ fontFamily: "'Inter',-apple-system,BlinkMacSystemFont,sans-serif", color: '#111', background: '#fff' }}>
 
         {/* ── HERO ── */}
-        <section style={{ padding: '160px 24px 100px', position: 'relative', overflow: 'hidden', backgroundColor: '#0F172A' }}>
+        <section className="faq-hero-section" style={{ padding: '160px 24px 100px', position: 'relative', overflow: 'hidden', backgroundColor: '#0F172A' }}>
           <img
             src="/images/ChatGPT Image Feb 27, 2026, 12_38_33 PM.png"
             alt=""
@@ -143,6 +144,7 @@ export default function FAQPage() {
                   <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
                 </svg>
                 <input
+                  className="faq-search-input"
                   type="text"
                   placeholder="Search questions..."
                   value={search}
@@ -155,14 +157,15 @@ export default function FAQPage() {
         </section>
 
         {/* ── CATEGORY FILTER + FAQ LIST ── */}
-        <section style={{ padding: '72px 24px 80px', background: '#F8FAFC' }}>
+        <section className="faq-list-section" style={{ padding: '72px 24px 80px', background: '#F8FAFC' }}>
           <div style={{ maxWidth: '820px', margin: '0 auto' }}>
 
             {/* Filter pills */}
-            <div ref={filterRef} style={{ opacity: 0, transform: 'translateY(20px)', transition: 'opacity 0.7s ease, transform 0.7s ease', display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '36px', justifyContent: 'center' }}>
+            <div ref={filterRef} className="faq-filter-row" style={{ opacity: 0, transform: 'translateY(20px)', transition: 'opacity 0.7s ease, transform 0.7s ease', display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '36px', justifyContent: 'center' }}>
               {CATEGORIES.map(c => (
                 <button
                   key={c.id}
+                  className="faq-filter-btn"
                   onClick={() => setActiveCategory(c.id)}
                   style={{
                     padding: '8px 18px', borderRadius: '100px', border: 'none', cursor: 'pointer', fontSize: '13.5px', fontWeight: 600, fontFamily: 'inherit', transition: 'all 0.15s',
@@ -203,8 +206,8 @@ export default function FAQPage() {
         </section>
 
         {/* ── STATS STRIP ── */}
-        <section style={{ padding: '64px 24px', background: '#fff', borderTop: '1px solid #F3F4F6', borderBottom: '1px solid #F3F4F6' }}>
-          <div style={{ maxWidth: '900px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '24px', textAlign: 'center' }}>
+        <section className="faq-stats-strip" style={{ padding: '64px 24px', background: '#fff', borderTop: '1px solid #F3F4F6', borderBottom: '1px solid #F3F4F6' }}>
+          <div style={{ maxWidth: '900px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '24px', textAlign: 'center' }} className="faq-stats-grid">
             {[
               { v: '10%',       label: 'Platform fee only', sub: 'No hidden costs' },
               { v: '3–5 days',  label: 'Approval time',     sub: 'Fast review process' },
@@ -221,10 +224,11 @@ export default function FAQPage() {
         </section>
 
         {/* ── STILL HAVE QUESTIONS CTA ── */}
-        <section style={{ padding: '96px 24px' }}>
+        <section className="faq-cta-section" style={{ padding: '96px 24px' }}>
           <div style={{ maxWidth: '640px', margin: '0 auto' }}>
             <div
               ref={ctaRef}
+              className="faq-cta-card"
               style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.8s ease, transform 0.8s ease', background: '#F8FAFC', borderRadius: '24px', border: '1px solid #E5E7EB', padding: '56px 48px', textAlign: 'center' }}
             >
               <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: '#EBF3FD', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '22px' }}>💬</div>
@@ -232,7 +236,7 @@ export default function FAQPage() {
               <p style={{ fontSize: '15px', color: '#6B7280', lineHeight: 1.7, margin: '0 0 32px' }}>
                 Our team is happy to help. Reach out by email and we&apos;ll respond within 24 hours.
               </p>
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <div className="faq-cta-btns" style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <a
                   href="mailto:support@urbance.ca"
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '13px 28px', borderRadius: '10px', background: '#2F80ED', color: '#FFF', fontSize: '14.5px', fontWeight: 600, textDecoration: 'none', boxShadow: '0 4px 18px rgba(47,128,237,0.28)' }}
@@ -253,6 +257,46 @@ export default function FAQPage() {
         </section>
 
       </main>
+
+      <style>{`
+        *, *::before, *::after { box-sizing: border-box; }
+        body { overflow-x: hidden; }
+
+        @media (max-width: 640px) {
+          /* Hero */
+          .faq-hero-section { padding: 110px 16px 64px !important; }
+          .faq-search-input { font-size: 16px !important; } /* Prevent iOS zoom */
+
+          /* Filter pills — horizontal scroll */
+          .faq-filter-row {
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            justify-content: flex-start !important;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 4px !important;
+            scrollbar-width: none;
+          }
+          .faq-filter-row::-webkit-scrollbar { display: none; }
+          .faq-filter-btn { white-space: nowrap !important; flex-shrink: 0 !important; }
+
+          /* FAQ list section */
+          .faq-list-section { padding: 48px 16px 64px !important; }
+
+          /* Accordion items */
+          .faq-accordion-btn { padding: 16px 16px !important; }
+          .faq-accordion-answer { padding: 0 16px 16px 36px !important; }
+
+          /* Stats strip */
+          .faq-stats-strip { padding: 48px 16px !important; }
+          .faq-stats-grid  { grid-template-columns: 1fr 1fr !important; gap: 20px !important; }
+
+          /* CTA section */
+          .faq-cta-section { padding: 56px 16px !important; }
+          .faq-cta-card    { padding: 36px 24px !important; border-radius: 18px !important; }
+          .faq-cta-btns    { flex-direction: column !important; gap: 10px !important; }
+          .faq-cta-btns a  { width: 100% !important; justify-content: center !important; }
+        }
+      `}</style>
 
       <Footer />
     </>

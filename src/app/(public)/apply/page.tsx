@@ -565,7 +565,7 @@ export default function ApplyPage() {
       <>
         <Navbar />
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#F0F6FF,#F5F0FF,#F0FFF8)', padding: '40px 24px' }}>
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', border: '1px solid #EEEFF1', padding: '56px 48px', maxWidth: '520px', width: '100%', textAlign: 'center', boxShadow: '0 8px 40px rgba(0,0,0,0.06)' }}>
+          <div className="apply-submitted-card" style={{ backgroundColor: '#ffffff', borderRadius: '24px', border: '1px solid #EEEFF1', padding: '56px 48px', maxWidth: '520px', width: '100%', textAlign: 'center', boxShadow: '0 8px 40px rgba(0,0,0,0.06)' }}>
             <div style={{ width: '72px', height: '72px', borderRadius: '50%', backgroundColor: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', margin: '0 auto 24px' }}>✅</div>
             <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#111111', margin: '0 0 12px', letterSpacing: '-0.03em' }}>Application Submitted!</h1>
             <p style={{ fontSize: '16px', color: '#6B7280', lineHeight: 1.7, margin: '0 0 24px' }}>
@@ -597,7 +597,7 @@ export default function ApplyPage() {
         <Navbar />
         <main style={{ fontFamily: "'Inter',-apple-system,BlinkMacSystemFont,sans-serif", backgroundColor: '#ffffff', color: '#111111' }}>
           {/* Hero */}
-          <section style={{ padding: '140px 24px 80px', background: 'linear-gradient(135deg,#F0F6FF 0%,#F5F0FF 50%,#F0FFF8 100%)', borderBottom: '1px solid #EEEFF1', position: 'relative', overflow: 'hidden' }}>
+          <section className="apply-landing-hero" style={{ padding: '140px 24px 80px', background: 'linear-gradient(135deg,#F0F6FF 0%,#F5F0FF 50%,#F0FFF8 100%)', borderBottom: '1px solid #EEEFF1', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: '-80px', right: '-80px', width: '400px', height: '400px', borderRadius: '50%', background: 'radial-gradient(circle,rgba(47,128,237,0.1) 0%,transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', bottom: '-60px', left: '-60px', width: '320px', height: '320px', borderRadius: '50%', background: 'radial-gradient(circle,rgba(124,58,237,0.08) 0%,transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ maxWidth: '760px', margin: '0 auto', textAlign: 'center', position: 'relative' }}>
@@ -610,7 +610,7 @@ export default function ApplyPage() {
               <p style={{ fontSize: '18px', color: '#6B7280', lineHeight: 1.7, margin: '0 0 40px', maxWidth: '540px', marginLeft: 'auto', marginRight: 'auto' }}>
                 Complete our 6-step application to get matched with local homeowners and grow your service business.
               </p>
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' as const, marginBottom: '56px' }}>
+              <div className="apply-landing-cta-row" style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' as const, marginBottom: '56px' }}>
                 <button onClick={() => setShowLanding(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', padding: '16px 36px', borderRadius: '14px', backgroundColor: '#2F80ED', color: '#ffffff', fontSize: '16px', fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 24px rgba(47,128,237,0.3)' }}>
                   Start My Application
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -1265,6 +1265,13 @@ export default function ApplyPage() {
           .apply-grid { grid-template-columns: 1fr !important; }
           .apply-sidebar { display: none !important; }
           .mobile-cta { display: block !important; }
+        }
+        @media (max-width: 640px) {
+          .apply-submitted-card { padding: 36px 20px !important; border-radius: 16px !important; }
+          .apply-landing-hero   { padding: 110px 16px 60px !important; }
+          .apply-landing-cta-row { flex-direction: column !important; align-items: stretch !important; }
+          .apply-landing-cta-row a,
+          .apply-landing-cta-row button { text-align: center; justify-content: center; }
         }
       `}</style>
 

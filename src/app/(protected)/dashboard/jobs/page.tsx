@@ -29,12 +29,13 @@ export default function JobsPage() {
     <div style={{ display: 'flex', minHeight: '100vh', background: '#F8FAFC', fontFamily: "'Inter',-apple-system,sans-serif" }}>
       <DashboardSidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <header style={{ background: '#FFF', borderBottom: '1px solid #F3F4F6', padding: '0 40px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
+        <header className="djobs-header" style={{ background: '#FFF', borderBottom: '1px solid #F3F4F6', padding: '0 40px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
           <div>
             <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Jobs</div>
             <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px' }}>Browse and manage your work</div>
           </div>
           <input
+            className="djobs-search"
             placeholder="Search jobs..."
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -42,9 +43,9 @@ export default function JobsPage() {
           />
         </header>
 
-        <main style={{ flex: 1, padding: '40px', maxWidth: '900px', width: '100%' }}>
+        <main className="djobs-content" style={{ flex: 1, padding: '40px', maxWidth: '900px', width: '100%' }}>
           {/* Mini stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '14px', marginBottom: '24px' }}>
+          <div className="djobs-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '14px', marginBottom: '24px' }}>
             {[
               { l: 'Available', v: DEMO.filter(j => j.status === 'available').length, col: '#059669', bg: '#ECFDF5' },
               { l: 'Completed', v: DEMO.filter(j => j.status === 'completed').length, col: '#6B7280', bg: '#F3F4F6' },
@@ -112,6 +113,18 @@ export default function JobsPage() {
           </div>
         </main>
       </div>
+      <style>{`
+        @media (max-width: 768px) {
+          .djobs-header  { padding: 0 16px 0 56px !important; }
+          .djobs-search  { width: 140px !important; font-size: 16px !important; }
+          .djobs-content { padding: 20px 16px !important; }
+          .djobs-stats-grid { grid-template-columns: repeat(3,1fr) !important; gap: 8px !important; }
+        }
+        @media (max-width: 480px) {
+          .djobs-stats-grid { grid-template-columns: 1fr !important; }
+          .djobs-search { display: none !important; }
+        }
+      `}</style>
     </div>
   );
 }

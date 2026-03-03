@@ -108,7 +108,7 @@ export default function Requirements() {
       }}>
 
         {/* ── HERO ─────────────────────────────────────────────── */}
-        <section style={{
+        <section className="req-hero-section" style={{
           padding: '160px 24px 120px',
           position: 'relative',
           overflow: 'hidden',
@@ -130,9 +130,7 @@ export default function Requirements() {
 
           <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
             <div ref={heroRef} style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.9s ease, transform 0.9s ease' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
-
-                {/* Left */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }} className="req-hero-grid">
                 <div>
                   <p style={{ fontSize: '11px', fontWeight: 700, color: '#60A5FA', letterSpacing: '0.16em', textTransform: 'uppercase' as const, margin: '0 0 24px' }}>Standards</p>
                   <h1 style={{ fontSize: 'clamp(36px, 4.5vw, 60px)', fontWeight: 700, letterSpacing: '-0.03em', color: '#ffffff', margin: '0 0 24px', lineHeight: 1.08 }}>
@@ -165,7 +163,7 @@ export default function Requirements() {
                 </div>
 
                 {/* Right — requirement chips */}
-                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '10px' }}>
+                <div className="req-hero-chips" style={{ display: 'flex', flexDirection: 'column' as const, gap: '10px' }}>
                   {coreReqs.map((r) => (
                     <div key={r.n} style={{
                       display: 'flex', alignItems: 'center', gap: '16px',
@@ -198,10 +196,10 @@ export default function Requirements() {
         </section>
 
         {/* ── WHY THE BAR IS HIGH ──────────────────────────────── */}
-        <section style={{ padding: '120px 24px', backgroundColor: '#ffffff' }}>
+        <section className="req-why-section" style={{ padding: '120px 24px', backgroundColor: '#ffffff' }}>
           <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
             <div ref={whyRef} style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.9s ease, transform 0.9s ease' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }} className="req-2col-grid">
                 <div>
                   <p style={{ fontSize: '11px', fontWeight: 700, color: '#2F80ED', letterSpacing: '0.16em', textTransform: 'uppercase' as const, margin: '0 0 20px' }}>Our Philosophy</p>
                   <h2 style={{ fontSize: 'clamp(28px, 3vw, 42px)', fontWeight: 700, letterSpacing: '-0.03em', color: '#111111', margin: '0 0 20px', lineHeight: 1.15 }}>
@@ -247,7 +245,7 @@ export default function Requirements() {
                 </h2>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }} className="req-core-grid">
                 {coreReqs.map((r) => (
                   <div key={r.n} style={{
                     backgroundColor: '#ffffff', borderRadius: '18px',
@@ -288,7 +286,7 @@ export default function Requirements() {
           <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
             <div ref={docsRef} style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.9s ease, transform 0.9s ease' }}>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'start' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'start' }} className="req-2col-grid">
                 <div>
                   <p style={{ fontSize: '11px', fontWeight: 700, color: '#2F80ED', letterSpacing: '0.16em', textTransform: 'uppercase' as const, margin: '0 0 20px' }}>Documents</p>
                   <h2 style={{ fontSize: 'clamp(28px, 3vw, 42px)', fontWeight: 700, letterSpacing: '-0.03em', color: '#111111', margin: '0 0 20px', lineHeight: 1.15 }}>
@@ -352,7 +350,7 @@ export default function Requirements() {
         {/* ── STAT STRIP ───────────────────────────────────────── */}
         <section style={{ padding: '0 24px 120px', backgroundColor: '#ffffff' }}>
           <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', backgroundColor: '#EEEFF1', borderRadius: '20px', overflow: 'hidden' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', backgroundColor: '#EEEFF1', borderRadius: '20px', overflow: 'hidden' }} className="req-stat-strip">
               {[
                 { stat: '< 1 week',  label: 'Average approval time',  sub: 'From application to active status' },
                 { stat: '< 10 min',  label: 'Application length',     sub: 'If your documents are ready to go' },
@@ -369,7 +367,7 @@ export default function Requirements() {
         </section>
 
         {/* ── CTA ──────────────────────────────────────────────── */}
-        <section style={{
+        <section className="req-cta-section" style={{
           padding: '140px 24px',
           background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
           position: 'relative' as const,
@@ -406,8 +404,19 @@ export default function Requirements() {
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
           *, *::before, *::after { box-sizing: border-box; }
           html { scroll-behavior: smooth; }
-          body { -webkit-font-smoothing: antialiased; }
+          body { -webkit-font-smoothing: antialiased; overflow-x: hidden; }
           h1, h2, h3, p { margin: 0; }
+
+          @media (max-width: 640px) {
+            .req-hero-section  { padding: 110px 16px 64px !important; }
+            .req-hero-grid     { grid-template-columns: 1fr !important; gap: 32px !important; }
+            .req-hero-chips    { display: none !important; }
+            .req-why-section   { padding: 64px 16px !important; }
+            .req-2col-grid     { grid-template-columns: 1fr !important; gap: 32px !important; }
+            .req-core-grid     { grid-template-columns: 1fr !important; gap: 16px !important; }
+            .req-stat-strip    { grid-template-columns: 1fr !important; }
+            .req-cta-section   { padding: 80px 16px !important; }
+          }
         `}</style>
       </main>
 

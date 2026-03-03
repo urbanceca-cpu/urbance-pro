@@ -119,7 +119,7 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div style={{
+        <div className="footer-bottom" style={{
           borderTop: '1px solid #E5E7EB',
           paddingTop: '28px',
           display: 'flex',
@@ -146,7 +146,9 @@ export function Footer() {
         }
         @media (max-width: 540px) {
           .footer-grid { grid-template-columns: 1fr !important; }
-          footer > div { padding: 36px 24px !important; }
+          footer > div { padding: 36px 20px !important; border-radius: 16px !important; }
+          footer { padding: 0 12px 32px !important; }
+          .footer-bottom { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
         }
       `}</style>
     </footer>

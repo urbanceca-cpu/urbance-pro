@@ -104,10 +104,10 @@ export default function CookiesPage() {
         </section>
 
         {/* ─── TWO-COLUMN LAYOUT ─── */}
-        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '72px 24px 96px', display: 'grid', gridTemplateColumns: '220px 1fr', gap: '64px', alignItems: 'start' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '72px 24px 96px', display: 'grid', gridTemplateColumns: '220px 1fr', gap: '64px', alignItems: 'start' }} className="legal-layout">
 
           {/* ─── STICKY TOC ─── */}
-          <aside ref={tocRef} style={{ ...fadeStyle, position: 'sticky', top: '100px' }}>
+          <aside ref={tocRef} style={{ ...fadeStyle, position: 'sticky', top: '100px' }} className="legal-toc">
             <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#9CA3AF', margin: '0 0 16px' }}>Contents</p>
             <nav>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -159,7 +159,7 @@ export default function CookiesPage() {
                   Cookies are small text files placed on your device (computer, phone, or tablet) when you visit a website. They allow the site to remember information about your visit — such as whether you are logged in — and help the platform work correctly on your next visit.
                 </Body>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }} className="cookies-inner-grid">
                   {[
                     {
                       icon: '⏱️',
@@ -301,7 +301,7 @@ export default function CookiesPage() {
                   You have the right to accept or decline non-essential cookies at any time. The most direct way to do this is through your browser settings. Here is how to do it in common browsers:
                 </Body>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '22px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '22px' }} className="cookies-inner-grid">
                   {[
                     { b: 'Chrome',  steps: 'Settings → Privacy and Security → Cookies and other site data' },
                     { b: 'Firefox', steps: 'Settings → Privacy & Security → Cookies and Site Data' },
@@ -344,7 +344,7 @@ export default function CookiesPage() {
                     { type: 'Analytics cookies',      duration: 'Up to 12 months',                                purpose: 'Anonymised usage data' },
                     { type: 'Security logs',          duration: 'Up to 90 days',                                  purpose: 'Fraud detection and review' },
                   ].map((row, i) => (
-                    <div key={row.type} style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr 1.2fr', gap: '0', background: i % 2 === 0 ? '#fff' : '#F9FAFB', borderBottom: i < 4 ? '1px solid #F3F4F6' : 'none', padding: '12px 18px' }}>
+                    <div key={row.type} style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr 1.2fr', gap: '0', background: i % 2 === 0 ? '#fff' : '#F9FAFB', borderBottom: i < 4 ? '1px solid #F3F4F6' : 'none', padding: '12px 18px' }} className="cookies-table-row">
                       <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#111', fontFamily: FONT }}>{row.type}</div>
                       <div style={{ fontSize: '13px', color: '#6B7280', fontFamily: FONT }}>{row.duration}</div>
                       <div style={{ fontSize: '13px', color: '#9CA3AF', fontFamily: FONT }}>{row.purpose}</div>
@@ -407,7 +407,7 @@ export default function CookiesPage() {
                   If you have any questions, concerns, or requests relating to this Cookie Policy or our use of tracking technologies, please contact us:
                 </Body>
                 <div style={{ background: '#F5F7FA', borderRadius: '16px', padding: '32px', border: '1px solid #E5E7EB', marginBottom: '24px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' }} className="cookies-inner-grid">
                     <div>
                       <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#9CA3AF', margin: '0 0 6px', fontFamily: FONT }}>Privacy &amp; Legal</p>
                       <a href="mailto:privacy@urbance.ca" style={{ fontSize: '15px', fontWeight: 600, color: '#2F80ED', textDecoration: 'none', fontFamily: FONT }}>privacy@urbance.ca</a>
@@ -462,6 +462,17 @@ export default function CookiesPage() {
         </div>
 
       </main>
+
+      <style>{`
+        *, *::before, *::after { box-sizing: border-box; }
+        body { overflow-x: hidden; }
+        @media (max-width: 768px) {
+          .legal-layout       { grid-template-columns: 1fr !important; padding: 40px 16px 60px !important; }
+          .legal-toc          { display: none !important; }
+          .cookies-inner-grid { grid-template-columns: 1fr !important; }
+          .cookies-table-row  { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
 
       <Footer />
     </>

@@ -96,7 +96,7 @@ export default function ProfilePage() {
     <div style={S.shell}>
       <DashboardSidebar />
       <div style={S.main}>
-        <div style={S.topbar}>
+        <div style={S.topbar} className="dprof-topbar">
           <div>
             <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Profile</div>
             <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '1px' }}>Manage all your information</div>
@@ -106,7 +106,7 @@ export default function ProfilePage() {
           </button>
         </div>
 
-        <div style={S.content}>
+        <div style={S.content} className="dprof-content">
           {/* Avatar strip */}
           <div style={{ ...S.card, padding: '20px 24px', display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
             <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'linear-gradient(135deg,#3B82F6,#6366F1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '17px', flexShrink: 0 }}>{initials}</div>
@@ -120,7 +120,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Tabs */}
-          <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', background: '#F1F5F9', borderRadius: '10px', padding: '4px' }}>
+          <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', background: '#F1F5F9', borderRadius: '10px', padding: '4px' }} className="dprof-tabs">
             {TABS.map((t, i) => (
               <button key={t} onClick={() => setTab(i)} style={{
                 flex: 1, padding: '8px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: tab === i ? 700 : 500,
@@ -137,7 +137,7 @@ export default function ProfilePage() {
                 <div style={{ fontSize: '14px', fontWeight: 700, color: '#111' }}>Basic Information</div>
                 <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>Your personal and contact details</div>
               </div>
-              <div style={{ padding: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
+              <div style={{ padding: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }} className="dprof-2col">
                 {[
                   { key: 'full_legal_name', label: 'Full Legal Name',  placeholder: 'John Smith' },
                   { key: 'business_name',   label: 'Business Name',    placeholder: 'Smith Services (optional)' },
@@ -225,7 +225,7 @@ export default function ProfilePage() {
                 <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>Your background and qualifications</div>
               </div>
               <div style={{ padding: '24px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px', marginBottom: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px', marginBottom: '20px' }} className="dprof-2col">
                   <div>
                     <label style={S.label}>Years of Experience</label>
                     <input style={S.input} type="number" min="0" max="50" placeholder="5" value={experience.years_experience}
@@ -296,7 +296,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 {/* Hours */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="dprof-2col">
                   <div>
                     <label style={S.label}>Start Time</label>
                     <input type="time" style={S.input} value={availability.start_time} onChange={e => setAvail(p => ({ ...p, start_time: e.target.value }))} />
@@ -319,7 +319,17 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}
+        @media (max-width: 768px) {
+          .dprof-topbar  { padding: 0 16px 0 56px !important; }
+          .dprof-content { padding: 20px 16px !important; }
+          .dprof-tabs button { font-size: 11px !important; padding: 7px 4px !important; }
+          .dprof-2col    { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 480px) {
+          .dprof-tabs { gap: 2px !important; }
+        }
+      `}</style>
     </div>
   );
 }

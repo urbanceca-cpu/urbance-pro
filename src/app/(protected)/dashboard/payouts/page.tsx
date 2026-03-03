@@ -42,16 +42,16 @@ export default function EarningsPage() {
     <div style={S.shell}>
       <DashboardSidebar />
       <div style={S.main}>
-        <div style={S.topbar}>
+        <div style={S.topbar} className="dpay-topbar">
           <div>
             <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Earnings</div>
             <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '1px' }}>Earnings, history & payment setup</div>
           </div>
         </div>
 
-        <div style={S.content}>
+        <div style={S.content} className="dpay-content">
           {/* Stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px', marginBottom: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px', marginBottom: '24px' }} className="dpay-stats-grid">
             {[
               { label: 'Total Earned',  value: `$${totalEarned.toLocaleString()}.00`, sub: 'All time',        color: '#059669', bg: '#ECFDF5' },
               { label: 'This Month',    value: '$0.00',                                sub: 'March 2026',     color: '#3B82F6', bg: '#EFF6FF' },
@@ -65,7 +65,7 @@ export default function EarningsPage() {
             ))}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '20px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '20px', alignItems: 'start' }} className="dpay-bottom-grid">
             {/* History */}
             <div style={S.card}>
               <div style={{ padding: '18px 24px', borderBottom: '1px solid #F1F5F9' }}>
@@ -148,6 +148,14 @@ export default function EarningsPage() {
           </div>
         </div>
       </div>
+      <style>{`
+        @media (max-width: 768px) {
+          .dpay-topbar    { padding: 0 16px 0 56px !important; }
+          .dpay-content   { padding: 20px 16px !important; }
+          .dpay-stats-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+          .dpay-bottom-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }

@@ -91,7 +91,7 @@ export default function HowItWorks() {
       }}>
 
         {/* HERO */}
-        <section style={{
+        <section className="hiw-hero-section" style={{
           padding: '160px 24px 120px',
           position: 'relative',
           overflow: 'hidden',
@@ -113,7 +113,7 @@ export default function HowItWorks() {
 
           <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
             <div ref={heroRef} style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.9s ease, transform 0.9s ease' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
+              <div className="hiw-hero-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
 
                 {/* Left */}
                 <div>
@@ -124,7 +124,7 @@ export default function HowItWorks() {
                   <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.60)', lineHeight: 1.8, margin: '0 0 48px', maxWidth: '400px' }}>
                     Five steps. Under a week. Most pros are earning on day one after approval.
                   </p>
-                  <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' as const }}>
+                  <div className="hiw-hero-cta" style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' as const }}>
                     <Link href="/apply" style={{
                       display: 'inline-flex', alignItems: 'center', gap: '8px',
                       backgroundColor: '#2F80ED', color: '#ffffff',
@@ -148,7 +148,7 @@ export default function HowItWorks() {
                 </div>
 
                 {/* Right — step chips */}
-                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '10px' }}>
+                <div className="hiw-hero-chips" style={{ display: 'flex', flexDirection: 'column' as const, gap: '10px' }}>
                   {steps.map((s) => (
                     <div key={s.n} style={{
                       display: 'flex', alignItems: 'center', gap: '16px',
@@ -182,7 +182,7 @@ export default function HowItWorks() {
         </section>
 
         {/* STEPS — alternating two-column */}
-        <section style={{ padding: '140px 24px', backgroundColor: '#ffffff' }}>
+        <section className="hiw-steps-section" style={{ padding: '140px 24px', backgroundColor: '#ffffff' }}>
           <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
             <div ref={stepsRef} style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.9s ease, transform 0.9s ease' }}>
 
@@ -194,7 +194,7 @@ export default function HowItWorks() {
               </div>
 
               {steps.map((s, i) => (
-                <div key={s.n} style={{
+                <div key={s.n} className="hiw-step-grid" style={{
                   display: 'grid',
                   gridTemplateColumns: '1fr 1fr',
                   gap: '80px',
@@ -203,7 +203,7 @@ export default function HowItWorks() {
                   borderBottom: i < steps.length - 1 ? '1px solid #F0F0F0' : 'none',
                 }}>
                   {/* Text side */}
-                  <div style={{ order: i % 2 === 0 ? 0 : 1 }}>
+                  <div className="hiw-step-text" style={{ order: i % 2 === 0 ? 0 : 1 }}>
                     <div style={{
                       display: 'inline-flex', alignItems: 'center', gap: '10px',
                       backgroundColor: s.light, borderRadius: '10px',
@@ -234,7 +234,7 @@ export default function HowItWorks() {
                   </div>
 
                   {/* Visual side */}
-                  <div style={{ order: i % 2 === 0 ? 1 : 0 }}>
+                  <div className="hiw-step-visual" style={{ order: i % 2 === 0 ? 1 : 0 }}>
                     <div style={{
                       borderRadius: '20px',
                       overflow: 'hidden',
@@ -260,16 +260,16 @@ export default function HowItWorks() {
         </section>
 
         {/* TIMELINE STRIP */}
-        <section style={{ padding: '100px 24px', backgroundColor: '#F8F9FC', borderTop: '1px solid #F0F0F0' }}>
+        <section className="hiw-strip-section" style={{ padding: '100px 24px', backgroundColor: '#F8F9FC', borderTop: '1px solid #F0F0F0' }}>
           <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
             <div ref={stripRef} style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.9s ease, transform 0.9s ease' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', backgroundColor: '#EEEFF1', borderRadius: '20px', overflow: 'hidden' }}>
+              <div className="hiw-strip-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', backgroundColor: '#EEEFF1', borderRadius: '20px', overflow: 'hidden' }}>
                 {[
                   { stat: '< 10 min', label: 'Application',  sub: 'Fill out the form, upload credentials' },
                   { stat: '3–5 days', label: 'Verification', sub: 'Background & insurance check' },
                   { stat: 'Day 1',    label: 'First Job',    sub: 'Start earning from approval day' },
                 ].map((item) => (
-                  <div key={item.label} style={{ backgroundColor: '#ffffff', padding: '48px 40px' }}>
+                  <div key={item.label} className="hiw-strip-cell" style={{ backgroundColor: '#ffffff', padding: '48px 40px' }}>
                     <div style={{ fontSize: '36px', fontWeight: 800, color: '#111111', letterSpacing: '-0.035em', marginBottom: '8px' }}>{item.stat}</div>
                     <div style={{ fontSize: '14px', fontWeight: 700, color: '#111111', marginBottom: '6px' }}>{item.label}</div>
                     <div style={{ fontSize: '13px', color: '#9CA3AF', lineHeight: 1.6 }}>{item.sub}</div>
@@ -281,7 +281,7 @@ export default function HowItWorks() {
         </section>
 
         {/* CTA */}
-        <section style={{
+        <section className="hiw-cta-section" style={{
           padding: '140px 24px',
           background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
           position: 'relative' as const,
@@ -297,7 +297,7 @@ export default function HowItWorks() {
               <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.55)', margin: '0 0 52px', lineHeight: 1.75 }}>
                 Takes less than 10 minutes. No fees, no commitment.
               </p>
-              <Link href="/apply" style={{
+              <Link href="/apply" className="hiw-cta-btn" style={{
                 display: 'inline-flex', alignItems: 'center', gap: '10px',
                 backgroundColor: '#2F80ED', color: '#ffffff',
                 fontSize: '16px', fontWeight: 600, padding: '18px 44px',
@@ -318,10 +318,34 @@ export default function HowItWorks() {
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
           *, *::before, *::after { box-sizing: border-box; }
           html { scroll-behavior: smooth; }
-          body { -webkit-font-smoothing: antialiased; }
+          body { -webkit-font-smoothing: antialiased; overflow-x: hidden; }
           h1, h2, h3, p { margin: 0; }
           @media (max-width: 900px) {
             [data-grid] { grid-template-columns: 1fr !important; gap: 40px !important; }
+          }
+          @media (max-width: 640px) {
+            /* Hero */
+            .hiw-hero-section { padding: 110px 16px 72px !important; }
+            .hiw-hero-grid    { grid-template-columns: 1fr !important; gap: 32px !important; }
+            .hiw-hero-chips   { display: none !important; }
+            .hiw-hero-cta     { flex-direction: column !important; gap: 10px !important; }
+            .hiw-hero-cta a   { width: 100% !important; text-align: center !important; justify-content: center !important; }
+
+            /* Steps section */
+            .hiw-steps-section { padding: 64px 16px !important; }
+            .hiw-step-grid     { grid-template-columns: 1fr !important; gap: 0 !important; }
+            .hiw-step-visual   { display: none !important; }
+            .hiw-step-text     { order: 0 !important; padding: 40px 0 !important; }
+            .hiw-step-details  { grid-template-columns: 1fr !important; }
+
+            /* Timeline strip */
+            .hiw-strip-section { padding: 56px 16px !important; }
+            .hiw-strip-grid    { grid-template-columns: 1fr !important; gap: 1px !important; }
+            .hiw-strip-cell    { padding: 32px 24px !important; }
+
+            /* CTA */
+            .hiw-cta-section { padding: 72px 16px !important; }
+            .hiw-cta-btn     { width: 100% !important; justify-content: center !important; }
           }
         `}</style>
       </main>

@@ -268,6 +268,18 @@ export default function SuccessStories() {
         </section>
       </main>
       <Footer />
+      <style>{`
+        *, *::before, *::after { box-sizing: border-box; }
+        body { overflow-x: hidden; }
+        @media (max-width: 640px) {
+          .ss-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .ss-card-header { flex-wrap: wrap !important; }
+          .ss-card-rating { margin-top: 8px !important; }
+        }
+        @media (max-width: 400px) {
+          .ss-stats-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </>
   );
 }
@@ -379,7 +391,7 @@ function StoryCard({ story, index }: { story: Story; index: number }) {
         <div className="relative">
           {/* Header Section with Avatar & Badge */}
           <div className="relative px-8 pt-8 pb-6">
-            <div className="flex items-start gap-6">
+            <div className="flex items-start gap-6 ss-card-header">
               {/* Large Avatar with Decorative Ring */}
               <div className="relative flex-shrink-0">
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-500 rounded-3xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity"></div>
@@ -409,7 +421,7 @@ function StoryCard({ story, index }: { story: Story; index: number }) {
               </div>
 
               {/* Rating Badge - Floating Style */}
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 ss-card-rating">
                 <div className="relative group/rating">
                   <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl blur-md opacity-30 group-hover/rating:opacity-50 transition-opacity"></div>
                   <div className="relative px-5 py-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border-2 border-amber-200 shadow-lg">
@@ -441,7 +453,7 @@ function StoryCard({ story, index }: { story: Story; index: number }) {
 
           {/* Stats Section - Creative Layout */}
           <div className="px-8 pb-8">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4 ss-stats-grid">
               {/* Monthly Earnings */}
               <div className="relative group/stat overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl blur-md opacity-10 group-hover/stat:opacity-30 transition-opacity"></div>

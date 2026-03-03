@@ -39,8 +39,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Submitted / under review → show gated UI
   if (status === 'submitted' || status === 'under_review') {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#F0F6FF,#F5F0FF,#F0FFF8)', fontFamily: "'Inter',-apple-system,sans-serif", padding: '40px 24px' }}>
-        <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', border: '1px solid #EEEFF1', padding: '56px 48px', maxWidth: '500px', width: '100%', textAlign: 'center', boxShadow: '0 8px 40px rgba(0,0,0,0.06)' }}>
+      <>
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#F0F6FF,#F5F0FF,#F0FFF8)', fontFamily: "'Inter',-apple-system,sans-serif", padding: '40px 24px' }}>
+          <div className="review-card" style={{ backgroundColor: '#ffffff', borderRadius: '24px', border: '1px solid #EEEFF1', padding: '56px 48px', maxWidth: '500px', width: '100%', textAlign: 'center', boxShadow: '0 8px 40px rgba(0,0,0,0.06)' }}>
           <div style={{ width: '72px', height: '72px', borderRadius: '50%', backgroundColor: '#FFF7ED', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', margin: '0 auto 24px' }}>⏳</div>
           <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#111111', margin: '0 0 12px', letterSpacing: '-0.03em' }}>Application Under Review</h1>
           <p style={{ fontSize: '15px', color: '#6B7280', lineHeight: 1.7, margin: '0 0 28px' }}>
@@ -55,7 +56,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
             Back to Home
           </a>
         </div>
-      </div>
+        </div>
+        <style>{`
+          @media (max-width: 640px) {
+            .review-card { padding: 36px 20px !important; border-radius: 16px !important; }
+          }
+        `}</style>
+      </>
     );
   }
 

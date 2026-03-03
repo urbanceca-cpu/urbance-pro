@@ -43,8 +43,8 @@ export default function Earnings() {
         backgroundColor: '#ffffff',
       }}>
 
-        {/* ── HERO ─────────────────────────────────────────────── */}
-        <section style={{
+        {/* ── HERO ────────────────────────────────────────────────────── */}
+        <section className="earn-hero-section" style={{
           padding: '160px 24px 120px',
           position: 'relative',
           overflow: 'hidden',
@@ -66,7 +66,7 @@ export default function Earnings() {
 
           <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
             <div ref={heroRef} style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.9s ease, transform 0.9s ease' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
+              <div className="earn-hero-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
 
                 {/* Left */}
                 <div>
@@ -77,7 +77,7 @@ export default function Earnings() {
                   <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.60)', lineHeight: 1.8, margin: '0 0 48px', maxWidth: '420px' }}>
                     Other platforms take 20–30% off every job. We built a different model — one that actually rewards the professional doing the work.
                   </p>
-                  <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' as const }}>
+                  <div className="earn-hero-cta" style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' as const }}>
                     <Link href="/apply" style={{
                       display: 'inline-flex', alignItems: 'center', gap: '8px',
                       backgroundColor: '#2F80ED', color: '#ffffff',
@@ -101,7 +101,7 @@ export default function Earnings() {
                 </div>
 
                 {/* Right — stat cards */}
-                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '16px' }}>
+                <div className="earn-hero-stats" style={{ display: 'flex', flexDirection: 'column' as const, gap: '16px' }}>
                   {[
                     { label: 'Industry average platform cut', value: '20–30%', sub: 'What most platforms take off every job', color: '#EF4444', light: '#FEF2F2' },
                     { label: 'Urbance commission', value: '12%', sub: 'Our rate — industry\'s lowest for full-service networks', color: '#059669', light: '#ECFDF5' },
@@ -135,8 +135,8 @@ export default function Earnings() {
           </div>
         </section>
 
-        {/* ── THE DIFFERENCE ───────────────────────────────────── */}
-        <section style={{ padding: '140px 24px', backgroundColor: '#ffffff' }}>
+        {/* ── THE DIFFERENCE ──────────────────────────────────────────── */}
+        <section className="earn-diff-section" style={{ padding: '140px 24px', backgroundColor: '#ffffff' }}>
           <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
             <div ref={diffRef} style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.9s ease, transform 0.9s ease' }}>
 
@@ -153,7 +153,7 @@ export default function Earnings() {
               {/* Comparison table */}
               <div style={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid #EEEFF1', boxShadow: '0 4px 40px rgba(0,0,0,0.05)' }}>
                 {/* Header */}
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', backgroundColor: '#0F172A' }}>
+                <div className="earn-compare-grid-header" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', backgroundColor: '#0F172A' }}>
                   <div style={{ padding: '20px 32px', fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' as const, letterSpacing: '0.1em' }}>Feature</div>
                   <div style={{ padding: '20px 24px', fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' as const, letterSpacing: '0.1em', borderLeft: '1px solid rgba(255,255,255,0.06)' }}>Other Platforms</div>
                   <div style={{ padding: '20px 24px', fontSize: '12px', fontWeight: 700, color: '#60A5FA', textTransform: 'uppercase' as const, letterSpacing: '0.1em', borderLeft: '1px solid rgba(255,255,255,0.06)' }}>Urbance</div>
@@ -167,13 +167,14 @@ export default function Earnings() {
                   { feature: 'Client vetting',          others: 'Open to all',             urbance: 'Verified clients only',     good: true },
                   { feature: 'Background on providers', others: 'Varies',                  urbance: 'Required — all pros',       good: true },
                 ].map((row, i) => (
-                  <div key={row.feature} style={{
+                  <div key={row.feature} className="earn-compare-grid" style={
+                    {
                     display: 'grid',
                     gridTemplateColumns: '2fr 1fr 1fr',
                     borderTop: '1px solid #F0F0F0',
                     backgroundColor: i % 2 === 0 ? '#ffffff' : '#FAFBFC',
                   }}>
-                    <div style={{ padding: '20px 32px', fontSize: '15px', fontWeight: 600, color: '#111111' }}>{row.feature}</div>
+                    <div className="earn-compare-feature" style={{ padding: '20px 32px', fontSize: '15px', fontWeight: 600, color: '#111111' }}>{row.feature}</div>
                     <div style={{ padding: '20px 24px', fontSize: '14px', color: '#9CA3AF', borderLeft: '1px solid #F0F0F0', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ color: '#EF4444', fontSize: '16px', lineHeight: 1 }}>✕</span>
                       {row.others}
@@ -190,12 +191,12 @@ export default function Earnings() {
           </div>
         </section>
 
-        {/* ── HOW EARNINGS FLOW ────────────────────────────────── */}
-        <section style={{ padding: '120px 24px', backgroundColor: '#F8F9FC', borderTop: '1px solid #F0F0F0' }}>
+        {/* ── HOW EARNINGS FLOW ──────────────────────────────────────── */}
+        <section className="earn-flow-section" style={{ padding: '120px 24px', backgroundColor: '#F8F9FC', borderTop: '1px solid #F0F0F0' }}>
           <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
             <div ref={howRef} style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.9s ease, transform 0.9s ease' }}>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
+              <div className="earn-flow-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
                 <div>
                   <p style={{ fontSize: '11px', fontWeight: 700, color: '#2F80ED', letterSpacing: '0.16em', textTransform: 'uppercase' as const, margin: '0 0 20px' }}>How It Works</p>
                   <h2 style={{ fontSize: 'clamp(28px, 3vw, 42px)', fontWeight: 700, letterSpacing: '-0.03em', color: '#111111', margin: '0 0 20px', lineHeight: 1.15 }}>
@@ -286,14 +287,14 @@ export default function Earnings() {
                 </h2>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px', backgroundColor: '#EEEFF1', borderRadius: '20px', overflow: 'hidden' }}>
+              <div className="earn-sched-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px', backgroundColor: '#EEEFF1', borderRadius: '20px', overflow: 'hidden' }}>
                 {[
                   { n: '01', color: '#2F80ED', light: '#EBF3FD', title: 'Job Completed',     body: 'Client confirms the work is done and releases payment from escrow.' },
                   { n: '02', color: '#7C3AED', light: '#F5F3FF', title: 'Funds Cleared',      body: 'Your earnings are verified and show up in your dashboard within hours.' },
                   { n: '03', color: '#059669', light: '#ECFDF5', title: 'Weekly Batch',       body: 'All cleared earnings from the week are bundled into a single transfer.' },
                   { n: '04', color: '#D97706', light: '#FFFBEB', title: 'Bank Deposit',       body: 'Funds land in your account every Friday — no minimums, no delays.' },
                 ].map((item) => (
-                  <div key={item.n} style={{ backgroundColor: '#ffffff', padding: '44px 32px' }}>
+                  <div key={item.n} className="earn-sched-cell" style={{ backgroundColor: '#ffffff', padding: '44px 32px' }}>
                     <div style={{
                       width: '44px', height: '44px', borderRadius: '12px',
                       backgroundColor: item.light,
@@ -314,13 +315,13 @@ export default function Earnings() {
         {/* ── STAT STRIP ───────────────────────────────────────── */}
         <section style={{ padding: '0 24px 120px', backgroundColor: '#ffffff' }}>
           <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+            <div className="earn-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
               {[
                 { stat: '12%',    label: 'Flat commission',         sub: 'The lowest in the industry for full-service networks', color: '#2F80ED', light: '#EBF3FD' },
                 { stat: 'Weekly', label: 'Direct bank payouts',     sub: 'Every Friday, automatically — no action needed',       color: '#059669', light: '#ECFDF5' },
                 { stat: '$0',     label: 'Platform or monthly fees', sub: 'No subscriptions, no lead buying, no hidden costs',   color: '#7C3AED', light: '#F5F3FF' },
               ].map((item) => (
-                <div key={item.label} style={{
+                <div key={item.label} className="earn-stat-card" style={{
                   backgroundColor: item.light, borderRadius: '20px',
                   padding: '44px 36px',
                   border: `1px solid ${item.color}22`,
@@ -334,8 +335,8 @@ export default function Earnings() {
           </div>
         </section>
 
-        {/* ── CTA ──────────────────────────────────────────────── */}
-        <section style={{
+        {/* ── CTA ────────────────────────────────────────────────────── */}
+        <section className="earn-cta-section" style={{
           padding: '140px 24px',
           background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
           position: 'relative' as const,
@@ -351,7 +352,8 @@ export default function Earnings() {
               <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.55)', margin: '0 0 52px', lineHeight: 1.75 }}>
                 Join a network that works for you. Apply in under 10 minutes.
               </p>
-              <Link href="/apply" style={{
+              <Link href="/apply" className="earn-cta-btn" style={
+                {
                 display: 'inline-flex', alignItems: 'center', gap: '10px',
                 backgroundColor: '#2F80ED', color: '#ffffff',
                 fontSize: '16px', fontWeight: 600, padding: '18px 44px',
@@ -372,12 +374,49 @@ export default function Earnings() {
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
           *, *::before, *::after { box-sizing: border-box; }
           html { scroll-behavior: smooth; }
-          body { -webkit-font-smoothing: antialiased; }
+          body { -webkit-font-smoothing: antialiased; overflow-x: hidden; }
           h1, h2, h3, p { margin: 0; }
           @media (max-width: 900px) {
-            [data-two-col] { grid-template-columns: 1fr !important; gap: 40px !important; }
-            [data-four-col] { grid-template-columns: 1fr 1fr !important; }
+            [data-two-col]   { grid-template-columns: 1fr !important; gap: 40px !important; }
+            [data-four-col]  { grid-template-columns: 1fr 1fr !important; }
             [data-three-col] { grid-template-columns: 1fr !important; }
+          }
+          @media (max-width: 640px) {
+            /* Hero */
+            .earn-hero-section { padding: 110px 16px 72px !important; }
+            .earn-hero-grid    { grid-template-columns: 1fr !important; gap: 32px !important; }
+            .earn-hero-stats   { display: none !important; }
+            .earn-hero-cta     { flex-direction: column !important; gap: 10px !important; }
+            .earn-hero-cta a   { width: 100% !important; text-align: center !important; justify-content: center !important; }
+
+            /* Comparison table */
+            .earn-diff-section { padding: 64px 16px !important; }
+            .earn-compare-grid { grid-template-columns: 1fr 1fr !important; }
+            .earn-compare-feature { display: none !important; }
+            .earn-compare-grid-header { grid-template-columns: 1fr 1fr !important; }
+
+            /* Earnings flow */
+            .earn-flow-section { padding: 64px 16px !important; }
+            .earn-flow-grid    { grid-template-columns: 1fr !important; gap: 32px !important; }
+
+            /* Payment schedule */
+            .earn-sched-section { padding: 64px 16px !important; }
+            .earn-sched-grid    { grid-template-columns: 1fr 1fr !important; border-radius: 14px !important; }
+            .earn-sched-cell    { padding: 28px 20px !important; }
+
+            /* Stat strip */
+            .earn-stat-strip  { padding: 0 16px 64px !important; }
+            .earn-stat-grid   { grid-template-columns: 1fr !important; gap: 16px !important; }
+            .earn-stat-card   { padding: 32px 24px !important; border-radius: 16px !important; }
+
+            /* CTA */
+            .earn-cta-section { padding: 72px 16px !important; }
+            .earn-cta-btn     { width: 100% !important; justify-content: center !important; }
+          }
+          @media (max-width: 400px) {
+            .earn-compare-grid        { grid-template-columns: 1fr !important; }
+            .earn-compare-grid-header { grid-template-columns: 1fr !important; }
+            .earn-sched-grid          { grid-template-columns: 1fr !important; }
           }
         `}</style>
       </main>
