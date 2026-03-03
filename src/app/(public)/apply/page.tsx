@@ -238,6 +238,7 @@ export default function ApplyPage() {
   const [docs, setDocs] = useState<UploadedDoc[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   // Inline auth state (used when user is not yet logged in — step 1)
   const [authMode, setAuthMode] = useState<'signup' | 'login'>('signup');
   const [authError, setAuthError] = useState('');
@@ -379,7 +380,17 @@ export default function ApplyPage() {
             password: basicInfo.password,
             options: { data: { full_name: basicInfo.full_legal_name } },
           });
-          if (error) { setAuthError(error.message); setAuthLoading(false); return; }
+          if (error) {
+            const msg = error.message.toLowerCase();
+            if (msg.includes('already registered') || msg.includes('already exists') || msg.includes('user already registered')) {
+              setAuthError('An account with this email already exists. Switch to "Sign In" to continue your application.');
+            } else if (msg.includes('password')) {
+              setAuthError('Password must be at least 8 characters.');
+            } else {
+              setAuthError(error.message);
+            }
+            setAuthLoading(false); return;
+          }
           uid = data.user?.id ?? '';
           resolvedEmail = data.user?.email ?? basicInfo.email;
         } else {
@@ -387,7 +398,15 @@ export default function ApplyPage() {
             email: basicInfo.email,
             password: basicInfo.password,
           });
-          if (error) { setAuthError(error.message); setAuthLoading(false); return; }
+          if (error) {
+            const msg = error.message.toLowerCase();
+            if (msg.includes('invalid login') || msg.includes('invalid credentials') || msg.includes('wrong password')) {
+              setAuthError('Incorrect email or password. Please try again.');
+            } else {
+              setAuthError(error.message);
+            }
+            setAuthLoading(false); return;
+          }
           uid = data.user?.id ?? '';
           resolvedEmail = data.user?.email ?? basicInfo.email;
         }
@@ -447,6 +466,7 @@ export default function ApplyPage() {
         return;
       }
     }
+    setSubmitError('');
     setIsSubmitting(true);
     const { error } = await supabase
       .from('provider_applications')
@@ -457,9 +477,8 @@ export default function ApplyPage() {
       })
       .eq('id', appId!);
     setIsSubmitting(false);
-    if (error) { alert('Submission failed. Please try again.'); return; }
+    if (error) { setSubmitError('Submission failed: ' + error.message + '. Please try again.'); return; }
     setSubmitted(true);
-    router.push('/apply/success');
   }
 
   // ─── Document upload ──────────────────────────────────────────────────────
@@ -548,14 +567,22 @@ export default function ApplyPage() {
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#F0F6FF,#F5F0FF,#F0FFF8)', padding: '40px 24px' }}>
           <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', border: '1px solid #EEEFF1', padding: '56px 48px', maxWidth: '520px', width: '100%', textAlign: 'center', boxShadow: '0 8px 40px rgba(0,0,0,0.06)' }}>
             <div style={{ width: '72px', height: '72px', borderRadius: '50%', backgroundColor: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', margin: '0 auto 24px' }}>✅</div>
-            <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#111111', margin: '0 0 12px', letterSpacing: '-0.03em' }}>Application Received!</h1>
-            <p style={{ fontSize: '16px', color: '#6B7280', lineHeight: 1.7, margin: '0 0 32px' }}>Thank you for applying to Urbance Pros. Our team will review your application and notify you within 3–5 business days.</p>
-            <div style={{ backgroundColor: '#F8F9FC', borderRadius: '12px', padding: '20px', marginBottom: '32px' }}>
-              <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>Your dashboard will be unlocked once your application is approved.</p>
+            <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#111111', margin: '0 0 12px', letterSpacing: '-0.03em' }}>Application Submitted!</h1>
+            <p style={{ fontSize: '16px', color: '#6B7280', lineHeight: 1.7, margin: '0 0 24px' }}>
+              Thank you. Your application has been submitted successfully. Our team is reviewing your information and will notify you within 3–5 business days.
+            </p>
+            <div style={{ backgroundColor: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: '12px', padding: '16px 20px', marginBottom: '32px' }}>
+              <p style={{ fontSize: '13px', color: '#92400E', margin: 0, fontWeight: 600 }}>Status: Under Review</p>
+              <p style={{ fontSize: '12px', color: '#92400E', margin: '4px 0 0', opacity: 0.8 }}>Dashboard access will be granted once approved.</p>
             </div>
-            <button onClick={() => router.push('/')} style={{ padding: '14px 32px', borderRadius: '12px', backgroundColor: '#111111', color: '#ffffff', fontSize: '15px', fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
-              Back to Home
-            </button>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button onClick={() => router.push('/login')} style={{ padding: '14px 32px', borderRadius: '12px', backgroundColor: '#111111', color: '#ffffff', fontSize: '15px', fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                Go to Login
+              </button>
+              <button onClick={() => router.push('/')} style={{ padding: '14px 24px', borderRadius: '12px', backgroundColor: '#ffffff', color: '#374151', fontSize: '14px', fontWeight: 600, border: '1.5px solid #E5E7EB', cursor: 'pointer', fontFamily: 'inherit' }}>
+                Back to Home
+              </button>
+            </div>
           </div>
         </div>
         <Footer />
@@ -1059,9 +1086,12 @@ export default function ApplyPage() {
                       {DOC_CATEGORIES.find(c => c.value === doc.category)?.label} · {(doc.file_size / 1024 / 1024).toFixed(1)} MB
                     </p>
                     {doc.status === 'uploading' && (
-                      <div style={{ height: '3px', backgroundColor: '#E5E7EB', borderRadius: '100px', marginTop: '6px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', backgroundColor: '#2F80ED', width: '60%', animation: 'progress-slide 1.5s ease infinite' }} />
+                      <div style={{ height: '4px', backgroundColor: '#E5E7EB', borderRadius: '100px', marginTop: '6px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', backgroundColor: '#2F80ED', borderRadius: '100px', animation: 'progress-slide 1.2s ease-in-out infinite', width: '50%' }} />
                       </div>
+                    )}
+                    {doc.status === 'done' && (
+                      <p style={{ fontSize: '11px', color: '#059669', margin: '3px 0 0', fontWeight: 600 }}>✓ Document successfully uploaded</p>
                     )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1156,12 +1186,11 @@ export default function ApplyPage() {
               ]
             },
             {
-              n: 4, title: 'Pricing & Availability', color: STEP_COLORS[3],
+              n: 4, title: 'Availability', color: STEP_COLORS[3],
               rows: [
-                ['Pricing Model', pricing.pricing_model],
-                ['Min Job Price', pricing.min_job_price ? `$${pricing.min_job_price}` : '—'],
                 ['Availability', pricing.availability.join(', ') || '—'],
                 ['Start Date', pricing.earliest_start || '—'],
+                ['Scheduling Notes', pricing.scheduling_notes || '—'],
               ]
             },
             {
@@ -1203,6 +1232,11 @@ export default function ApplyPage() {
             </p>
           </div>
 
+          {submitError && (
+            <div style={{ backgroundColor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px' }}>
+              <p style={{ fontSize: '13px', color: '#DC2626', margin: 0 }}>⚠️ {submitError}</p>
+            </div>
+          )}
           <button type="button" onClick={handleSubmit} disabled={isSubmitting} style={{
             width: '100%', padding: '16px', borderRadius: '12px', backgroundColor: '#111111', color: '#ffffff',
             fontSize: '16px', fontWeight: 700, border: 'none', cursor: isSubmitting ? 'not-allowed' : 'pointer',
@@ -1226,9 +1260,11 @@ export default function ApplyPage() {
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes progress-slide { 0%{transform:translateX(-100%)} 100%{transform:translateX(200%)} }
         * { box-sizing: border-box; }
+        .mobile-cta { display: none; }
         @media (max-width: 768px) {
           .apply-grid { grid-template-columns: 1fr !important; }
           .apply-sidebar { display: none !important; }
+          .mobile-cta { display: block !important; }
         }
       `}</style>
 
@@ -1400,16 +1436,17 @@ export default function ApplyPage() {
           {/* Mobile sticky bottom bar */}
           {step < 6 && (
             <div style={{
-              display: 'none', position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
+              position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
               padding: '12px 16px', backgroundColor: '#ffffff', borderTop: '1px solid #EEEFF1',
               boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
             }} className="mobile-cta">
-              <button type="button" onClick={goNext} style={{
+              <button type="button" onClick={goNext} disabled={authLoading} style={{
                 width: '100%', padding: '15px', borderRadius: '12px', backgroundColor: color,
                 color: '#ffffff', fontSize: '16px', fontWeight: 700, border: 'none',
-                cursor: 'pointer', fontFamily: 'inherit',
+                cursor: authLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+                opacity: authLoading ? 0.75 : 1,
               }}>
-                {step === 5 ? 'Review Application →' : 'Save & Continue →'}
+                {authLoading ? '⏳ Creating account…' : step === 5 ? 'Review Application →' : 'Save & Continue →'}
               </button>
             </div>
           )}

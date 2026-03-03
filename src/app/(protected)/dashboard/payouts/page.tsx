@@ -143,12 +143,6 @@ export default function PayoutsPage() {
                 <button style={{ ...S.btn, width: '100%', marginTop: '16px' }} onClick={handleSave}>
                   {saved ? '✓ Saved' : 'Save Payout Method'}
                 </button>
-
-                <div style={{ marginTop: '14px', padding: '10px 12px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                  <div style={{ fontSize: '11.5px', color: '#64748B', lineHeight: 1.6 }}>
-                    💡 <strong>Platform fee:</strong> Urbance charges a 10% service fee on completed jobs. Payouts are processed every Friday.
-                  </div>
-                </div>
               </div>
             </div>
           </div>
