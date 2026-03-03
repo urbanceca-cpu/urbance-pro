@@ -24,20 +24,6 @@ export function Footer() {
           {/* Brand */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '18px' }}>
-              <div style={{
-                width: '30px',
-                height: '30px',
-                backgroundColor: '#2F80ED',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-                  <path d="M2.5 12L7.5 3L12.5 12" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M5 9h5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              </div>
               <span style={{ fontSize: '15px', fontWeight: 700, color: '#111111', letterSpacing: '-0.02em' }}>
                 Urbance <span style={{ color: '#2F80ED' }}>Pros</span>
               </span>
