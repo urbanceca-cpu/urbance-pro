@@ -57,12 +57,14 @@ export function Footer() {
           <div>
             <div style={{ fontSize: '11px', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase' as const, letterSpacing: '0.1em', marginBottom: '18px' }}>Platform</div>
             {[
-              { label: 'How It Works', href: '/#how-it-works' },
-              { label: 'Earnings', href: '/#earnings' },
-              { label: 'Requirements', href: '/#requirements' },
-              { label: 'Apply Now', href: '/apply' },
+              { label: 'How It Works',    href: '/how-it-works' },
+              { label: 'Earnings',        href: '/earnings' },
+              { label: 'Services',        href: '/services' },
+              { label: 'Requirements',    href: '/requirements' },
+              { label: 'Success Stories', href: '/success-stories' },
+              { label: 'Apply Now',       href: '/apply' },
             ].map((item) => (
-              <a
+              <Link
                 key={item.label}
                 href={item.href}
                 style={{ display: 'block', fontSize: '14px', color: '#374151', textDecoration: 'none', marginBottom: '11px', lineHeight: 1.4 }}
@@ -70,7 +72,7 @@ export function Footer() {
                 onMouseLeave={e => (e.currentTarget.style.color = '#374151')}
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </div>
 
@@ -78,10 +80,11 @@ export function Footer() {
           <div>
             <div style={{ fontSize: '11px', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase' as const, letterSpacing: '0.1em', marginBottom: '18px' }}>Account</div>
             {[
-              { label: 'Sign In', href: '/login' },
+              { label: 'Sign In',   href: '/login' },
               { label: 'Dashboard', href: '/dashboard' },
-              { label: 'My Jobs', href: '/dashboard/jobs' },
-              { label: 'Payouts', href: '/dashboard/payouts' },
+              { label: 'My Jobs',   href: '/dashboard/jobs' },
+              { label: 'Payouts',   href: '/dashboard/payouts' },
+              { label: 'FAQ',       href: '/faq' },
             ].map((item) => (
               <Link
                 key={item.label}
@@ -99,9 +102,10 @@ export function Footer() {
           <div>
             <div style={{ fontSize: '11px', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase' as const, letterSpacing: '0.1em', marginBottom: '18px' }}>Company</div>
             {([
-              { label: 'Urbance Home', href: 'https://urbance.ca', external: true },
-              { label: 'Privacy Policy', href: '/privacy', external: false },
-              { label: 'Terms of Service', href: '/terms', external: false },
+              { label: 'Urbance Home',    href: 'https://urbance.ca', external: true },
+              { label: 'Privacy Policy',  href: '/privacy',  external: false },
+              { label: 'Terms of Service',href: '/terms',    external: false },
+              { label: 'Cookie Policy',   href: '/cookies',  external: false },
             ] as { label: string; href: string; external: boolean }[]).map((item) =>
               item.external ? (
                 <a
