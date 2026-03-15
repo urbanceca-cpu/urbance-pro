@@ -12,21 +12,46 @@ export interface Profile {
   updated_at: string;
 }
 
-// Application Types
+// Application Types — matches actual DB schema (JSONB columns)
 export interface ProviderApplication {
   id: string;
   user_id: string | null;
-  full_name: string;
-  email: string;
-  phone: string;
-  city: string;
-  services: string[]; // array of service keys
-  experience_years: number;
-  availability: Record<string, unknown>;
-  background_check_consent: boolean;
-  insurance_status: string;
-  notes: string | null;
   status: 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected';
+  basic_info: {
+    full_legal_name?: string;
+    business_name?: string;
+    email?: string;
+    phone?: string;
+    city?: string;
+    address_line1?: string;
+    postal_code?: string;
+  };
+  services_coverage: {
+    primary_category?: string;
+    sub_services?: string[];
+    service_areas?: string[];
+    max_travel_km?: string;
+    has_vehicle?: string;
+  };
+  experience_standards: {
+    years_experience?: string;
+    professional_bio?: string;
+    team_size?: string;
+    is_licensed?: string;
+    license_details?: string;
+    is_insured?: string;
+    policy_limit?: string;
+    background_check?: string;
+  };
+  pricing_availability: {
+    pricing_model?: string;
+    min_job_price?: string;
+    availability?: string[];
+    earliest_start?: string;
+    scheduling_notes?: string;
+    available?: boolean;
+  };
+  step_completed: Record<string, boolean>;
   created_at: string;
   updated_at: string;
 }
