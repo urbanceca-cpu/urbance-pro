@@ -4,14 +4,12 @@ import { createClient } from '@supabase/supabase-js';
 export async function POST(req: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const anonKey     = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Guard: env vars must be present
-  if (!supabaseUrl || !serviceKey || !anonKey) {
+  // Only the two server-side vars are needed — anon key is handled client-side
+  if (!supabaseUrl || !serviceKey) {
     const missing = [
       !supabaseUrl && 'NEXT_PUBLIC_SUPABASE_URL',
       !serviceKey  && 'SUPABASE_SERVICE_ROLE_KEY',
-      !anonKey     && 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
     ].filter(Boolean).join(', ');
     console.error('Missing env vars:', missing);
     return NextResponse.json({ error: `Server configuration error — missing: ${missing}` }, { status: 500 });
@@ -90,16 +88,8 @@ export async function POST(req: NextRequest) {
     appId = app?.id ?? null;
   }
 
-  // ── 3. Sign in via anon client to get a browser-usable session ────────────
-  // Admin client has persistSession:false so it cannot issue real tokens.
-  const anon = createClient(supabaseUrl, anonKey);
-  const { data: signInData, error: signInError } = await anon.auth.signInWithPassword({ email, password });
-
-  if (signInError || !signInData?.session) {
-    console.error('signInWithPassword after createUser failed:', signInError?.message ?? 'no session');
-    // Account was created — return success without a session; client will sign in itself
-    return NextResponse.json({ success: true, userId, appId, session: null });
-  }
-
-  return NextResponse.json({ success: true, userId, appId, session: signInData.session });
+  // ── 3. Return success — client signs in itself via signInWithPassword ──────
+  // We skip server-side sign-in because NEXT_PUBLIC_ vars are unreliable
+  // in server functions on Vercel. The client fallback handles session creation.
+  return NextResponse.json({ success: true, userId, appId, session: null });
 }
