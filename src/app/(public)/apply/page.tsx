@@ -364,7 +364,7 @@ export default function ApplyPage() {
     if (Object.keys(errs).length) { setErrors(errs); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     setErrors({});
 
-    // ── Step 1: create or sign-in account inline ──────────────────────────
+    // ── Step 1: create account ────────────────────────────────────────────
     if (step === 1 && !userId) {
       setAuthError('');
       setAuthLoading(true);
