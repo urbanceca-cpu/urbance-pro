@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Admin client — uses service role key, bypasses RLS and email confirmation
+// Admin client — service role, bypasses RLS and email confirmation
 function adminClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+}
+
+// Anon client — used only to sign in and get a real browser-usable session token
+function anonClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 }
 
@@ -68,8 +76,11 @@ export async function POST(req: NextRequest) {
       console.error('Draft app creation failed:', appError.message);
     }
 
-    // ── 3. Sign the user in to get a session ─────────────────────────────────
-    const { data: signInData, error: signInError } = await admin.auth.signInWithPassword({
+    // ── 3. Sign the user in to get a real browser-usable session ─────────────
+    // Must use anon client — admin client (persistSession:false) cannot issue
+    // a valid session token that the browser can use.
+    const anon = anonClient();
+    const { data: signInData, error: signInError } = await anon.auth.signInWithPassword({
       email,
       password,
     });

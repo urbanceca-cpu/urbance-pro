@@ -240,7 +240,6 @@ export default function ApplyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   // Inline auth state (used when user is not yet logged in — step 1)
-  const [authMode, setAuthMode] = useState<'signup' | 'login'>('signup');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
@@ -332,13 +331,9 @@ export default function ApplyPage() {
       // Only require email/password when not already logged in
       if (!skipAuth && !userId) {
         if (!basicInfo.email.trim() || !/^[^@]+@[^@]+\.[^@]+$/.test(basicInfo.email)) e.email = 'A valid email address is required';
-        if (authMode === 'signup') {
-          if (!basicInfo.password || basicInfo.password.length < 8) e.password = 'Password must be at least 8 characters';
-          if (basicInfo.password !== basicInfo.confirmPassword) e.confirmPassword = 'Passwords do not match';
-          if (!termsAccepted) e.terms = 'You must accept the Terms of Service and Privacy Policy to continue';
-        } else {
-          if (!basicInfo.password) e.password = 'Password is required';
-        }
+        if (!basicInfo.password || basicInfo.password.length < 8) e.password = 'Password must be at least 8 characters';
+        if (basicInfo.password !== basicInfo.confirmPassword) e.confirmPassword = 'Passwords do not match';
+        if (!termsAccepted) e.terms = 'You must accept the Terms of Service and Privacy Policy to continue';
       }
     }
     if (s === 2) {
@@ -374,10 +369,8 @@ export default function ApplyPage() {
       setAuthError('');
       setAuthLoading(true);
       try {
-        let uid = '';
-        let resolvedEmail = basicInfo.email;
-        if (authMode === 'signup') {
-          // ── Server-side signup: bypasses email confirmation, fixes broken trigger ──
+          // ── Server-side signup: creates user with admin API (email pre-confirmed, no
+          // confirmation email), then signs in via anon client to get a real session.
           const res = await fetch('/api/provider-signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -390,7 +383,7 @@ export default function ApplyPage() {
           const result = await res.json();
           if (!res.ok || result.error) {
             if (res.status === 409) {
-              setAuthError('An account with this email already exists. Switch to "Sign In" to continue your application.');
+              setAuthError('An account with this email already exists. Please use the login page to continue.');
             } else {
               setAuthError(result.error ?? 'Failed to create account. Please try again.');
             }
@@ -403,13 +396,12 @@ export default function ApplyPage() {
               refresh_token: result.session.refresh_token,
             });
           }
-          uid = result.userId as string;
-          resolvedEmail = basicInfo.email;
-          const infoToSave = { ...basicInfo, email: resolvedEmail, password: '', confirmPassword: '' };
+          const uid = result.userId as string;
+          const infoToSave = { ...basicInfo, email: basicInfo.email, password: '', confirmPassword: '' };
           setUserId(uid);
-          setUserEmail(resolvedEmail);
+          setUserEmail(basicInfo.email);
           setBasicInfo(infoToSave);
-          // The API route already created a draft — use it; or create one if missing
+          // The API route already created a draft — use it; create one client-side if missing
           let aid: string | null = result.appId ?? null;
           if (!aid) {
             const { data: created } = await supabase.from('provider_applications')
@@ -426,50 +418,8 @@ export default function ApplyPage() {
           setAuthLoading(false);
           setStep(2);
           window.scrollTo({ top: 0, behavior: 'smooth' });
-          return;
-        } else {
-          // ── Sign-in mode ──
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email: basicInfo.email,
-            password: basicInfo.password,
-          });
-          if (error) {
-            const msg = error.message.toLowerCase();
-            if (msg.includes('invalid login') || msg.includes('invalid credentials') || msg.includes('wrong password')) {
-              setAuthError('Incorrect email or password. Please try again.');
-            } else {
-              setAuthError(error.message);
-            }
-            setAuthLoading(false); return;
-          }
-          uid = data.user?.id ?? '';
-          resolvedEmail = data.user?.email ?? basicInfo.email;
-        }
-        setUserId(uid);
-        setUserEmail(resolvedEmail);
-        // Save email into basicInfo (strip password + confirmPassword before storing)
-        const infoToSave = { ...basicInfo, email: resolvedEmail, password: '', confirmPassword: '' };
-        setBasicInfo(infoToSave);
-        // Create or load draft application
-        const { data: existingApp } = await supabase.from('provider_applications').select('id').eq('user_id', uid).maybeSingle();
-        let aid = existingApp?.id;
-        if (!aid) {
-          const { data: created } = await supabase.from('provider_applications')
-            .insert({ user_id: uid, status: 'draft', step_completed: {}, basic_info: infoToSave, services_coverage: services, experience_standards: experience, pricing_availability: pricing })
-            .select('id').single();
-          aid = created?.id;
-        } else {
-          await supabase.from('provider_applications').update({ basic_info: infoToSave }).eq('id', aid);
-        }
-        if (aid) setAppId(aid);
-        const newCompleted = { ...stepsCompleted, 1: true };
-        setStepsCompleted(newCompleted);
-        if (aid) await supabase.from('provider_applications').update({ step_completed: newCompleted, basic_info: infoToSave }).eq('id', aid);
-        setAuthLoading(false);
-        setStep(2);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (err) {
-        console.error('Auth error:', err);
+        console.error('Signup error:', err);
         setAuthError('Something went wrong. Please try again.');
         setAuthLoading(false);
       }
@@ -754,33 +704,12 @@ export default function ApplyPage() {
 
           <SectionHead>Contact</SectionHead>
 
-          {/* ── Account creation / sign-in block (only when not logged in) ── */}
+          {/* ── Account creation block (only when not logged in) ── */}
           {!userId && (
             <div style={{ backgroundColor: '#F8F9FC', borderRadius: '16px', border: '1px solid #EEEFF1', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Toggle */}
-              <div style={{ display: 'flex', gap: '0', backgroundColor: '#EEEFF1', borderRadius: '10px', padding: '3px' }}>
-                {(['signup', 'login'] as const).map(m => (
-                  <button key={m} type="button" onClick={() => { setAuthMode(m); setAuthError(''); setErrors({}); }}
-                    style={{ flex: 1, padding: '8px', borderRadius: '8px', fontSize: '13px', fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
-                      backgroundColor: authMode === m ? '#ffffff' : 'transparent',
-                      color: authMode === m ? '#111111' : '#9CA3AF',
-                      boxShadow: authMode === m ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                    }}>
-                    {m === 'signup' ? '✨ Create Account' : '🔑 Sign In'}
-                  </button>
-                ))}
-              </div>
-
-              {authMode === 'signup' && (
-                <p style={{ fontSize: '12px', color: '#6B7280', margin: 0, lineHeight: 1.6 }}>
-                  Your Urbance Pro account will be created with this email and password. You&apos;ll use them to log in later.
-                </p>
-              )}
-              {authMode === 'login' && (
-                <p style={{ fontSize: '12px', color: '#6B7280', margin: 0, lineHeight: 1.6 }}>
-                  Already applied before? Sign in to continue your existing application.
-                </p>
-              )}
+              <p style={{ fontSize: '12px', color: '#6B7280', margin: 0, lineHeight: 1.6 }}>
+                Create your Urbance Pro account below. You&apos;ll use these credentials to log in and check your application status.
+              </p>
 
               {/* Email */}
               <div>
@@ -794,10 +723,10 @@ export default function ApplyPage() {
 
               {/* Password */}
               <div>
-                <FieldLabel required>{authMode === 'signup' ? 'Create a Password' : 'Password'}</FieldLabel>
+                <FieldLabel required>Create a Password</FieldLabel>
                 <div style={{ position: 'relative' }}>
                   <StyledInput type={showPassword ? 'text' : 'password'}
-                    placeholder={authMode === 'signup' ? 'Min. 8 characters' : 'Enter your password'}
+                    placeholder="Min. 8 characters"
                     value={basicInfo.password}
                     onChange={e => setBasicInfo(b => ({ ...b, password: e.target.value }))}
                     error={errors.password}
@@ -810,36 +739,33 @@ export default function ApplyPage() {
                     }
                   </button>
                 </div>
-                {authMode === 'signup' && <FieldHint>Use at least 8 characters. You&apos;ll use this to log in to your dashboard.</FieldHint>}
+                <FieldHint>Use at least 8 characters. You&apos;ll use this to log in to your dashboard.</FieldHint>
                 <FieldError msg={errors.password} />
               </div>
 
-              {/* Confirm Password — signup only */}
-              {authMode === 'signup' && (
-                <div>
-                  <FieldLabel required>Confirm Password</FieldLabel>
-                  <div style={{ position: 'relative' }}>
-                    <StyledInput type={showConfirmPassword ? 'text' : 'password'}
-                      placeholder="Re-enter your password"
-                      value={basicInfo.confirmPassword}
-                      onChange={e => setBasicInfo(b => ({ ...b, confirmPassword: e.target.value }))}
-                      error={errors.confirmPassword}
-                      style={{ paddingRight: '48px' }} />
-                    <button type="button" onClick={() => setShowConfirmPassword(v => !v)}
-                      style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: '4px', display: 'flex', alignItems: 'center' }}>
-                      {showConfirmPassword
-                        ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                        : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                      }
-                    </button>
-                  </div>
-                  <FieldError msg={errors.confirmPassword} />
+              {/* Confirm Password */}
+              <div>
+                <FieldLabel required>Confirm Password</FieldLabel>
+                <div style={{ position: 'relative' }}>
+                  <StyledInput type={showConfirmPassword ? 'text' : 'password'}
+                    placeholder="Re-enter your password"
+                    value={basicInfo.confirmPassword}
+                    onChange={e => setBasicInfo(b => ({ ...b, confirmPassword: e.target.value }))}
+                    error={errors.confirmPassword}
+                    style={{ paddingRight: '48px' }} />
+                  <button type="button" onClick={() => setShowConfirmPassword(v => !v)}
+                    style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: '4px', display: 'flex', alignItems: 'center' }}>
+                    {showConfirmPassword
+                      ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                      : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    }
+                  </button>
                 </div>
-              )}
+                <FieldError msg={errors.confirmPassword} />
+              </div>
 
-              {/* Terms & Privacy — signup only */}
-              {authMode === 'signup' && (
-                <div style={{ paddingTop: '4px' }}>
+              {/* Terms & Privacy */}
+              <div style={{ paddingTop: '4px' }}>
                   <label style={{
                     display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer',
                     padding: '14px 16px', borderRadius: '12px',
@@ -865,8 +791,7 @@ export default function ApplyPage() {
                     </span>
                   </label>
                   <FieldError msg={errors.terms} />
-                </div>
-              )}
+              </div>
 
               {/* Auth error */}
               {authError && (
@@ -1495,7 +1420,7 @@ export default function ApplyPage() {
                       {authLoading
                         ? '⏳ Creating account…'
                         : step === 1 && !userId
-                          ? (authMode === 'signup' ? 'Create Account & Continue' : 'Sign In & Continue')
+                          ? 'Create Account & Continue'
                           : step === 5 ? 'Review Application' : 'Save & Continue'}
                       {!authLoading && <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </button>
