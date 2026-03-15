@@ -8,8 +8,13 @@ export async function POST(req: NextRequest) {
 
   // Guard: env vars must be present
   if (!supabaseUrl || !serviceKey || !anonKey) {
-    console.error('Missing env vars:', { supabaseUrl: !!supabaseUrl, serviceKey: !!serviceKey, anonKey: !!anonKey });
-    return NextResponse.json({ error: 'Server configuration error. Please contact support.' }, { status: 500 });
+    const missing = [
+      !supabaseUrl && 'NEXT_PUBLIC_SUPABASE_URL',
+      !serviceKey  && 'SUPABASE_SERVICE_ROLE_KEY',
+      !anonKey     && 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    ].filter(Boolean).join(', ');
+    console.error('Missing env vars:', missing);
+    return NextResponse.json({ error: `Server configuration error — missing: ${missing}` }, { status: 500 });
   }
 
   let body: { email?: string; password?: string; full_name?: string };
