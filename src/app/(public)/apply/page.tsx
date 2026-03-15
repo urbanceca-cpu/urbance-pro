@@ -241,6 +241,7 @@ export default function ApplyPage() {
   const [submitError, setSubmitError] = useState('');
   // Inline auth state (used when user is not yet logged in — step 1)
   const [authMode, setAuthMode] = useState<'signup' | 'login'>('signup');
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
 
@@ -334,6 +335,7 @@ export default function ApplyPage() {
         if (authMode === 'signup') {
           if (!basicInfo.password || basicInfo.password.length < 8) e.password = 'Password must be at least 8 characters';
           if (basicInfo.password !== basicInfo.confirmPassword) e.confirmPassword = 'Passwords do not match';
+          if (!termsAccepted) e.terms = 'You must accept the Terms of Service and Privacy Policy to continue';
         } else {
           if (!basicInfo.password) e.password = 'Password is required';
         }
@@ -375,25 +377,58 @@ export default function ApplyPage() {
         let uid = '';
         let resolvedEmail = basicInfo.email;
         if (authMode === 'signup') {
-          const { data, error } = await supabase.auth.signUp({
-            email: basicInfo.email,
-            password: basicInfo.password,
-            options: { data: { full_name: basicInfo.full_legal_name } },
+          // ── Server-side signup: bypasses email confirmation, fixes broken trigger ──
+          const res = await fetch('/api/provider-signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: basicInfo.email,
+              password: basicInfo.password,
+              full_name: basicInfo.full_legal_name,
+            }),
           });
-          if (error) {
-            const msg = error.message.toLowerCase();
-            if (msg.includes('already registered') || msg.includes('already exists') || msg.includes('user already registered')) {
+          const result = await res.json();
+          if (!res.ok || result.error) {
+            if (res.status === 409) {
               setAuthError('An account with this email already exists. Switch to "Sign In" to continue your application.');
-            } else if (msg.includes('password')) {
-              setAuthError('Password must be at least 8 characters.');
             } else {
-              setAuthError(error.message);
+              setAuthError(result.error ?? 'Failed to create account. Please try again.');
             }
             setAuthLoading(false); return;
           }
-          uid = data.user?.id ?? '';
-          resolvedEmail = data.user?.email ?? basicInfo.email;
+          // Inject the session returned by the server into the Supabase client
+          if (result.session) {
+            await supabase.auth.setSession({
+              access_token: result.session.access_token,
+              refresh_token: result.session.refresh_token,
+            });
+          }
+          uid = result.userId as string;
+          resolvedEmail = basicInfo.email;
+          const infoToSave = { ...basicInfo, email: resolvedEmail, password: '', confirmPassword: '' };
+          setUserId(uid);
+          setUserEmail(resolvedEmail);
+          setBasicInfo(infoToSave);
+          // The API route already created a draft — use it; or create one if missing
+          let aid: string | null = result.appId ?? null;
+          if (!aid) {
+            const { data: created } = await supabase.from('provider_applications')
+              .insert({ user_id: uid, status: 'draft', step_completed: {}, basic_info: infoToSave, services_coverage: services, experience_standards: experience, pricing_availability: pricing })
+              .select('id').single();
+            aid = created?.id ?? null;
+          } else {
+            await supabase.from('provider_applications').update({ basic_info: infoToSave }).eq('id', aid);
+          }
+          if (aid) setAppId(aid);
+          const newCompleted = { ...stepsCompleted, 1: true };
+          setStepsCompleted(newCompleted);
+          if (aid) await supabase.from('provider_applications').update({ step_completed: newCompleted }).eq('id', aid);
+          setAuthLoading(false);
+          setStep(2);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
         } else {
+          // ── Sign-in mode ──
           const { data, error } = await supabase.auth.signInWithPassword({
             email: basicInfo.email,
             password: basicInfo.password,
@@ -433,7 +468,8 @@ export default function ApplyPage() {
         setAuthLoading(false);
         setStep(2);
         window.scrollTo({ top: 0, behavior: 'smooth' });
-      } catch {
+      } catch (err) {
+        console.error('Auth error:', err);
         setAuthError('Something went wrong. Please try again.');
         setAuthLoading(false);
       }
@@ -798,6 +834,37 @@ export default function ApplyPage() {
                     </button>
                   </div>
                   <FieldError msg={errors.confirmPassword} />
+                </div>
+              )}
+
+              {/* Terms & Privacy — signup only */}
+              {authMode === 'signup' && (
+                <div style={{ paddingTop: '4px' }}>
+                  <label style={{
+                    display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer',
+                    padding: '14px 16px', borderRadius: '12px',
+                    backgroundColor: errors.terms ? '#FEF2F2' : '#F8F9FC',
+                    border: `1.5px solid ${errors.terms ? '#FCA5A5' : termsAccepted ? '#2F80ED' : '#E5E7EB'}`,
+                    transition: 'border-color 0.15s',
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={termsAccepted}
+                      onChange={e => {
+                        setTermsAccepted(e.target.checked);
+                        if (e.target.checked) setErrors(ev => { const n = { ...ev }; delete n.terms; return n; });
+                      }}
+                      style={{ width: '18px', height: '18px', marginTop: '1px', flexShrink: 0, accentColor: '#2F80ED', cursor: 'pointer' }}
+                    />
+                    <span style={{ fontSize: '13px', color: '#374151', lineHeight: 1.6 }}>
+                      I agree to the{' '}
+                      <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#2F80ED', fontWeight: 600, textDecoration: 'none' }}>Terms of Service</a>
+                      {' '}and{' '}
+                      <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#2F80ED', fontWeight: 600, textDecoration: 'none' }}>Privacy Policy</a>.
+                      {' '}I confirm I am at least 18 years old and legally eligible to provide services in Canada.
+                    </span>
+                  </label>
+                  <FieldError msg={errors.terms} />
                 </div>
               )}
 
