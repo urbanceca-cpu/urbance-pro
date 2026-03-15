@@ -389,12 +389,22 @@ export default function ApplyPage() {
             }
             setAuthLoading(false); return;
           }
-          // Inject the session returned by the server into the Supabase client
+          // Inject the session into the Supabase client
           if (result.session) {
             await supabase.auth.setSession({
               access_token: result.session.access_token,
               refresh_token: result.session.refresh_token,
             });
+          } else {
+            // API returned no session (fallback) — sign in client-side now that account exists
+            const { error: siErr } = await supabase.auth.signInWithPassword({
+              email: basicInfo.email,
+              password: basicInfo.password,
+            });
+            if (siErr) {
+              setAuthError('Account created but sign-in failed: ' + siErr.message);
+              setAuthLoading(false); return;
+            }
           }
           const uid = result.userId as string;
           const infoToSave = { ...basicInfo, email: basicInfo.email, password: '', confirmPassword: '' };
