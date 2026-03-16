@@ -103,7 +103,7 @@ export function Navbar({ variant: _variant }: NavbarProps = {}) {
               href="https://urbance.ca"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ padding: '8px 13px', fontSize: '14px', fontWeight: 500, color: '#374151', textDecoration: 'none', borderRadius: '8px', transition: 'background 0.15s' }}
+              style={{ padding: '8px 13px', fontSize: '14px', fontWeight: 500, color: '#2F80ED', textDecoration: 'none', borderRadius: '8px', transition: 'background 0.15s' }}
               onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F5F7FA')}
               onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
