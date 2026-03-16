@@ -278,7 +278,7 @@ export function Navbar({ variant: _variant }: NavbarProps = {}) {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setMobileOpen(false)}
-              style={{ display: 'block', padding: '12px 16px', fontSize: '15px', fontWeight: 500, color: '#374151', textDecoration: 'none', borderRadius: '8px' }}
+              style={{ display: 'block', padding: '12px 16px', fontSize: '15px', fontWeight: 500, color: '#2F80ED', textDecoration: 'none', borderRadius: '8px' }}
             >
               Urbance Home
             </a>
