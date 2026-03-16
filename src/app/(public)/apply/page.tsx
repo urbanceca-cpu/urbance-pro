@@ -30,6 +30,11 @@ interface ServicesCoverage {
   has_vehicle: string;
 }
 
+interface Reference {
+  name: string;
+  phone_or_email: string;
+}
+
 interface ExperienceStandards {
   years_experience: string;
   professional_bio: string;
@@ -38,12 +43,10 @@ interface ExperienceStandards {
   license_details: string;
   is_insured: string;
   policy_limit: string;
-  background_check: string;
+  references: Reference[];
 }
 
 interface PricingAvailability {
-  pricing_model: string;
-  min_job_price: string;
   availability: string[];
   earliest_start: string;
   scheduling_notes: string;
@@ -84,7 +87,6 @@ const DOC_CATEGORIES = [
   { value: 'insurance_certificate', label: 'Insurance Certificate' },
   { value: 'trade_certification', label: 'Trade Certification' },
   { value: 'worksafebc', label: 'WorkSafeBC' },
-  { value: 'background_check', label: 'Background Check' },
   { value: 'proof_of_address', label: 'Proof of Address' },
   { value: 'other', label: 'Other' },
 ];
@@ -96,7 +98,7 @@ const STEPS = [
   { n: 1, title: 'Basic Info', icon: '👤', hint: 'Your name, contact details, and location.' },
   { n: 2, title: 'Services & Coverage', icon: '🛠', hint: 'What you offer and where you work.' },
   { n: 3, title: 'Experience & Standards', icon: '⭐', hint: 'Your background, licensing, and insurance.' },
-  { n: 4, title: 'Pricing & Availability', icon: '💰', hint: 'Your rates and when you are available.' },
+  { n: 4, title: 'Availability', icon: '📅', hint: 'When you are available to work.' },
   { n: 5, title: 'Document Upload', icon: '📎', hint: 'Required documents for verification.' },
   { n: 6, title: 'Review & Submit', icon: '✅', hint: 'Review everything before submitting.' },
 ];
@@ -217,11 +219,11 @@ const emptyServices = (): ServicesCoverage => ({
 const emptyExperience = (): ExperienceStandards => ({
   years_experience: '', professional_bio: '', team_size: '',
   is_licensed: '', license_details: '', is_insured: '',
-  policy_limit: '', background_check: '',
+  policy_limit: '', references: [{ name: '', phone_or_email: '' }, { name: '', phone_or_email: '' }],
 });
 
 const emptyPricing = (): PricingAvailability => ({
-  pricing_model: '', min_job_price: '', availability: [], earliest_start: '', scheduling_notes: '',
+  availability: [], earliest_start: '', scheduling_notes: '',
 });
 
 /* ═══════════════════════════════════════════════════════════════════════════════
@@ -414,7 +416,10 @@ export default function ApplyPage() {
         if (!experience.team_size) e.team_size = 'Team size required';
         if (!experience.is_licensed) e.is_licensed = 'Please answer this question';
         if (!experience.is_insured) e.is_insured = 'Please answer this question';
-        if (!experience.background_check) e.background_check = 'Please answer this question';
+        if (!experience.references[0]?.name?.trim() || !experience.references[0]?.phone_or_email?.trim())
+          e.reference1 = 'First reference name and contact are required';
+        if (!experience.references[1]?.name?.trim() || !experience.references[1]?.phone_or_email?.trim())
+          e.reference2 = 'Second reference name and contact are required';
         break;
       }
       case 4: {
@@ -1259,23 +1264,49 @@ export default function ApplyPage() {
               )}
               <FieldError msg={errors.is_insured} />
             </div>
-            {/* Background check */}
-            <div>
-              <FieldLabel required>Background Check Status</FieldLabel>
-              <div className="flex gap-2.5 flex-wrap mt-1.5">
-                {[{ v: 'yes', label: '✅ Have one' }, { v: 'no', label: '❌ Don\'t have one' }, { v: 'need', label: '🔄 Will get one' }].map(o => (
-                  <button key={o.v} type="button" onClick={() => setExperience(x => ({ ...x, background_check: o.v }))}
-                    className="flex-1 min-w-[140px] py-2.5 rounded-[10px] text-[13px] font-semibold border-[1.5px] cursor-pointer transition-all"
-                    style={{
-                      borderColor: experience.background_check === o.v ? color : '#E5E7EB',
-                      backgroundColor: experience.background_check === o.v ? light : '#FFFFFF',
-                      color: experience.background_check === o.v ? color : '#6B7280',
-                    }}>
-                    {o.label}
-                  </button>
-                ))}
+            {/* References */}
+            <div className="bg-gray-50 rounded-2xl border border-gray-100 p-5 flex flex-col gap-4">
+              <div>
+                <FieldLabel required>Professional References</FieldLabel>
+                <FieldHint>Provide two references who can vouch for your work quality.</FieldHint>
               </div>
-              <FieldError msg={errors.background_check} />
+              {[0, 1].map(i => (
+                <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col gap-3">
+                  <p className="text-[12px] font-bold text-gray-400 uppercase tracking-wider m-0">Reference {i + 1}</p>
+                  <div>
+                    <FieldLabel required>Full Name</FieldLabel>
+                    <StyledInput
+                      placeholder="e.g. Jane Smith"
+                      name={`ref_name_${i}`}
+                      autoComplete="off"
+                      value={experience.references[i]?.name ?? ''}
+                      onChange={e => {
+                        const refs = [...experience.references];
+                        refs[i] = { ...refs[i], name: e.target.value };
+                        setExperience(x => ({ ...x, references: refs }));
+                      }}
+                      error={i === 0 ? errors.reference1 : errors.reference2}
+                    />
+                  </div>
+                  <div>
+                    <FieldLabel required>Phone Number or Email</FieldLabel>
+                    <StyledInput
+                      placeholder="e.g. 604-555-1234 or jane@email.com"
+                      name={`ref_contact_${i}`}
+                      autoComplete="off"
+                      value={experience.references[i]?.phone_or_email ?? ''}
+                      onChange={e => {
+                        const refs = [...experience.references];
+                        refs[i] = { ...refs[i], phone_or_email: e.target.value };
+                        setExperience(x => ({ ...x, references: refs }));
+                      }}
+                      error={i === 0 ? errors.reference1 : errors.reference2}
+                    />
+                  </div>
+                </div>
+              ))}
+              <FieldError msg={errors.reference1} />
+              <FieldError msg={errors.reference2} />
             </div>
           </div>
         );
@@ -1454,7 +1485,8 @@ export default function ApplyPage() {
               ['Team Size', experience.team_size],
               ['Licensed', experience.is_licensed],
               ['Insured', experience.is_insured],
-              ['Background Check', experience.background_check],
+              ['Reference 1', experience.references[0]?.name ? `${experience.references[0].name} — ${experience.references[0].phone_or_email}` : '—'],
+              ['Reference 2', experience.references[1]?.name ? `${experience.references[1].name} — ${experience.references[1].phone_or_email}` : '—'],
             ],
           },
           {
