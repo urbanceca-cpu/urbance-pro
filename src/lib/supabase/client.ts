@@ -1,23 +1,28 @@
 import { createBrowserClient } from '@supabase/ssr';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
- * Create a Supabase client for browser/client-side usage.
- * NEXT_PUBLIC_ vars are inlined by Next.js at build time.
- * Falls back gracefully during static prerender (no env vars available).
+ * Supabase client for browser/client-side usage.
+ *
+ * These are PUBLIC keys (safe to expose in client bundles).
+ * We hardcode them as fallbacks so static prerender + env-var typos
+ * on Vercel can never break the client.
  */
-export function createClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
 
-  // During static prerender env vars are not available — return a safe dummy
-  if (!url || !key) {
-    return createBrowserClient(
-      'https://placeholder.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiJ9.ZopqoUt20nEV8rw6HtnRma_scCbipH_a-wfZHVj5eDQ',
-    );
-  }
+const SUPABASE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  'https://fayscounjvfclnlyuddv.supabase.co';
 
-  return createBrowserClient(url, key);
+const SUPABASE_ANON_KEY =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZheXNjb3VuanZmY2xubHl1ZGR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNDg1MTAsImV4cCI6MjA4MDYyNDUxMH0.gWEM7AnA9JiAIa-WIQNdXmQ-VFD6uBZJqQAff-xdwkk';
+
+let cached: SupabaseClient | null = null;
+
+export function createClient(): SupabaseClient {
+  if (cached) return cached;
+  cached = createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  return cached;
 }
 
 /**
