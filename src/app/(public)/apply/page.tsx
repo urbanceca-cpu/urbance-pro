@@ -400,11 +400,17 @@ export default function ApplyPage() {
           return;
         }
 
-        if (!signUpData.session || !signUpData.user) {
-          // No session = email confirmation is required in Supabase dashboard settings.
+        if (!signUpData.user) {
+          setAuthError('Failed to create account. Please try again.');
+          setAuthLoading(false);
+          return;
+        }
+
+        if (!signUpData.session) {
+          // Supabase returns user+no session when the email already exists OR
+          // when email confirmation is enabled. Either way we can't proceed.
           setAuthError(
-            'A confirmation email has been sent to ' + basicInfo.email +
-            '. Please verify your email then return here to continue.'
+            'An account with this email may already exist. Please use the login page, or check your inbox for a confirmation email.'
           );
           setAuthLoading(false);
           return;
@@ -412,20 +418,26 @@ export default function ApplyPage() {
 
         // Session is live — auth.uid() matches user.id for all RLS checks
         const uid = signUpData.user.id;
+        const fullName = basicInfo.full_legal_name?.trim() || 'Provider';
         const infoToSave = { ...basicInfo, password: '', confirmPassword: '' };
         setUserId(uid);
         setUserEmail(basicInfo.email);
         setBasicInfo(infoToSave);
 
         // ── DB setup: profile + draft app via admin API route ─────────────
+        // Send the session JWT so the server can verify identity independently
+        const accessToken = signUpData.session.access_token;
         const res = await fetch('/api/provider-signup', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: uid, full_name: basicInfo.full_legal_name }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ full_name: fullName }),
         });
         const result = await res.json();
         if (!res.ok) {
-          // Non-fatal — trigger may have already created the profile row
+          // Non-fatal — profile trigger may have already created the row
           console.warn('DB setup warning:', result.error);
         }
 

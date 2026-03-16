@@ -14,35 +14,62 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Server configuration error — missing: ${missing}` }, { status: 500 });
   }
 
-  let body: { userId?: string; full_name?: string };
+  // Parse body once up-front
+  let body: { userId?: string; full_name?: string } = {};
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
   }
 
-  const { userId, full_name } = body;
-
-  if (!userId || !full_name) {
-    return NextResponse.json({ error: 'userId and full_name are required.' }, { status: 400 });
+  const full_name = (body.full_name ?? '').trim();
+  if (!full_name) {
+    return NextResponse.json({ error: 'full_name is required.' }, { status: 400 });
   }
 
-  // Admin client — bypasses RLS for DB setup only (auth is handled client-side)
   const admin = createClient(supabaseUrl, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  // ── 1. Upsert profile row ─────────────────────────────────────────────────
-  // Safe to call even if the handle_new_user trigger already created the row.
+  // Verify caller: prefer Authorization header JWT, fall back to body.userId
+  // The client sends the session access_token as "Bearer <jwt>" so we can
+  // verify identity server-side rather than trusting a client-supplied UUID.
+  let userId: string;
+  const authHeader = req.headers.get('authorization') ?? '';
+  const jwt = authHeader.replace(/^Bearer\s+/i, '').trim();
+
+  if (jwt) {
+    const { data: { user }, error: userError } = await admin.auth.getUser(jwt);
+    if (userError || !user) {
+      console.error('JWT verification failed:', userError?.message);
+      return NextResponse.json({ error: 'User not authenticated.' }, { status: 401 });
+    }
+    userId = user.id;
+  } else if (body.userId) {
+    // Fallback: accept client-supplied userId when Authorization header is absent
+    userId = body.userId;
+  } else {
+    return NextResponse.json({ error: 'User not authenticated.' }, { status: 401 });
+  }
+
+  // 1. Upsert profile row (safe even if trigger already created it)
   const { error: profileError } = await admin
     .from('profiles')
     .upsert({ id: userId, role: 'provider', full_name }, { onConflict: 'id' });
+  if (profileError) console.error('Profile upsert error (non-fatal):', profileError.message);
 
-  if (profileError) {
-    console.error('Profile upsert error (non-fatal):', profileError.message);
+  // 2. Return existing draft if present (makes this endpoint idempotent)
+  const { data: existing } = await admin
+    .from('provider_applications')
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (existing?.id) {
+    return NextResponse.json({ success: true, userId, appId: existing.id });
   }
 
-  // ── 2. Create draft application ───────────────────────────────────────────
+  // 3. Create fresh draft application
   let appId: string | null = null;
   const { data: app, error: appError } = await admin
     .from('provider_applications')
