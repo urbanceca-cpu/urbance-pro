@@ -435,81 +435,102 @@ export default function ApplyPage() {
     setAuthLoading(true);
 
     try {
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: basicInfo.email,
-        password: basicInfo.password,
-        options: { data: { full_name: basicInfo.full_legal_name } },
-      });
-
-      if (signUpError) {
-        const msg = signUpError.message.toLowerCase();
-        if (msg.includes('already registered') || msg.includes('already exists') || msg.includes('user already')) {
-          setAuthError('An account with this email already exists. Please use the login page.');
-        } else {
-          setAuthError(signUpError.message);
-        }
-        return false;
-      }
-
-      if (!signUpData.user) {
-        setAuthError('Failed to create account. Please try again.');
-        return false;
-      }
-
-      if (!signUpData.session) {
-        setAuthError('Please check your email inbox for a confirmation link, then return here to continue.');
-        return false;
-      }
-
-      // Session is live
-      const uid = signUpData.user.id;
-      const fullName = basicInfo.full_legal_name.trim() || 'Provider';
-
-      setUserId(uid);
-      setBasicInfo(prev => ({ ...prev, password: '', confirmPassword: '' }));
-
-      // Server-side DB setup (profile + draft app)
-      const accessToken = signUpData.session.access_token;
+      // ── 1. Server-side: create user (admin, auto-confirmed) + profile + draft ──
       const res = await fetch('/api/provider-signup', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ full_name: fullName }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: basicInfo.email.trim().toLowerCase(),
+          password: basicInfo.password,
+          full_name: basicInfo.full_legal_name.trim(),
+        }),
       });
 
       const result = await res.json();
 
-      let aid: string | null = result.appId ?? null;
+      if (!res.ok) {
+        if (result.error === 'account_exists') {
+          // User already has an account — try signing in instead
+          setAuthError('An account with this email already exists. Trying to sign you in...');
 
-      if (!aid) {
-        // Fallback: create via client (user session is active → RLS allows it)
-        const { password: _, confirmPassword: __, ...safeInfo } = basicInfo;
-        const { data: created } = await supabase
-          .from('provider_applications')
-          .insert({
-            user_id: uid,
-            status: 'draft',
-            step_completed: {},
-            basic_info: safeInfo,
-            services_coverage: services,
-            experience_standards: experience,
-            pricing_availability: pricing,
-          })
-          .select('id')
-          .single();
-        aid = created?.id ?? null;
-      } else {
+          const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+            email: basicInfo.email.trim().toLowerCase(),
+            password: basicInfo.password,
+          });
+
+          if (signInErr) {
+            setAuthError('An account with this email already exists. Please check your password or use the login page.');
+            return false;
+          }
+
+          if (signInData.user) {
+            setUserId(signInData.user.id);
+            setBasicInfo(prev => ({ ...prev, password: '', confirmPassword: '' }));
+
+            // Load existing draft
+            const { data: existingApp } = await supabase
+              .from('provider_applications')
+              .select('*')
+              .eq('user_id', signInData.user.id)
+              .maybeSingle();
+
+            if (existingApp) {
+              setAppId(existingApp.id);
+              if (existingApp.status === 'submitted') {
+                setSubmitted(true);
+                return false;
+              }
+              // Restore form data
+              if (existingApp.basic_info && typeof existingApp.basic_info === 'object') {
+                setBasicInfo(prev => ({ ...prev, ...existingApp.basic_info, email: signInData.user.email ?? '', password: '', confirmPassword: '' }));
+              }
+              if (existingApp.services_coverage) setServices(prev => ({ ...prev, ...existingApp.services_coverage }));
+              if (existingApp.experience_standards) setExperience(prev => ({ ...prev, ...existingApp.experience_standards }));
+              if (existingApp.pricing_availability) setPricing(prev => ({ ...prev, ...existingApp.pricing_availability }));
+              if (existingApp.step_completed) setStepsCompleted(existingApp.step_completed);
+            }
+
+            setAuthError('');
+            return true;
+          }
+        }
+
+        setAuthError(result.message || result.error || 'Failed to create account.');
+        return false;
+      }
+
+      // ── 2. Client-side: sign in with password to get a live session ──
+      const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+        email: basicInfo.email.trim().toLowerCase(),
+        password: basicInfo.password,
+      });
+
+      if (signInErr) {
+        console.error('[apply] signInWithPassword failed:', signInErr.message);
+        setAuthError('Account created but sign-in failed. Please try the login page.');
+        return false;
+      }
+
+      if (!signInData.user) {
+        setAuthError('Account created but sign-in failed. Please try the login page.');
+        return false;
+      }
+
+      // ── 3. Set state ──
+      setUserId(signInData.user.id);
+      setBasicInfo(prev => ({ ...prev, password: '', confirmPassword: '' }));
+
+      if (result.appId) {
+        setAppId(result.appId);
+
         // Save current basic_info to the draft
         const { password: _, confirmPassword: __, ...safeInfo } = basicInfo;
         await supabase
           .from('provider_applications')
           .update({ basic_info: safeInfo })
-          .eq('id', aid);
+          .eq('id', result.appId);
       }
 
-      if (aid) setAppId(aid);
       return true;
     } catch (e) {
       console.error('[apply] Signup error:', e);

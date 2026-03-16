@@ -22,17 +22,18 @@ function getAdminClient() {
 
 // ─── POST /api/provider-signup ────────────────────────────────────────────────
 //
-// Called AFTER client-side supabase.auth.signUp() succeeds.
-// Creates/upserts profile row + draft application.
+// Server-side account creation using admin client.
+// Creates user (auto-confirmed), profile, and draft application.
 //
-// Headers:  Authorization: Bearer <access_token>
-// Body:     { full_name: string }
+// Body:     { email: string, password: string, full_name: string }
 // Returns:  { success: true, userId, appId }
+//
+// Client should call signInWithPassword() after this succeeds.
 
 export async function POST(req: NextRequest) {
   const admin = getAdminClient();
   if (!admin) {
-    console.error('[provider-signup] Missing env vars');
+    console.error('[provider-signup] Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
     return err('Server configuration error.', 500);
   }
 
@@ -44,37 +45,64 @@ export async function POST(req: NextRequest) {
     return err('Invalid JSON body.');
   }
 
+  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+  const password = typeof body.password === 'string' ? body.password : '';
   const fullName = typeof body.full_name === 'string' ? body.full_name.trim() : '';
-  if (!fullName) return err('full_name is required.');
 
-  // Authenticate via JWT
-  const authHeader = req.headers.get('authorization') ?? '';
-  const jwt = authHeader.replace(/^Bearer\s+/i, '').trim();
-  if (!jwt) return err('Missing Authorization header.', 401);
+  if (!email) return err('Email is required.');
+  if (!password || password.length < 8) return err('Password must be at least 8 characters.');
+  if (!fullName) return err('Full name is required.');
 
-  const { data: { user }, error: authErr } = await admin.auth.getUser(jwt);
-  if (authErr || !user) {
-    console.error('[provider-signup] JWT failed:', authErr?.message);
-    return err('Authentication failed.', 401);
+  // Try to create the user. If it fails with "already exists", handle gracefully.
+  const { data: newUser, error: createErr } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { full_name: fullName },
+  });
+
+  if (createErr) {
+    const msg = createErr.message.toLowerCase();
+    if (
+      msg.includes('already') ||
+      msg.includes('duplicate') ||
+      msg.includes('unique') ||
+      msg.includes('exists')
+    ) {
+      return json(
+        {
+          error: 'account_exists',
+          message: 'An account with this email already exists. Please sign in instead.',
+        },
+        409
+      );
+    }
+    console.error('[provider-signup] Create user failed:', createErr.message);
+    return err('Failed to create account: ' + createErr.message, 500);
   }
 
-  const userId = user.id;
+  const userId = newUser.user.id;
 
   // Upsert profile (trigger may have already created it)
   const { error: profileErr } = await admin
     .from('profiles')
-    .upsert({ id: userId, role: 'provider', full_name: fullName }, { onConflict: 'id' });
-  if (profileErr) console.error('[provider-signup] Profile upsert:', profileErr.message);
+    .upsert(
+      { id: userId, role: 'provider', full_name: fullName },
+      { onConflict: 'id' }
+    );
+  if (profileErr) {
+    console.error('[provider-signup] Profile upsert error:', profileErr.message);
+  }
 
-  // Idempotent: return existing draft if present
-  const { data: existing } = await admin
+  // Check for existing draft (idempotent)
+  const { data: existingDraft } = await admin
     .from('provider_applications')
     .select('id')
     .eq('user_id', userId)
     .maybeSingle();
 
-  if (existing?.id) {
-    return json({ success: true, userId, appId: existing.id });
+  if (existingDraft?.id) {
+    return json({ success: true, userId, appId: existingDraft.id });
   }
 
   // Create fresh draft
@@ -94,7 +122,7 @@ export async function POST(req: NextRequest) {
 
   if (appErr) {
     console.error('[provider-signup] Draft creation failed:', appErr.message);
-    return err('Failed to create application.', 500);
+    return err('Account created but failed to create application. Please try signing in.', 500);
   }
 
   return json({ success: true, userId, appId: app.id });
