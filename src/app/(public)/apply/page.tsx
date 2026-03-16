@@ -379,56 +379,56 @@ export default function ApplyPage() {
       setAuthError('');
       setAuthLoading(true);
       try {
-        const res = await fetch('/api/provider-signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: basicInfo.email,
-            password: basicInfo.password,
-            full_name: basicInfo.full_legal_name,
-          }),
+        // ── Auth: sign up client-side ──────────────────────────────────────
+        // signUp() returns a session directly when email confirmation is
+        // disabled in Supabase. No signInWithPassword needed after this.
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: basicInfo.email,
+          password: basicInfo.password,
+          options: { data: { full_name: basicInfo.full_legal_name } },
         });
-        const result = await res.json();
 
-        if (!res.ok || result.error) {
-          if (res.status === 409) {
+        if (signUpError) {
+          console.error('signUp error:', signUpError);
+          const msg = signUpError.message.toLowerCase();
+          if (msg.includes('already registered') || msg.includes('already exists') || msg.includes('user already')) {
             setAuthError('An account with this email already exists. Please use the login page to continue.');
           } else {
-            setAuthError(result.error ?? 'Failed to create account. Please try again.');
+            setAuthError(signUpError.message ?? 'Failed to create account. Please try again.');
           }
           setAuthLoading(false);
           return;
         }
 
-        // Account created server-side — now establish a client session via
-        // signInWithPassword. This is REQUIRED: Storage RLS and DB RLS both
-        // depend on auth.uid() being set for steps 2-6.
-        const { data: signInData, error: siErr } = await supabase.auth.signInWithPassword({
-          email: basicInfo.email,
-          password: basicInfo.password,
-        });
-
-        if (siErr || !signInData.session) {
-          // Account exists but we can't sign in — surface a clear actionable error
-          console.error('Post-signup sign-in failed:', siErr);
+        if (!signUpData.session || !signUpData.user) {
+          // No session = email confirmation is required in Supabase dashboard settings.
           setAuthError(
-            'Account created but sign-in failed. Please go to the login page and sign in with your email and password.'
+            'A confirmation email has been sent to ' + basicInfo.email +
+            '. Please verify your email then return here to continue.'
           );
           setAuthLoading(false);
           return;
         }
 
-        // Session is live — getUser() will now return the authenticated user in all subsequent steps
-
-        // Use the authenticated user's ID from the live session — guaranteed to
-        // match auth.uid() used by RLS policies on Storage and DB tables.
-        const uid = signInData.session.user.id;
+        // Session is live — auth.uid() matches user.id for all RLS checks
+        const uid = signUpData.user.id;
         const infoToSave = { ...basicInfo, password: '', confirmPassword: '' };
         setUserId(uid);
         setUserEmail(basicInfo.email);
         setBasicInfo(infoToSave);
 
-        // Use the draft app the API route created, or create one now
+        // ── DB setup: profile + draft app via admin API route ─────────────
+        const res = await fetch('/api/provider-signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: uid, full_name: basicInfo.full_legal_name }),
+        });
+        const result = await res.json();
+        if (!res.ok) {
+          // Non-fatal — trigger may have already created the profile row
+          console.warn('DB setup warning:', result.error);
+        }
+
         let aid: string | null = result.appId ?? null;
         if (!aid) {
           const { data: created } = await supabase.from('provider_applications')
