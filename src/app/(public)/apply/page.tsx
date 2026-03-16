@@ -369,65 +369,65 @@ export default function ApplyPage() {
       setAuthError('');
       setAuthLoading(true);
       try {
-          // ── Server-side signup: creates user with admin API (email pre-confirmed, no
-          // confirmation email), then signs in via anon client to get a real session.
-          const res = await fetch('/api/provider-signup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: basicInfo.email,
-              password: basicInfo.password,
-              full_name: basicInfo.full_legal_name,
-            }),
-          });
-          const result = await res.json();
-          if (!res.ok || result.error) {
-            if (res.status === 409) {
-              setAuthError('An account with this email already exists. Please use the login page to continue.');
-            } else {
-              setAuthError(result.error ?? 'Failed to create account. Please try again.');
-            }
-            setAuthLoading(false); return;
-          }
-          // Inject the session into the Supabase client
-          if (result.session) {
-            await supabase.auth.setSession({
-              access_token: result.session.access_token,
-              refresh_token: result.session.refresh_token,
-            });
+        const res = await fetch('/api/provider-signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: basicInfo.email,
+            password: basicInfo.password,
+            full_name: basicInfo.full_legal_name,
+          }),
+        });
+        const result = await res.json();
+
+        if (!res.ok || result.error) {
+          if (res.status === 409) {
+            setAuthError('An account with this email already exists. Please use the login page to continue.');
           } else {
-            // API returned no session (fallback) — sign in client-side now that account exists
-            const { error: siErr } = await supabase.auth.signInWithPassword({
-              email: basicInfo.email,
-              password: basicInfo.password,
-            });
-            if (siErr) {
-              setAuthError('Account created but sign-in failed: ' + siErr.message);
-              setAuthLoading(false); return;
-            }
+            setAuthError(result.error ?? 'Failed to create account. Please try again.');
           }
-          const uid = result.userId as string;
-          const infoToSave = { ...basicInfo, email: basicInfo.email, password: '', confirmPassword: '' };
-          setUserId(uid);
-          setUserEmail(basicInfo.email);
-          setBasicInfo(infoToSave);
-          // The API route already created a draft — use it; create one client-side if missing
-          let aid: string | null = result.appId ?? null;
-          if (!aid) {
-            const { data: created } = await supabase.from('provider_applications')
-              .insert({ user_id: uid, status: 'draft', step_completed: {}, basic_info: infoToSave, services_coverage: services, experience_standards: experience, pricing_availability: pricing })
-              .select('id').single();
-            aid = created?.id ?? null;
-          } else {
-            await supabase.from('provider_applications').update({ basic_info: infoToSave }).eq('id', aid);
-          }
-          if (aid) setAppId(aid);
-          const newCompleted = { ...stepsCompleted, 1: true };
-          setStepsCompleted(newCompleted);
-          if (aid) await supabase.from('provider_applications').update({ step_completed: newCompleted }).eq('id', aid);
           setAuthLoading(false);
-          setStep(2);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+
+        // Account created — now sign in silently so the Supabase client has a
+        // session for saving form data in subsequent steps
+        const { error: siErr } = await supabase.auth.signInWithPassword({
+          email: basicInfo.email,
+          password: basicInfo.password,
+        });
+
+        if (siErr) {
+          // Sign-in failed but account WAS created — store IDs in state and
+          // continue without a session (autosave won't work but submit will)
+          console.warn('Silent sign-in failed (non-fatal):', siErr.message);
+        }
+
+        const uid = result.userId as string;
+        const infoToSave = { ...basicInfo, password: '', confirmPassword: '' };
+        setUserId(uid);
+        setUserEmail(basicInfo.email);
+        setBasicInfo(infoToSave);
+
+        // Use the draft app the API route created, or create one now
+        let aid: string | null = result.appId ?? null;
+        if (!aid) {
+          const { data: created } = await supabase.from('provider_applications')
+            .insert({ user_id: uid, status: 'draft', step_completed: {}, basic_info: infoToSave, services_coverage: services, experience_standards: experience, pricing_availability: pricing })
+            .select('id').single();
+          aid = created?.id ?? null;
+        } else {
+          await supabase.from('provider_applications').update({ basic_info: infoToSave }).eq('id', aid);
+        }
+        if (aid) setAppId(aid);
+
+        const newCompleted = { ...stepsCompleted, 1: true };
+        setStepsCompleted(newCompleted);
+        if (aid) await supabase.from('provider_applications').update({ step_completed: newCompleted }).eq('id', aid);
+
+        setAuthLoading(false);
+        setStep(2);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (err) {
         console.error('Signup error:', err);
         setAuthError('Something went wrong. Please try again.');
