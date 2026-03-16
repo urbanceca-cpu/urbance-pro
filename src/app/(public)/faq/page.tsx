@@ -43,30 +43,29 @@ const CAT_COLOR: Record<string, { color: string; bg: string }> = {
 
 const FAQS = [
   // Getting Started
-  { cat: 'getting-started', q: 'How much does it cost to join?',        a: 'Joining Urbance is 100% free. There are no signup fees, monthly fees, or hidden costs. We only take a 10% commission on completed jobs — you earn, we earn. That\'s it.' },
-  { cat: 'getting-started', q: 'How long does approval take?',          a: 'Most applications are reviewed within 3–5 business days. Background checks typically take 2–3 days. Once approved, you can start accepting jobs immediately.' },
-  { cat: 'getting-started', q: 'What areas do you serve?',              a: 'We currently operate throughout British Columbia, with the highest demand in Metro Vancouver (Vancouver, Surrey, Burnaby, Richmond, Coquitlam, Langley, and surrounding areas). We\'re expanding to other cities soon.' },
-  { cat: 'getting-started', q: 'Do I need insurance?',                  a: 'Yes, liability insurance ($2M minimum) is required for most services. If you don\'t have it yet, we can recommend affordable providers during onboarding.' },
-  { cat: 'getting-started', q: 'What documents do I need to apply?',    a: 'You\'ll need a valid government-issued ID, proof of eligibility to work in Canada, relevant certifications or trade licenses, proof of insurance, and professional references.' },
-  { cat: 'getting-started', q: 'Can I work for other platforms?',       a: 'Absolutely. Urbance is flexible — you\'re free to work independently or with other services. We only ask that you deliver quality work on the jobs you accept from us.' },
+  { cat: 'getting-started', q: 'Is there a cost to join Urbance?',      a: 'Joining Urbance is completely free. There are no signup fees or monthly subscriptions. Urbance operates on a simple 12% service commission on completed jobs, which helps support the platform, customer acquisition, and payment processing.' },
+  { cat: 'getting-started', q: 'How long does the approval process take?', a: 'Most applications are reviewed within 3–5 business days. Once your profile is approved, you can start accepting jobs and receiving bookings through the platform.' },
+  { cat: 'getting-started', q: 'Which locations does Urbance currently serve?', a: 'Urbance currently operates across British Columbia, with strong demand throughout Metro Vancouver, including Vancouver, Surrey, Burnaby, Richmond, Coquitlam, and Langley. We are gradually expanding to additional cities.' },
+  { cat: 'getting-started', q: 'Is insurance required to work on the platform?', a: 'Many professional services benefit from having liability insurance as part of standard business practice. During onboarding, professionals can provide their existing coverage details if applicable.' },
+  { cat: 'getting-started', q: 'What documents are needed to apply?',   a: 'To create a professional profile, you may be asked to provide: government-issued ID, proof of eligibility to work in Canada, relevant certifications or trade licenses (if applicable), and business or professional information. These help maintain a trusted and professional platform for customers.' },
+  { cat: 'getting-started', q: 'Can I work independently or with other platforms?', a: 'Yes. Urbance professionals are independent service providers and are free to manage their work however they choose. Many professionals use Urbance alongside their own client base or other opportunities.' },
   // Payments
-  { cat: 'payments', q: 'When do I get paid?',               a: 'Payments are processed weekly via direct deposit or e-Transfer every Friday for the prior week\'s completed jobs. Track your earnings in real-time through the dashboard.' },
-  { cat: 'payments', q: 'How much can I earn?',              a: 'Earnings vary by service type and how much you work. On average, our professionals earn $3,500–$8,000 per month. Top earners make $10,000+ monthly. You set your own rates and schedule.' },
-  { cat: 'payments', q: 'What is the commission rate?',      a: 'Urbance takes a 10% commission on completed jobs. This covers payment processing, insurance, customer support, marketing, and platform maintenance. There are no other fees.' },
-  { cat: 'payments', q: 'Can I set my own rates?',           a: 'Yes. You have complete control over your pricing. We provide market-rate guidance to help you stay competitive, but the final decision is always yours.' },
-  { cat: 'payments', q: 'Are there any hidden fees?',        a: 'No hidden fees whatsoever. The 10% commission is our only charge. No monthly subscriptions, no lead fees, no withdrawal fees.' },
+  { cat: 'payments', q: 'When are payments processed?',             a: 'Payments for completed jobs are processed weekly, typically every Friday for the previous week\'s work. Your dashboard allows you to track upcoming payments and job earnings.' },
+  { cat: 'payments', q: 'What kind of earnings can professionals expect?', a: 'Earnings depend on the service category, availability, and number of jobs completed. Many active professionals on service platforms earn between $3,500 and $8,000 per month, with higher potential depending on demand and workload.' },
+  { cat: 'payments', q: 'How does Urbance\'s platform commission work?', a: 'Urbance applies a 12% commission on completed jobs, which is lower than many service marketplaces. This helps support platform operations, booking tools, payment processing, and customer support.' },
+  { cat: 'payments', q: 'Do professionals control their own pricing?', a: 'Yes. Professionals maintain full control over their service pricing and availability. Urbance may provide general market insights to help professionals stay competitive.' },
+  { cat: 'payments', q: 'Are there additional platform fees?',       a: 'Urbance keeps things simple with a single 12% commission on completed jobs. There are no subscriptions or recurring platform fees.' },
   // Jobs
-  { cat: 'jobs', q: 'Can I choose which jobs to accept?',          a: 'Yes. Browse available jobs, see all details (location, pay, scope), and only accept the ones that fit your schedule. No pressure to accept everything.' },
-  { cat: 'jobs', q: 'How do I get more jobs?',                     a: 'Build a strong profile with a detailed bio and service descriptions. Complete jobs on time and earn 5-star reviews. Respond quickly to requests — top-rated pros get priority placement.' },
-  { cat: 'jobs', q: 'What if I need to cancel a job?',             a: 'You can cancel jobs, but we ask for as much notice as possible. Frequent cancellations may affect your rating and job priority. Contact support if you\'re facing an emergency.' },
-  { cat: 'jobs', q: 'Can I bring my existing clients?',            a: 'Yes. You can invite your existing clients to book through Urbance. They\'ll enjoy easy payment processing and scheduling tools, while you benefit from platform support and payment security.' },
-  { cat: 'jobs', q: 'How do reviews and ratings work?',            a: 'Clients rate you 1–5 stars after job completion. Your overall rating is the average of all reviews. High ratings lead to more job opportunities and better placement in search results.' },
+  { cat: 'jobs', q: 'Can I choose which jobs I accept?',              a: 'Yes. Professionals can review job details and accept bookings that fit their schedule and service preferences.' },
+  { cat: 'jobs', q: 'How can professionals increase their bookings?', a: 'A strong profile, reliable service, and positive customer reviews help professionals receive more visibility on the platform. Completing jobs consistently and maintaining a great customer experience helps build a strong reputation.' },
+  { cat: 'jobs', q: 'What if my availability changes?',               a: 'Professionals can update their availability anytime through their dashboard, making it easy to manage schedules and upcoming bookings.' },
+  { cat: 'jobs', q: 'Can I invite my existing clients to use Urbance?', a: 'Yes. Professionals can invite their existing clients to book through Urbance, allowing them to benefit from streamlined scheduling and payment processing.' },
+  { cat: 'jobs', q: 'How do customer ratings work?',                  a: 'After each completed service, customers may leave a rating and review. These help other customers make informed decisions and highlight professionals who consistently deliver great service.' },
   // Account
-  { cat: 'account', q: 'Can I pause my account temporarily?',     a: 'Yes. Set your availability to "unavailable" anytime — you won\'t receive new job requests, but can still complete scheduled jobs. Reactivate whenever you\'re ready.' },
-  { cat: 'account', q: 'How do I update my services or rates?',   a: 'Log into your dashboard, go to Profile, and update your services, rates, availability, and bio anytime.' },
-  { cat: 'account', q: 'What happens if I get injured on the job?', a: 'As an independent contractor, you\'re responsible for your own WCB coverage. We strongly recommend proper insurance. Contact support immediately if an incident occurs.' },
-  { cat: 'account', q: 'How do I contact support?',               a: 'Email support@urbance.ca or open a ticket directly in your dashboard. We aim to respond within 24 hours on weekdays, faster for urgent issues.' },
-  { cat: 'account', q: 'Can I delete my account?',                a: 'Yes, you can delete your account anytime from Account Settings. Complete all scheduled jobs and ensure there are no pending payments first. Deletion is permanent.' },
+  { cat: 'account', q: 'Can I temporarily pause my availability?',    a: 'Yes. Professionals can update their availability at any time from their dashboard if they wish to take a break or adjust their schedule.' },
+  { cat: 'account', q: 'How do I update my services or pricing?',     a: 'You can update your services, pricing, and availability anytime through your professional dashboard.' },
+  { cat: 'account', q: 'How can I contact the Urbance team?',         a: 'You can reach the Urbance team by emailing support@urbance.ca or by submitting a request through your dashboard.' },
+  { cat: 'account', q: 'Can I close my account if needed?',           a: 'If you ever decide to stop using the platform, account settings allow you to manage or close your profile after completing any active bookings.' },
 ];
 
 function AccordionItem({ q, a, cat, defaultOpen }: { q: string; a: string; cat: string; defaultOpen?: boolean }) {
@@ -209,7 +208,7 @@ export default function FAQPage() {
         <section className="faq-stats-strip" style={{ padding: '64px 24px', background: '#fff', borderTop: '1px solid #F3F4F6', borderBottom: '1px solid #F3F4F6' }}>
           <div style={{ maxWidth: '900px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '24px', textAlign: 'center' }} className="faq-stats-grid">
             {[
-              { v: '10%',       label: 'Platform fee only', sub: 'No hidden costs' },
+              { v: '12%',       label: 'Platform fee only', sub: 'No hidden costs' },
               { v: '3–5 days',  label: 'Approval time',     sub: 'Fast review process' },
               { v: '$6,200',    label: 'Average earnings',   sub: 'Per month for active pros' },
               { v: '24 hrs',    label: 'Support response',   sub: 'On weekdays' },
