@@ -534,10 +534,9 @@ export default function ApplyPage() {
       }
 
       const timestamp = Date.now();
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      // Path: {user_id}/{timestamp}-{filename}
-      // RLS policy checks (storage.foldername(name))[1] = auth.uid()::text
-      // so the FIRST segment must be the user UUID — no "providers/" prefix.
+      const safeName = file.name.replace(/[^\w.-]/g, '_');
+      // RLS: (storage.foldername(name))[1] = auth.uid()::text
+      // First path segment MUST be the user UUID with no prefix folder.
       const storagePath = `${activeUserId}/${timestamp}-${safeName}`;
       const contentType = file.type || 'application/octet-stream';
 
