@@ -246,6 +246,9 @@ export default function ApplyPage() {
 
   // ── Doc upload UI ──
   const [pendingCategory, setPendingCategory] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null); // file name of last successful upload
+  const [categoryError, setCategoryError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ─── Load session + existing application ─────────────────────────────────
@@ -479,27 +482,53 @@ export default function ApplyPage() {
 
   // ─── Document upload ──────────────────────────────────────────────────────
   async function handleFileUpload(files: FileList | null) {
-    if (!files || !userId || !appId || !pendingCategory) return;
+    if (!files || files.length === 0) return;
+
+    // Guard: category must be selected first
+    if (!pendingCategory) {
+      setCategoryError('Please select a document category before uploading.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    setCategoryError('');
+
+    // Guard: must be authenticated to upload
+    if (!userId || !appId) {
+      setErrors(e => ({ ...e, docs: 'Please complete Step 1 first to enable document uploads.' }));
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
     const MAX_SIZE = 20 * 1024 * 1024;
+    setIsUploading(true);
+    setUploadSuccess(null);
+    let lastSuccessName: string | null = null;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      if (file.size > MAX_SIZE) { setErrors(e => ({ ...e, docs: `${file.name} exceeds 20MB limit` })); continue; }
+
+      if (file.size > MAX_SIZE) {
+        setErrors(e => ({ ...e, docs: `${file.name} exceeds the 20 MB limit.` }));
+        continue;
+      }
       const allowed = ['image/jpeg', 'image/png', 'image/heic', 'image/heif', 'application/pdf'];
       if (!allowed.includes(file.type) && !file.name.toLowerCase().endsWith('.heic')) {
-        setErrors(e => ({ ...e, docs: `${file.name}: unsupported file type` })); continue;
+        setErrors(e => ({ ...e, docs: `${file.name}: unsupported file type. Use PDF, JPG, PNG, or HEIC.` }));
+        continue;
       }
 
       const uid = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
       const ext = file.name.split('.').pop();
       const path = `${userId}/${appId}/${pendingCategory}/${uid}.${ext}`;
 
+      // Add as "uploading" immediately so user sees progress
       const tempDoc: UploadedDoc = {
         id: uid, category: pendingCategory, file_name: file.name,
         file_path: path, file_type: file.type || `image/${ext}`,
         file_size: file.size, progress: 0, status: 'uploading',
       };
       setDocs(d => [...d, tempDoc]);
+      // Clear any pre-existing validation error for docs as soon as upload starts
       setErrors(e => { const n = { ...e }; delete n.docs; return n; });
 
       // Upload to Supabase Storage
@@ -514,7 +543,7 @@ export default function ApplyPage() {
         continue;
       }
 
-      // Save to provider_documents table
+      // Save record to provider_documents table
       const { data: savedDoc } = await supabase.from('provider_documents').insert({
         user_id: userId, application_id: appId, category: pendingCategory,
         file_name: file.name, file_path: path,
@@ -525,7 +554,18 @@ export default function ApplyPage() {
         ? { ...x, id: savedDoc?.id ?? uid, status: 'done', progress: 100 }
         : x
       ));
+      // Clear any remaining docs validation error after a successful upload
+      setErrors(e => { const n = { ...e }; delete n.docs; return n; });
+      lastSuccessName = file.name;
     }
+
+    // Show success flash for last successfully uploaded file
+    if (lastSuccessName) {
+      setUploadSuccess(lastSuccessName);
+      setTimeout(() => setUploadSuccess(null), 4000);
+    }
+
+    setIsUploading(false);
     setPendingCategory('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   }
@@ -1060,90 +1100,147 @@ export default function ApplyPage() {
       );
 
       // ── STEP 5: Documents ────────────────────────────────────────────────
-      case 5: return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Required banner */}
-          <div style={{ backgroundColor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '12px', padding: '16px 18px', display: 'flex', gap: '12px' }}>
-            <span style={{ fontSize: '18px', flexShrink: 0 }}>📋</span>
-            <div>
-              <p style={{ fontSize: '13px', fontWeight: 700, color: '#DC2626', margin: '0 0 4px' }}>Document Upload Required</p>
-              <p style={{ fontSize: '12px', color: '#7F1D1D', margin: 0, lineHeight: 1.6 }}>
-                You must upload at least one document to submit your application. Government ID and insurance certificate are strongly recommended.
-              </p>
-            </div>
-          </div>
+      case 5: {
+        const doneDocs = docs.filter(d => d.status === 'done');
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-          {/* Existing docs */}
-          {docs.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <SectionHead>Uploaded Documents ({docs.length})</SectionHead>
-              {docs.map(doc => (
-                <div key={doc.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', backgroundColor: doc.status === 'error' ? '#FFF5F5' : '#F8F9FC', borderRadius: '10px', border: `1px solid ${doc.status === 'error' ? '#FECACA' : '#EEEFF1'}` }}>
-                  <span style={{ fontSize: '20px' }}>
-                    {doc.file_type.includes('pdf') ? '📄' : '🖼'}
-                  </span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: '13px', fontWeight: 600, color: '#111111', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.file_name}</p>
-                    <p style={{ fontSize: '11px', color: '#9CA3AF', margin: 0 }}>
-                      {DOC_CATEGORIES.find(c => c.value === doc.category)?.label} · {(doc.file_size / 1024 / 1024).toFixed(1)} MB
-                    </p>
-                    {doc.status === 'uploading' && (
-                      <div style={{ height: '4px', backgroundColor: '#E5E7EB', borderRadius: '100px', marginTop: '6px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', backgroundColor: '#2F80ED', borderRadius: '100px', animation: 'progress-slide 1.2s ease-in-out infinite', width: '50%' }} />
-                      </div>
-                    )}
-                    {doc.status === 'done' && (
-                      <p style={{ fontSize: '11px', color: '#059669', margin: '3px 0 0', fontWeight: 600 }}>✓ Document successfully uploaded</p>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {doc.status === 'done' && <span style={{ fontSize: '16px' }}>✅</span>}
-                    {doc.status === 'error' && <span style={{ fontSize: '16px' }}>❌</span>}
-                    {doc.status === 'uploading' && <span style={{ fontSize: '12px', color: '#6B7280' }}>Uploading…</span>}
-                    {doc.status !== 'uploading' && (
-                      <button type="button" onClick={() => removeDoc(doc)} style={{ padding: '4px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, color: '#DC2626', border: '1px solid #FECACA', backgroundColor: '#FFF5F5', cursor: 'pointer', fontFamily: 'inherit' }}>Remove</button>
-                    )}
-                  </div>
+            {/* Required banner — only shown when no docs uploaded yet */}
+            {doneDocs.length === 0 && (
+              <div style={{ backgroundColor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '12px', padding: '16px 18px', display: 'flex', gap: '12px' }}>
+                <span style={{ fontSize: '18px', flexShrink: 0 }}>📋</span>
+                <div>
+                  <p style={{ fontSize: '13px', fontWeight: 700, color: '#DC2626', margin: '0 0 4px' }}>Document Upload Required</p>
+                  <p style={{ fontSize: '12px', color: '#7F1D1D', margin: 0, lineHeight: 1.6 }}>
+                    Upload at least one document to continue. Government ID and insurance certificate are strongly recommended.
+                  </p>
                 </div>
-              ))}
+              </div>
+            )}
+
+            {/* ✅ Upload success flash */}
+            {uploadSuccess && (
+              <div style={{ backgroundColor: '#ECFDF5', border: '1px solid #6EE7B7', borderRadius: '10px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '16px' }}>✅</span>
+                <p style={{ fontSize: '13px', fontWeight: 600, color: '#065F46', margin: 0 }}>
+                  File uploaded successfully: <span style={{ fontWeight: 700 }}>{uploadSuccess}</span>
+                </p>
+              </div>
+            )}
+
+            {/* Uploaded documents list */}
+            {docs.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <SectionHead>Uploaded Documents ({doneDocs.length})</SectionHead>
+                {docs.map(doc => (
+                  <div key={doc.id} style={{
+                    display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px',
+                    backgroundColor: doc.status === 'error' ? '#FFF5F5' : doc.status === 'done' ? '#F0FDF4' : '#F8F9FC',
+                    borderRadius: '10px',
+                    border: `1px solid ${doc.status === 'error' ? '#FECACA' : doc.status === 'done' ? '#BBF7D0' : '#EEEFF1'}`,
+                  }}>
+                    <span style={{ fontSize: '20px' }}>
+                      {doc.status === 'done' ? '✅' : doc.status === 'error' ? '❌' : (doc.file_type.includes('pdf') ? '📄' : '🖼')}
+                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: '13px', fontWeight: 600, color: '#111111', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {doc.file_name}
+                      </p>
+                      <p style={{ fontSize: '11px', color: '#6B7280', margin: 0 }}>
+                        {DOC_CATEGORIES.find(c => c.value === doc.category)?.label ?? doc.category}
+                        {' · '}{(doc.file_size / 1024 / 1024).toFixed(1)} MB
+                      </p>
+                      {doc.status === 'uploading' && (
+                        <div style={{ height: '4px', backgroundColor: '#E5E7EB', borderRadius: '100px', marginTop: '6px', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', backgroundColor: '#2F80ED', borderRadius: '100px', animation: 'progress-slide 1.2s ease-in-out infinite', width: '50%' }} />
+                        </div>
+                      )}
+                      {doc.status === 'done' && (
+                        <p style={{ fontSize: '11px', color: '#059669', margin: '3px 0 0', fontWeight: 600 }}>✓ Uploaded</p>
+                      )}
+                      {doc.status === 'error' && (
+                        <p style={{ fontSize: '11px', color: '#DC2626', margin: '3px 0 0', fontWeight: 600 }}>Upload failed — please try again</p>
+                      )}
+                    </div>
+                    {doc.status === 'uploading' && (
+                      <span style={{ fontSize: '12px', color: '#6B7280', flexShrink: 0 }}>Uploading…</span>
+                    )}
+                    {doc.status !== 'uploading' && (
+                      <button type="button" onClick={() => removeDoc(doc)} style={{ padding: '4px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, color: '#DC2626', border: '1px solid #FECACA', backgroundColor: '#FFF5F5', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add a document */}
+            <SectionHead>Add a Document</SectionHead>
+
+            {/* Step 1 of upload: pick category */}
+            <div>
+              <FieldLabel required>1. Select Document Category</FieldLabel>
+              <StyledSelect
+                value={pendingCategory}
+                onChange={e => { setPendingCategory(e.target.value); setCategoryError(''); }}
+                error={categoryError || undefined}
+              >
+                <option value="">— Choose a category —</option>
+                {DOC_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              </StyledSelect>
+              {categoryError
+                ? <FieldError msg={categoryError} />
+                : <FieldHint>Choose a category first, then upload the file.</FieldHint>
+              }
             </div>
-          )}
 
-          {/* Add document */}
-          <SectionHead>Add a Document</SectionHead>
-          <div>
-            <FieldLabel required>Document Category</FieldLabel>
-            <StyledSelect value={pendingCategory} onChange={e => setPendingCategory(e.target.value)}>
-              <option value="">Select category first…</option>
-              {DOC_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-            </StyledSelect>
-            <FieldHint>Choose a category, then click &quot;Choose File&quot; to upload.</FieldHint>
-          </div>
+            {/* Step 2 of upload: pick file */}
+            <div>
+              <FieldLabel>2. Upload File</FieldLabel>
+              <input ref={fileInputRef} type="file" id="doc-upload" multiple
+                accept=".pdf,.jpg,.jpeg,.png,.heic,.heif"
+                disabled={!pendingCategory || isUploading}
+                onChange={e => handleFileUpload(e.target.files)}
+                style={{ display: 'none' }}
+              />
+              <button
+                type="button"
+                disabled={!pendingCategory || isUploading}
+                onClick={() => {
+                  if (!pendingCategory) {
+                    setCategoryError('Please select a document category before uploading.');
+                    return;
+                  }
+                  fileInputRef.current?.click();
+                }}
+                style={{
+                  width: '100%', padding: '20px', borderRadius: '12px', fontSize: '14px', fontWeight: 600,
+                  border: `2px dashed ${(pendingCategory && !isUploading) ? color : '#E5E7EB'}`,
+                  backgroundColor: (pendingCategory && !isUploading) ? light : '#F9FAFB',
+                  color: (pendingCategory && !isUploading) ? color : '#9CA3AF',
+                  cursor: (pendingCategory && !isUploading) ? 'pointer' : 'not-allowed',
+                  fontFamily: 'inherit', transition: 'all 0.2s',
+                }}
+              >
+                {isUploading
+                  ? '⏳ Uploading, please wait…'
+                  : pendingCategory
+                    ? '📁 Choose File(s) to Upload'
+                    : '← Select a category above first'
+                }
+              </button>
+              <FieldHint>Accepted: PDF, JPG, PNG, HEIC · Max 20 MB per file.</FieldHint>
+              {/* Only show upload errors here — validation errors (e.g. "at least one required")
+                  are shown in the top error banner and NOT duplicated here */}
+              {errors.docs && errors.docs !== 'At least one document is required' && (
+                <FieldError msg={errors.docs} />
+              )}
+            </div>
 
-          <div>
-            <input ref={fileInputRef} type="file" id="doc-upload" multiple
-              accept=".pdf,.jpg,.jpeg,.png,.heic,.heif"
-              disabled={!pendingCategory}
-              onChange={e => handleFileUpload(e.target.files)}
-              style={{ display: 'none' }}
-            />
-            <button type="button" disabled={!pendingCategory}
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                width: '100%', padding: '20px', borderRadius: '12px', fontSize: '14px', fontWeight: 600,
-                border: `2px dashed ${pendingCategory ? color : '#E5E7EB'}`,
-                backgroundColor: pendingCategory ? light : '#F9FAFB',
-                color: pendingCategory ? color : '#9CA3AF',
-                cursor: pendingCategory ? 'pointer' : 'not-allowed',
-                fontFamily: 'inherit', transition: 'all 0.2s',
-              }}>
-              {pendingCategory ? '📁 Choose File(s) to Upload' : '← Select a category above first'}
-            </button>
-            <FieldHint>Accepted: PDF, JPG, PNG, HEIC · Max 20 MB per file.</FieldHint>
-            <FieldError msg={errors.docs} />
           </div>
-        </div>
-      );
+        );
+      }
 
       // ── STEP 6: Review & Submit ──────────────────────────────────────────
       case 6: return (
@@ -1420,19 +1517,25 @@ export default function ApplyPage() {
                         Back
                       </button>
                     )}
-                    <button type="button" onClick={goNext} disabled={authLoading} style={{
+                    <button type="button" onClick={goNext} disabled={authLoading || isUploading || (step === 5 && docs.filter(d => d.status === 'done').length === 0)} style={{
                       flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                       padding: '13px 22px', borderRadius: '12px', border: 'none',
-                      backgroundColor: color, color: '#ffffff', fontSize: '14px', fontWeight: 700,
-                      cursor: authLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
-                      boxShadow: `0 4px 14px ${color}44`, opacity: authLoading ? 0.75 : 1,
+                      backgroundColor: (step === 5 && docs.filter(d => d.status === 'done').length === 0) ? '#E5E7EB' : color,
+                      color: (step === 5 && docs.filter(d => d.status === 'done').length === 0) ? '#9CA3AF' : '#ffffff',
+                      fontSize: '14px', fontWeight: 700,
+                      cursor: (authLoading || isUploading || (step === 5 && docs.filter(d => d.status === 'done').length === 0)) ? 'not-allowed' : 'pointer',
+                      fontFamily: 'inherit',
+                      boxShadow: (step === 5 && docs.filter(d => d.status === 'done').length === 0) ? 'none' : `0 4px 14px ${color}44`,
+                      opacity: (authLoading || isUploading) ? 0.75 : 1,
                     }}>
                       {authLoading
                         ? '⏳ Creating account…'
-                        : step === 1 && !userId
-                          ? 'Create Account & Continue'
-                          : step === 5 ? 'Review Application' : 'Save & Continue'}
-                      {!authLoading && <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                        : isUploading
+                          ? '⏳ Upload in progress…'
+                          : step === 1 && !userId
+                            ? 'Create Account & Continue'
+                            : step === 5 ? 'Review Application' : 'Save & Continue'}
+                      {!authLoading && !isUploading && <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </button>
                   </div>
                 )}
@@ -1449,13 +1552,16 @@ export default function ApplyPage() {
               padding: '12px 16px', backgroundColor: '#ffffff', borderTop: '1px solid #EEEFF1',
               boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
             }} className="mobile-cta">
-              <button type="button" onClick={goNext} disabled={authLoading} style={{
-                width: '100%', padding: '15px', borderRadius: '12px', backgroundColor: color,
-                color: '#ffffff', fontSize: '16px', fontWeight: 700, border: 'none',
-                cursor: authLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
-                opacity: authLoading ? 0.75 : 1,
+              <button type="button" onClick={goNext} disabled={authLoading || isUploading || (step === 5 && docs.filter(d => d.status === 'done').length === 0)} style={{
+                width: '100%', padding: '15px', borderRadius: '12px',
+                backgroundColor: (step === 5 && docs.filter(d => d.status === 'done').length === 0) ? '#E5E7EB' : color,
+                color: (step === 5 && docs.filter(d => d.status === 'done').length === 0) ? '#9CA3AF' : '#ffffff',
+                fontSize: '16px', fontWeight: 700, border: 'none',
+                cursor: (authLoading || isUploading || (step === 5 && docs.filter(d => d.status === 'done').length === 0)) ? 'not-allowed' : 'pointer',
+                fontFamily: 'inherit',
+                opacity: (authLoading || isUploading) ? 0.75 : 1,
               }}>
-                {authLoading ? '⏳ Creating account…' : step === 5 ? 'Review Application →' : 'Save & Continue →'}
+                {authLoading ? '⏳ Creating account…' : isUploading ? '⏳ Uploading…' : step === 5 ? 'Review Application →' : 'Save & Continue →'}
               </button>
             </div>
           )}
