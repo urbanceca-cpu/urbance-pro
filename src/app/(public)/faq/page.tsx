@@ -51,9 +51,7 @@ const FAQS = [
   { cat: 'getting-started', q: 'Can I work independently or with other platforms?', a: 'Yes. Urbance professionals are independent service providers and are free to manage their work however they choose. Many professionals use Urbance alongside their own client base or other opportunities.' },
   // Payments
   { cat: 'payments', q: 'When are payments processed?',             a: 'Payments for completed jobs are processed weekly, typically every Friday for the previous week\'s work. Your dashboard allows you to track upcoming payments and job earnings.' },
-  { cat: 'payments', q: 'What kind of earnings can professionals expect?', a: 'Earnings depend on the service category, availability, and number of jobs completed. Many active professionals on service platforms earn between $3,500 and $8,000 per month, with higher potential depending on demand and workload.' },
   { cat: 'payments', q: 'How does Urbance\'s platform commission work?', a: 'Urbance applies a 12% commission on completed jobs, which is lower than many service marketplaces. This helps support platform operations, booking tools, payment processing, and customer support.' },
-  { cat: 'payments', q: 'Do professionals control their own pricing?', a: 'Yes. Professionals maintain full control over their service pricing and availability. Urbance may provide general market insights to help professionals stay competitive.' },
   { cat: 'payments', q: 'Are there additional platform fees?',       a: 'Urbance keeps things simple with a single 12% commission on completed jobs. There are no subscriptions or recurring platform fees.' },
   // Jobs
   { cat: 'jobs', q: 'Can I choose which jobs I accept?',              a: 'Yes. Professionals can review job details and accept bookings that fit their schedule and service preferences.' },
