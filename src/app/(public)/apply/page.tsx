@@ -541,10 +541,14 @@ export default function ApplyPage() {
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('provider-documents')
-        .upload(path, file, { upsert: false });
+        .upload(path, file, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: file.type || `image/${ext}`,
+        });
 
       if (uploadError) {
-        console.error('Upload error:', uploadError.message);
+        console.error('Upload error:', uploadError);
         setDocs(d => d.map(x => x.id === uid ? { ...x, status: 'error', progress: 0 } : x));
         setErrors(e => ({ ...e, docs: `Upload failed: ${uploadError.message}` }));
         continue;
