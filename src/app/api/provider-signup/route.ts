@@ -66,7 +66,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Account creation returned no user ID.' }, { status: 500 });
   }
 
-  // ── 2. Create draft application (non-fatal if it fails) ──────────────────
+  // ── 2. Manually upsert profile row ────────────────────────────────────────
+  // The handle_new_user trigger may be broken in production, so we ensure the
+  // profile row exists regardless. Uses upsert so it's safe if trigger did work.
+  const { error: profileError } = await admin
+    .from('profiles')
+    .upsert({ id: userId, role: 'provider', full_name }, { onConflict: 'id' });
+
+  if (profileError) {
+    console.error('Profile upsert error (non-fatal):', profileError.message);
+    // Non-fatal — continue, the profile may have been created by the trigger
+  }
+
+  // ── 3. Create draft application ───────────────────────────────────────────
   let appId: string | null = null;
   const { data: app, error: appError } = await admin
     .from('provider_applications')
@@ -88,8 +100,6 @@ export async function POST(req: NextRequest) {
     appId = app?.id ?? null;
   }
 
-  // ── 3. Return success — client signs in itself via signInWithPassword ──────
-  // We skip server-side sign-in because NEXT_PUBLIC_ vars are unreliable
-  // in server functions on Vercel. The client fallback handles session creation.
+  // ── 4. Return success — client signs in itself via signInWithPassword ──────
   return NextResponse.json({ success: true, userId, appId, session: null });
 }
