@@ -436,13 +436,24 @@ export default function ApplyPage() {
 
     try {
       // ── 1. Server-side: create user (admin, auto-confirmed) + profile + draft ──
+      const cleanEmail = basicInfo.email.trim().toLowerCase();
+      const cleanName = basicInfo.full_legal_name.trim();
+
+      // Final guard: validate email before sending
+      if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+        setAuthError('Please enter a valid email address.');
+        return false;
+      }
+
+      console.log('[apply] Signup email:', cleanEmail, '| name:', cleanName);
+
       const res = await fetch('/api/provider-signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: basicInfo.email.trim().toLowerCase(),
+          email: cleanEmail,
           password: basicInfo.password,
-          full_name: basicInfo.full_legal_name.trim(),
+          full_name: cleanName,
         }),
       });
 
@@ -453,8 +464,9 @@ export default function ApplyPage() {
           // User already has an account — try signing in instead
           setAuthError('An account with this email already exists. Trying to sign you in...');
 
+          console.log('[apply] Existing account, trying signIn with:', cleanEmail);
           const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
-            email: basicInfo.email.trim().toLowerCase(),
+            email: cleanEmail,
             password: basicInfo.password,
           });
 
@@ -500,8 +512,9 @@ export default function ApplyPage() {
       }
 
       // ── 2. Client-side: sign in with password to get a live session ──
+      console.log('[apply] Account created, signing in with:', cleanEmail);
       const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
-        email: basicInfo.email.trim().toLowerCase(),
+        email: cleanEmail,
         password: basicInfo.password,
       });
 
@@ -967,7 +980,7 @@ export default function ApplyPage() {
 
                 <div>
                   <FieldLabel required>Email Address</FieldLabel>
-                  <StyledInput type="email" placeholder="e.g. john@example.com"
+                  <StyledInput type="email" name="email" autoComplete="email" placeholder="e.g. john@example.com"
                     value={basicInfo.email}
                     onChange={e => setBasicInfo(b => ({ ...b, email: e.target.value }))}
                     error={errors.email} />

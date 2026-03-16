@@ -50,8 +50,11 @@ export async function POST(req: NextRequest) {
   const fullName = typeof body.full_name === 'string' ? body.full_name.trim() : '';
 
   if (!email) return err('Email is required.');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return err('Invalid email format.');
   if (!password || password.length < 8) return err('Password must be at least 8 characters.');
   if (!fullName) return err('Full name is required.');
+
+  console.log('[provider-signup] Creating user:', email);
 
   // Try to create the user. If it fails with "already exists", handle gracefully.
   const { data: newUser, error: createErr } = await admin.auth.admin.createUser({
