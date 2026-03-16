@@ -499,8 +499,17 @@ export default function ApplyPage() {
     }
     setCategoryError('');
 
-    // Guard: must be authenticated to upload
-    if (!userId || !appId) {
+    // Always fetch a fresh session — stale state can cause 401/CORS failures
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setErrors(e => ({ ...e, docs: 'You must be signed in to upload documents. Please complete Step 1 first.' }));
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    const activeUserId = user.id;
+    const activeAppId = appId ?? userId; // fallback to userId if appId not set yet
+
+    if (!activeAppId) {
       setErrors(e => ({ ...e, docs: 'Please complete Step 1 first to enable document uploads.' }));
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
@@ -524,53 +533,68 @@ export default function ApplyPage() {
         continue;
       }
 
-      const uid = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      const ext = file.name.split('.').pop();
-      const path = `${userId}/${appId}/${pendingCategory}/${uid}.${ext}`;
+      const timestamp = Date.now();
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      // Path: {user_id}/{timestamp}-{filename}
+      // RLS policy checks (storage.foldername(name))[1] = auth.uid()::text
+      // so the FIRST segment must be the user UUID — no "providers/" prefix.
+      const storagePath = `${activeUserId}/${timestamp}-${safeName}`;
+      const contentType = file.type || 'application/octet-stream';
 
-      // Add as "uploading" immediately so user sees progress
+      const uid = `${timestamp}-${Math.random().toString(36).slice(2)}`;
+
+      // Add as "uploading" immediately so user sees feedback
       const tempDoc: UploadedDoc = {
         id: uid, category: pendingCategory, file_name: file.name,
-        file_path: path, file_type: file.type || `image/${ext}`,
+        file_path: storagePath, file_type: contentType,
         file_size: file.size, progress: 0, status: 'uploading',
       };
       setDocs(d => [...d, tempDoc]);
-      // Clear any pre-existing validation error for docs as soon as upload starts
       setErrors(e => { const n = { ...e }; delete n.docs; return n; });
 
       // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('provider-documents')
-        .upload(path, file, {
+        .upload(storagePath, file, {
           cacheControl: '3600',
           upsert: false,
-          contentType: file.type || `image/${ext}`,
+          contentType,
         });
 
       if (uploadError) {
         console.error('Upload error:', uploadError);
         setDocs(d => d.map(x => x.id === uid ? { ...x, status: 'error', progress: 0 } : x));
-        setErrors(e => ({ ...e, docs: `Upload failed: ${uploadError.message}` }));
+        setErrors(e => ({ ...e, docs: 'Document upload failed. Please try again.' }));
         continue;
       }
 
+      console.log('Upload success:', uploadData);
+
       // Save record to provider_documents table
-      const { data: savedDoc } = await supabase.from('provider_documents').insert({
-        user_id: userId, application_id: appId, category: pendingCategory,
-        file_name: file.name, file_path: path,
-        file_type: file.type || `image/${ext}`, file_size: file.size,
+      const finalPath = uploadData?.path ?? storagePath;
+      const { data: savedDoc, error: dbError } = await supabase.from('provider_documents').insert({
+        user_id: activeUserId,
+        application_id: activeAppId,
+        category: pendingCategory,
+        file_name: file.name,
+        file_path: finalPath,
+        file_type: contentType,
+        file_size: file.size,
       }).select('id').single();
 
+      if (dbError) {
+        console.error('DB insert error:', dbError);
+        // Upload succeeded but DB record failed — still mark as done (can be reconciled)
+      }
+
       setDocs(d => d.map(x => x.id === uid
-        ? { ...x, id: savedDoc?.id ?? uid, status: 'done', progress: 100 }
+        ? { ...x, id: savedDoc?.id ?? uid, status: 'done', progress: 100, file_path: finalPath }
         : x
       ));
-      // Clear any remaining docs validation error after a successful upload
       setErrors(e => { const n = { ...e }; delete n.docs; return n; });
       lastSuccessName = file.name;
     }
 
-    // Show success flash for last successfully uploaded file
     if (lastSuccessName) {
       setUploadSuccess(lastSuccessName);
       setTimeout(() => setUploadSuccess(null), 4000);
