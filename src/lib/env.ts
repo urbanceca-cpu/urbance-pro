@@ -27,12 +27,9 @@ export const MAIN_SITE_URL = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'https://u
 // Current site URL
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://pros.urbance.ca';
 
-// Supabase configuration with build-time placeholders
-const PLACEHOLDER_URL = 'https://placeholder.supabase.co';
-const PLACEHOLDER_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJwbGFjZWhvbGRlciIsInJvbGUiOiJhbm9uIn0.placeholder';
-
-export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || PLACEHOLDER_URL;
-export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || PLACEHOLDER_KEY;
+// Supabase configuration — NEXT_PUBLIC_ vars are inlined at build time by Next.js
+export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? '';
+export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ?? '';
 
 /**
  * Get a safe redirect URL that never points to localhost in production
