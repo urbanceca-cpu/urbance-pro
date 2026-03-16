@@ -324,6 +324,13 @@ export default function ApplyPage() {
   useEffect(() => { if (appId) autosave({ experience_standards: experience }); }, [experience]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (appId) autosave({ pricing_availability: pricing }); }, [pricing]);  // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Reactively clear the docs validation error as soon as at least one document is done
+  useEffect(() => {
+    if (docs.some(d => d.status === 'done')) {
+      setErrors(e => { const n = { ...e }; delete n.docs; return n; });
+    }
+  }, [docs]);  // eslint-disable-line react-hooks/exhaustive-deps
+
   // ─── Validation ───────────────────────────────────────────────────────────
   function validateStep(s: number, skipAuth = false): Record<string, string> {
     const e: Record<string, string> = {};
@@ -1105,14 +1112,14 @@ export default function ApplyPage() {
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-            {/* Required banner — only shown when no docs uploaded yet */}
+            {/* Neutral info hint — only shown before any doc is uploaded, not an error */}
             {doneDocs.length === 0 && (
-              <div style={{ backgroundColor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '12px', padding: '16px 18px', display: 'flex', gap: '12px' }}>
+              <div style={{ backgroundColor: '#F0F6FF', border: '1px solid #BFDBFE', borderRadius: '12px', padding: '16px 18px', display: 'flex', gap: '12px' }}>
                 <span style={{ fontSize: '18px', flexShrink: 0 }}>📋</span>
                 <div>
-                  <p style={{ fontSize: '13px', fontWeight: 700, color: '#DC2626', margin: '0 0 4px' }}>Document Upload Required</p>
-                  <p style={{ fontSize: '12px', color: '#7F1D1D', margin: 0, lineHeight: 1.6 }}>
-                    Upload at least one document to continue. Government ID and insurance certificate are strongly recommended.
+                  <p style={{ fontSize: '13px', fontWeight: 700, color: '#1D4ED8', margin: '0 0 4px' }}>Documents Required</p>
+                  <p style={{ fontSize: '12px', color: '#1E40AF', margin: 0, lineHeight: 1.6 }}>
+                    Upload at least one document to unlock the next step. Government ID and insurance certificate are strongly recommended.
                   </p>
                 </div>
               </div>
