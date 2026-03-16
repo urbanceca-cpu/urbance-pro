@@ -400,20 +400,29 @@ export default function ApplyPage() {
           return;
         }
 
-        // Account created — now sign in silently so the Supabase client has a
-        // session for saving form data in subsequent steps
-        const { error: siErr } = await supabase.auth.signInWithPassword({
+        // Account created server-side — now establish a client session via
+        // signInWithPassword. This is REQUIRED: Storage RLS and DB RLS both
+        // depend on auth.uid() being set for steps 2-6.
+        const { data: signInData, error: siErr } = await supabase.auth.signInWithPassword({
           email: basicInfo.email,
           password: basicInfo.password,
         });
 
-        if (siErr) {
-          // Sign-in failed but account WAS created — store IDs in state and
-          // continue without a session (autosave won't work but submit will)
-          console.warn('Silent sign-in failed (non-fatal):', siErr.message);
+        if (siErr || !signInData.session) {
+          // Account exists but we can't sign in — surface a clear actionable error
+          console.error('Post-signup sign-in failed:', siErr);
+          setAuthError(
+            'Account created but sign-in failed. Please go to the login page and sign in with your email and password.'
+          );
+          setAuthLoading(false);
+          return;
         }
 
-        const uid = result.userId as string;
+        // Session is live — getUser() will now return the authenticated user in all subsequent steps
+
+        // Use the authenticated user's ID from the live session — guaranteed to
+        // match auth.uid() used by RLS policies on Storage and DB tables.
+        const uid = signInData.session.user.id;
         const infoToSave = { ...basicInfo, password: '', confirmPassword: '' };
         setUserId(uid);
         setUserEmail(basicInfo.email);
