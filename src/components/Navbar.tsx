@@ -74,43 +74,12 @@ export function Navbar({ variant: _variant }: NavbarProps = {}) {
           fontFamily: "'Inter', -apple-system, sans-serif",
         }}>
 
-          {/* Logo + Customer Site */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-            <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-              <span className="nav-logo-text" style={{ fontSize: '22px', fontWeight: 700, color: '#111111', letterSpacing: '-0.03em' }}>
-                Urbance <span style={{ color: '#2F80ED' }}>Pros</span>
-              </span>
-            </Link>
-            <a
-              href="https://urbance.ca"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="customer-site-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '4px 10px',
-                fontSize: '11.5px',
-                fontWeight: 600,
-                color: '#6B7280',
-                backgroundColor: '#F3F4F6',
-                border: '1px solid #E5E7EB',
-                borderRadius: '6px',
-                textDecoration: 'none',
-                letterSpacing: '0.01em',
-                transition: 'all 0.15s',
-                whiteSpace: 'nowrap',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#E5E7EB'; e.currentTarget.style.color = '#374151'; }}
-              onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#F3F4F6'; e.currentTarget.style.color = '#6B7280'; }}
-            >
-              Customer Site
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ marginTop: '0.5px' }}>
-                <path d="M3 1h6v6M9 1L1 9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </a>
-          </div>
+          {/* Logo */}
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', flexShrink: 0 }}>
+            <span className="nav-logo-text" style={{ fontSize: '22px', fontWeight: 700, color: '#111111', letterSpacing: '-0.03em' }}>
+              Urbance <span style={{ color: '#2F80ED' }}>Pros</span>
+            </span>
+          </Link>
 
           {/* Desktop links */}
           <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
@@ -129,6 +98,17 @@ export function Navbar({ variant: _variant }: NavbarProps = {}) {
                 {item.label}
               </a>
             ))}
+
+            <a
+              href="https://urbance.ca"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ padding: '8px 13px', fontSize: '14px', fontWeight: 500, color: '#374151', textDecoration: 'none', borderRadius: '8px', transition: 'background 0.15s' }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F5F7FA')}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+            >
+              Urbance Home
+            </a>
 
             <div style={{ width: '1px', height: '18px', backgroundColor: '#E5E7EB', margin: '0 8px' }} />
 
@@ -293,18 +273,14 @@ export function Navbar({ variant: _variant }: NavbarProps = {}) {
                 {item.label}
               </a>
             ))}
-            <div style={{ height: '1px', backgroundColor: '#F0F0F0', margin: '8px 0' }} />
             <a
               href="https://urbance.ca"
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setMobileOpen(false)}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '12px 16px', fontSize: '14px', fontWeight: 600, color: '#6B7280', textDecoration: 'none', borderRadius: '8px' }}
+              style={{ display: 'block', padding: '12px 16px', fontSize: '15px', fontWeight: 500, color: '#374151', textDecoration: 'none', borderRadius: '8px' }}
             >
-              Customer Site
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M3 1h6v6M9 1L1 9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              Urbance Home
             </a>
             <div style={{ height: '1px', backgroundColor: '#F0F0F0', margin: '8px 0' }} />
             {user ? (
@@ -326,7 +302,6 @@ export function Navbar({ variant: _variant }: NavbarProps = {}) {
         @media (max-width: 768px) {
           .nav-links  { display: none !important; }
           .hamburger  { display: flex !important; }
-          .customer-site-btn { display: none !important; }
         }
         /* Mobile: tighten the floating nav pill */
         @media (max-width: 600px) {
