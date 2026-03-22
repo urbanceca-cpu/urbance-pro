@@ -29,7 +29,7 @@ export default function AdminProviders() {
         // Verify admin role
         const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
 
-        if (!profile || profile.role !== 'admin') {
+        if (!profile || profile.role !== 'admin' && profile.role !== 'super_admin') {
           router.push('/dashboard');
           return;
         }

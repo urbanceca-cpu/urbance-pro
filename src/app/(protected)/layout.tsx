@@ -24,7 +24,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .eq('id', user.id)
     .maybeSingle();
 
-  if (profile?.role === 'admin') {
+  if (profile?.role === 'admin' || profile?.role === 'super_admin') {
     return <>{children}</>;
   }
 

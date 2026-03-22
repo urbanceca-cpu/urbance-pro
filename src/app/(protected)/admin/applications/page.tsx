@@ -82,7 +82,7 @@ export default function AdminApplications() {
       if (!user) { router.push('/login'); return; }
 
       const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-      if (!profile || profile.role !== 'admin') { router.push('/dashboard'); return; }
+      if (!profile || profile.role !== 'admin' && profile.role !== 'super_admin') { router.push('/dashboard'); return; }
 
       let query = supabase.from('provider_applications').select('*');
       if (filter !== 'all') query = query.eq('status', filter);
