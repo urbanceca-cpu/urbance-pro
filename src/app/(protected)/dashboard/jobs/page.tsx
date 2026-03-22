@@ -9,7 +9,10 @@ const BADGE: Record<string, { c: string; bg: string }> = {
   completed: { c: '#6B7280', bg: '#F3F4F6' },
   cancelled: { c: '#DC2626', bg: '#FEF2F2' },
 };
-const DEMO = [
+
+type Job = { id: string; service: string; address: string; date: string; status: string; pay: number; customer: string };
+
+const INITIAL_JOBS: Job[] = [
   { id: 'j1', service: 'Deep Cleaning',    address: '1234 Robson St, Vancouver', date: 'Mar 10, 2026 10:00 AM', status: 'available', pay: 180, customer: 'Sarah M.' },
   { id: 'j2', service: 'Move-in Cleaning', address: '56 Granville Ave, Burnaby', date: 'Mar 12, 2026 2:00 PM',  status: 'available', pay: 250, customer: 'Tom K.'   },
   { id: 'j3', service: 'Window Cleaning',  address: '789 Kingsway, Vancouver',   date: 'Mar 8, 2026 9:00 AM',  status: 'completed', pay: 120, customer: 'Diana R.'  },
@@ -19,7 +22,25 @@ const DEMO = [
 export default function JobsPage() {
   const [filter, setFilter] = useState('All');
   const [search, setSearch] = useState('');
-  const shown = DEMO.filter(j => {
+  const [jobs, setJobs] = useState<Job[]>(INITIAL_JOBS);
+  const [accepting, setAccepting] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ msg: string; visible: boolean }>({ msg: '', visible: false });
+
+  const showToast = (msg: string) => {
+    setToast({ msg, visible: true });
+    setTimeout(() => setToast({ msg: '', visible: false }), 3000);
+  };
+
+  const acceptJob = (id: string) => {
+    setAccepting(id);
+    setTimeout(() => {
+      setJobs(prev => prev.map(j => j.id === id ? { ...j, status: 'assigned' } : j));
+      setAccepting(null);
+      showToast('✅ Job accepted! It has been assigned to you.');
+    }, 800);
+  };
+
+  const shown = jobs.filter(j => {
     const mf = filter === 'All' || j.status === filter.toLowerCase();
     const ms = !search || j.service.toLowerCase().includes(search.toLowerCase()) || j.address.toLowerCase().includes(search.toLowerCase());
     return mf && ms;
@@ -28,6 +49,13 @@ export default function JobsPage() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#F8FAFC', fontFamily: "'Inter',-apple-system,sans-serif" }}>
       <DashboardSidebar />
+
+      {/* Toast */}
+      {toast.visible && (
+        <div style={{ position: 'fixed', top: '24px', left: '50%', transform: 'translateX(-50%)', background: '#111', color: '#FFF', padding: '12px 22px', borderRadius: '12px', fontSize: '13.5px', fontWeight: 600, zIndex: 9999, boxShadow: '0 8px 32px rgba(0,0,0,0.18)', whiteSpace: 'nowrap' }}>
+          {toast.msg}
+        </div>
+      )}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <header className="djobs-header" style={{ background: '#FFF', borderBottom: '1px solid #F3F4F6', padding: '0 40px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
           <div>
@@ -47,9 +75,9 @@ export default function JobsPage() {
           {/* Mini stats */}
           <div className="djobs-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '14px', marginBottom: '24px' }}>
             {[
-              { l: 'Available', v: DEMO.filter(j => j.status === 'available').length, col: '#059669', bg: '#ECFDF5' },
-              { l: 'Completed', v: DEMO.filter(j => j.status === 'completed').length, col: '#6B7280', bg: '#F3F4F6' },
-              { l: 'Earned',    v: `$${DEMO.filter(j => j.status === 'completed').reduce((a, b) => a + b.pay, 0)}`, col: '#2F80ED', bg: '#EBF3FD' },
+              { l: 'Available', v: jobs.filter(j => j.status === 'available').length, col: '#059669', bg: '#ECFDF5' },
+              { l: 'Completed', v: jobs.filter(j => j.status === 'completed').length, col: '#6B7280', bg: '#F3F4F6' },
+              { l: 'Earned',    v: `$${jobs.filter(j => j.status === 'completed' || j.status === 'assigned').reduce((a, b) => a + b.pay, 0)}`, col: '#2F80ED', bg: '#EBF3FD' },
             ].map(s => (
               <div key={s.l} style={{ background: '#FFF', borderRadius: '14px', border: '1px solid #F3F4F6', padding: '16px 20px', boxShadow: '0 1px 3px rgba(17,17,17,0.04)', display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ width: '36px', height: '36px', borderRadius: '9px', background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '15px', fontWeight: 800, color: s.col }}>{s.v}</div>
@@ -100,7 +128,16 @@ export default function JobsPage() {
                       <div style={{ fontSize: '20px', fontWeight: 800, color: '#111', letterSpacing: '-0.03em' }}>${j.pay}</div>
                       <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '1px' }}>est. payout</div>
                       {j.status === 'available' && (
-                        <button style={{ marginTop: '8px', padding: '6px 14px', borderRadius: '8px', border: 'none', background: '#2F80ED', color: '#FFF', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Accept</button>
+                        <button
+                          onClick={() => acceptJob(j.id)}
+                          disabled={accepting === j.id}
+                          style={{ marginTop: '8px', padding: '6px 14px', borderRadius: '8px', border: 'none', background: accepting === j.id ? '#93C5FD' : '#2F80ED', color: '#FFF', fontSize: '12px', fontWeight: 600, cursor: accepting === j.id ? 'not-allowed' : 'pointer', fontFamily: 'inherit', transition: 'background 0.15s', minWidth: '70px' }}
+                        >
+                          {accepting === j.id ? 'Accepting…' : 'Accept Job'}
+                        </button>
+                      )}
+                      {j.status === 'assigned' && (
+                        <div style={{ marginTop: '8px', padding: '6px 14px', borderRadius: '8px', background: '#EBF3FD', color: '#2F80ED', fontSize: '12px', fontWeight: 600, textAlign: 'center' }}>Assigned ✓</div>
                       )}
                     </div>
                   </div>
@@ -108,9 +145,7 @@ export default function JobsPage() {
               })}
             </div>
           )}
-          <div style={{ marginTop: '20px', padding: '14px 18px', background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: '12px', fontSize: '12.5px', color: '#9CA3AF' }}>
-            &#x26A1; Job listings above are demo data. Live jobs will appear once your account is approved.
-          </div>
+
         </main>
       </div>
       <style>{`
