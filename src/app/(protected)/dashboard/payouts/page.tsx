@@ -4,32 +4,37 @@ import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { fetchEarnings, getCurrentUser, type ProviderJob, type EarningsSummary, netAmount } from '@/lib/jobs-api';
 import { createClient } from '@/lib/supabase/client';
 
-function Sk({ w, h = 14 }: { w: string; h?: number }) {
-  return <div style={{ width: w, height: `${h}px`, borderRadius: '7px', background: '#F1F5F9', animation: 'sk 1.4s infinite', display: 'inline-block' }} />;
+function Skeleton({ w, h = 14 }: { w: string; h?: number }) {
+  return <div style={{ width: w, height: `${h}px`, borderRadius: '6px', background: '#E2E8F0', animation: 'shimmer 1.6s infinite', display: 'inline-block' }} />;
 }
 
-function StatCard({ label, value, sub, loading }: { label: string; value: string; sub: string; loading: boolean }) {
+function StatCard({ label, value, sub, accent, loading }: { label: string; value: string; sub: string; accent: string; loading: boolean }) {
   return (
-    <div style={{ background: '#FFF', borderRadius: '14px', border: '1px solid #F3F4F6', padding: '20px 22px', boxShadow: '0 1px 4px rgba(17,17,17,0.04)', flex: '1', minWidth: '140px' }}>
-      <div style={{ fontSize: '11px', fontWeight: 700, color: '#9CA3AF', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '8px' }}>{label}</div>
-      {loading ? <Sk w="80px" h={24} /> : <div style={{ fontSize: '26px', fontWeight: 800, color: '#111', letterSpacing: '-0.03em', lineHeight: 1 }}>{value}</div>}
-      <div style={{ fontSize: '11.5px', color: '#9CA3AF', marginTop: '5px' }}>{sub}</div>
+    <div style={{ background: '#FFFFFF', borderRadius: '14px', border: '1px solid #E2E8F0', padding: '22px', boxShadow: '0 1px 3px rgba(15,23,42,0.05)', flex: 1, minWidth: '160px' }}>
+      <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '12px' }}>{label}</div>
+      {loading ? <Skeleton w="80px" h={26} /> : <div style={{ fontSize: '26px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.04em', lineHeight: 1 }}>{value}</div>}
+      <div style={{ fontSize: '11.5px', color: '#94A3B8', marginTop: '6px' }}>{sub}</div>
     </div>
   );
 }
 
-function JobRow({ job }: { job: ProviderJob }) {
+function JobRow({ job, isLast }: { job: ProviderJob; isLast: boolean }) {
   const net = netAmount(job.final_amount ?? job.payout_amount);
   const gross = job.final_amount ?? job.payout_amount;
+  const fee = gross - net;
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 80px 80px', alignItems: 'center', padding: '13px 20px', gap: '8px', borderBottom: '1px solid #F8FAFC' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 88px 76px 76px 84px', alignItems: 'center', padding: '14px 22px', gap: '8px', borderBottom: isLast ? 'none' : '1px solid #F8FAFC' }}>
       <div>
-        <div style={{ fontSize: '13px', color: '#111', fontWeight: 500 }}>{job.service_name}</div>
-        <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '2px' }}>{job.service_city} - {job.scheduled_date}</div>
+        <div style={{ fontSize: '13px', color: '#0F172A', fontWeight: 600 }}>{job.service_name}</div>
+        <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '3px' }}>{job.service_city} · {job.scheduled_date}</div>
       </div>
-      <span style={{ fontSize: '10.5px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px', background: '#ECFDF5', color: '#059669', width: 'fit-content' }}>Completed</span>
-      <span style={{ fontSize: '12.5px', color: '#9CA3AF', textDecoration: 'line-through', textAlign: 'right' }}>${gross.toFixed(0)}</span>
-      <span style={{ fontSize: '13px', fontWeight: 700, color: '#111', textAlign: 'right' }}>${net.toFixed(0)}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#10B981' }} />
+        <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#10B981' }}>Paid</span>
+      </div>
+      <span style={{ fontSize: '12px', color: '#94A3B8', textAlign: 'right' }}>${gross.toFixed(0)}</span>
+      <span style={{ fontSize: '12px', color: '#EF4444', textAlign: 'right' }}>-${fee.toFixed(0)}</span>
+      <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', textAlign: 'right' }}>${net.toFixed(0)}</span>
     </div>
   );
 }
@@ -85,88 +90,129 @@ export default function PayoutsPage() {
     setTimeout(() => setSaved(false), 2500);
   }
 
-  const fmt = (n: number) => `$${n.toFixed(2)}`;
+  const fmt = (n: number) => '$' + n.toFixed(2);
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8FAFC', fontFamily: "'Inter',-apple-system,sans-serif" }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#F1F5F9', fontFamily: "'Inter',-apple-system,sans-serif" }}>
       <DashboardSidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <header style={{ background: '#FFF', borderBottom: '1px solid #F3F4F6', padding: '0 40px', height: '64px', display: 'flex', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
-          <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Earnings &amp; Payouts</div>
+
+        <header style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '0 36px', height: '64px', display: 'flex', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
+          <div>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>Earnings & Payouts</div>
+            <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>Track your income and manage payment details</div>
+          </div>
         </header>
 
-        <main style={{ flex: 1, padding: '32px 40px', maxWidth: '900px', width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {error && <div style={{ padding: '14px 18px', borderRadius: '10px', background: '#FEF2F2', border: '1px solid #FECACA', fontSize: '13px', color: '#DC2626' }}>{error}</div>}
+        <main style={{ flex: 1, padding: '28px 36px', maxWidth: '960px', width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-            <StatCard label="Total Earned" value={loading ? '-' : fmt(summary?.totalNet ?? 0)} sub="After 12% platform fee" loading={loading} />
-            <StatCard label="This Month" value={loading ? '-' : fmt(summary?.thisMonthNet ?? 0)} sub="Current calendar month" loading={loading} />
-            <StatCard label="In Progress" value={loading ? '-' : fmt(summary?.inProgressNet ?? 0)} sub="Assigned + en route" loading={loading} />
+          {error && (
+            <div style={{ padding: '14px 18px', borderRadius: '10px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', fontSize: '13px', color: '#DC2626' }}>{error}</div>
+          )}
+
+          {/* Stat cards */}
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+            <StatCard label="Total Earned"  value={loading ? '-' : fmt(summary?.totalNet ?? 0)}       sub="After 12% platform fee"    accent="#8B5CF6" loading={loading} />
+            <StatCard label="This Month"    value={loading ? '-' : fmt(summary?.thisMonthNet ?? 0)}   sub="Current calendar month"    accent="#3B82F6" loading={loading} />
+            <StatCard label="In Progress"   value={loading ? '-' : fmt(summary?.inProgressNet ?? 0)} sub="Assigned + en route jobs"  accent="#F59E0B" loading={loading} />
           </div>
 
-          <div style={{ background: '#FFF', borderRadius: '14px', border: '1px solid #F3F4F6', boxShadow: '0 1px 4px rgba(17,17,17,0.04)', overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#111' }}>Completed Jobs</div>
-              <div style={{ fontSize: '11.5px', color: '#9CA3AF' }}>12% platform fee applied</div>
+          {/* Fee explainer */}
+          <div style={{ background: 'rgba(59,130,246,0.05)', borderRadius: '12px', border: '1px solid rgba(59,130,246,0.15)', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span style={{ fontSize: '12.5px', color: '#334155', lineHeight: 1.5 }}>
+              Urbance charges a <strong>12% platform fee</strong> on all jobs. You keep <strong>88%</strong> of each job value. Payments are issued within 3–5 business days after completion.
+            </span>
+          </div>
+
+          {/* Completed jobs table */}
+          <div style={{ background: '#FFFFFF', borderRadius: '14px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(15,23,42,0.05)', overflow: 'hidden' }}>
+            <div style={{ padding: '16px 22px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Completed Jobs</div>
+              {!loading && summary && summary.completedJobs.length > 0 && (
+                <div style={{ fontSize: '12px', color: '#94A3B8' }}>{summary.completedJobs.length} job{summary.completedJobs.length !== 1 ? 's' : ''}</div>
+              )}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 80px 80px', padding: '8px 20px', gap: '8px', background: '#F8FAFC' }}>
-              {['Job', 'Status', 'Gross', 'Your Pay'].map(h => (
-                <div key={h} style={{ fontSize: '10.5px', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: h === 'Gross' || h === 'Your Pay' ? 'right' : 'left' }}>{h}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 88px 76px 76px 84px', padding: '9px 22px', gap: '8px', background: '#F8FAFC', borderBottom: '1px solid #F1F5F9' }}>
+              {[{ h: 'Job', right: false }, { h: 'Status', right: false }, { h: 'Gross', right: true }, { h: 'Fee', right: true }, { h: 'You Earn', right: true }].map(({ h, right }) => (
+                <div key={h} style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: right ? 'right' : 'left' }}>{h}</div>
               ))}
             </div>
             {loading ? (
               [1, 2, 3].map(i => (
-                <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 90px 80px 80px', padding: '13px 20px', gap: '8px', borderBottom: '1px solid #F8FAFC', alignItems: 'center' }}>
-                  <Sk w="120px" /><Sk w="55px" /><Sk w="40px" /><Sk w="40px" />
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 88px 76px 76px 84px', padding: '14px 22px', gap: '8px', borderBottom: '1px solid #F8FAFC', alignItems: 'center' }}>
+                  <div><Skeleton w="120px" h={13} /><br /><Skeleton w="80px" h={10} /></div>
+                  <Skeleton w="50px" /><Skeleton w="40px" /><Skeleton w="35px" /><Skeleton w="45px" />
                 </div>
               ))
             ) : (summary?.completedJobs ?? []).length === 0 ? (
-              <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-                <div style={{ fontSize: '32px', marginBottom: '12px' }}>💰</div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#111', marginBottom: '6px' }}>No completed jobs yet</div>
-                <a href="/dashboard/jobs" style={{ fontSize: '13px', color: '#2F80ED', fontWeight: 600, textDecoration: 'none' }}>Browse available jobs</a>
+              <div style={{ padding: '56px 20px', textAlign: 'center' }}>
+                <div style={{ fontSize: '36px', marginBottom: '14px' }}>💰</div>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>No completed jobs yet</div>
+                <a href="/dashboard/jobs" style={{ fontSize: '13px', color: '#3B82F6', fontWeight: 600, textDecoration: 'none' }}>Browse available jobs →</a>
               </div>
             ) : (
-              (summary?.completedJobs ?? []).map(j => <JobRow key={j.id} job={j} />)
+              (summary?.completedJobs ?? []).map((j, i, arr) => <JobRow key={j.id} job={j} isLast={i === arr.length - 1} />)
             )}
           </div>
 
-          <div style={{ background: '#FFF', borderRadius: '14px', border: '1px solid #F3F4F6', boxShadow: '0 1px 4px rgba(17,17,17,0.04)', overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #F8FAFC' }}>
-              <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#111' }}>Payout Method</div>
-              <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px' }}>Payments issued within 3-5 business days after job completion.</div>
+          {/* Payout method */}
+          <div style={{ background: '#FFFFFF', borderRadius: '14px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(15,23,42,0.05)', overflow: 'hidden' }}>
+            <div style={{ padding: '16px 22px', borderBottom: '1px solid #F1F5F9' }}>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Payout Method</div>
+              <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>Where should we send your earnings?</div>
             </div>
-            <div style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+            <div style={{ padding: '22px' }}>
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
                 {(['etransfer', 'direct'] as const).map(m => (
-                  <button key={m} onClick={() => setMethod(m)} style={{ flex: 1, padding: '10px', borderRadius: '9px', border: method === m ? '2px solid #111' : '1px solid #E5E7EB', cursor: 'pointer', background: method === m ? '#F8FAFC' : '#FFF', fontSize: '13px', fontWeight: method === m ? 700 : 500, color: method === m ? '#111' : '#6B7280', fontFamily: 'inherit' }}>
-                    {m === 'etransfer' ? 'e-Transfer' : 'Direct Deposit'}
+                  <button key={m} onClick={() => setMethod(m)} style={{
+                    flex: 1, padding: '12px', borderRadius: '10px',
+                    border: method === m ? '2px solid #0F172A' : '1px solid #E2E8F0',
+                    cursor: 'pointer', background: method === m ? '#F8FAFC' : '#FFFFFF',
+                    fontSize: '13px', fontWeight: method === m ? 700 : 500,
+                    color: method === m ? '#0F172A' : '#64748B', fontFamily: 'inherit',
+                    transition: 'all 0.15s',
+                  }}>
+                    {m === 'etransfer' ? '📧  e-Transfer' : '🏦  Direct Deposit'}
                   </button>
                 ))}
               </div>
+
               {method === 'etransfer' ? (
                 <div>
-                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#9CA3AF', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>e-Transfer Email</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="payments@example.com" style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '13.5px', color: '#111', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', background: '#FAFAFA' }} />
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#94A3B8', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>e-Transfer Email</label>
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="payments@example.com" style={{ width: '100%', padding: '10px 14px', borderRadius: '9px', border: '1px solid #E2E8F0', fontSize: '13.5px', color: '#0F172A', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', background: '#FAFAFA', transition: 'border-color 0.15s' }}
+                    onFocus={e => { (e.target as HTMLInputElement).style.borderColor = '#3B82F6'; }}
+                    onBlur={e => { (e.target as HTMLInputElement).style.borderColor = '#E2E8F0'; }}
+                  />
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
                   {[{ label: 'Institution #', key: 'institution', ph: '001' }, { label: 'Transit #', key: 'transit', ph: '12345' }, { label: 'Account #', key: 'account', ph: '1234567' }].map(f => (
                     <div key={f.key}>
-                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#9CA3AF', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>{f.label}</label>
-                      <input value={bank[f.key as keyof typeof bank]} onChange={e => setBank(b => ({ ...b, [f.key]: e.target.value }))} placeholder={f.ph} style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '13.5px', color: '#111', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', background: '#FAFAFA' }} />
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#94A3B8', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>{f.label}</label>
+                      <input value={bank[f.key as keyof typeof bank]} onChange={e => setBank(b => ({ ...b, [f.key]: e.target.value }))} placeholder={f.ph} style={{ width: '100%', padding: '10px 14px', borderRadius: '9px', border: '1px solid #E2E8F0', fontSize: '13.5px', color: '#0F172A', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', background: '#FAFAFA' }} />
                     </div>
                   ))}
                 </div>
               )}
-              <button disabled={saving} onClick={handleSave} style={{ marginTop: '16px', padding: '10px 24px', borderRadius: '9px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', background: saved ? '#059669' : '#111', color: '#FFF', fontSize: '13px', fontWeight: 700, fontFamily: 'inherit', transition: 'background 0.2s' }}>
-                {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Payout Method'}
-              </button>
+
+              <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <button disabled={saving} onClick={handleSave} style={{
+                  padding: '10px 28px', borderRadius: '9px', border: 'none',
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                  background: saved ? '#10B981' : '#0F172A',
+                  color: '#FFF', fontSize: '13px', fontWeight: 700, fontFamily: 'inherit', transition: 'background 0.2s',
+                }}>
+                  {saving ? 'Saving...' : saved ? '✓ Saved' : 'Save Payout Method'}
+                </button>
+                {saved && <span style={{ fontSize: '12px', color: '#10B981', fontWeight: 600 }}>Changes saved successfully</span>}
+              </div>
             </div>
           </div>
         </main>
       </div>
-      <style>{`@keyframes sk{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}`}</style>
+      <style>{`@keyframes shimmer{0%{opacity:1}50%{opacity:.45}100%{opacity:1}}`}</style>
     </div>
   );
 }
