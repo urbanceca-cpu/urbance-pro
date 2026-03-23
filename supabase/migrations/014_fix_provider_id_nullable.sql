@@ -1,18 +1,13 @@
 -- ============================================================
--- Migration 014: Fix jobs table — make provider_id nullable
--- since new bookings from the main website don't have a provider
--- yet (they get assigned when a provider accepts the job).
--- Also make partner_id the canonical "assigned provider" column.
+-- Migration 014: Drop jobs_partner_id_fkey FK constraint
+-- partner_id is a soft reference to the accepting provider.
+-- The FK was blocking accepts because new bookings start with
+-- partner_id=null and the constraint expects auth.users(id).
 -- ============================================================
 
--- Make provider_id nullable (it starts null, gets set on accept)
-ALTER TABLE public.jobs ALTER COLUMN provider_id DROP NOT NULL;
-
--- Set provider_id = partner_id for any existing rows where provider_id is null
--- but partner_id is set (keeps data consistent)
-UPDATE public.jobs
-SET provider_id = partner_id
-WHERE provider_id IS NULL AND partner_id IS NOT NULL;
+-- Drop the FK constraint so any authenticated user can accept jobs
+ALTER TABLE public.jobs DROP CONSTRAINT IF EXISTS jobs_partner_id_fkey;
+ALTER TABLE public.jobs DROP CONSTRAINT IF EXISTS jobs_provider_id_fkey;
 
 -- Done!
-SELECT 'Migration 014 complete — provider_id is now nullable.' AS status;
+SELECT 'Migration 014 complete — partner_id FK constraint removed.' AS status;

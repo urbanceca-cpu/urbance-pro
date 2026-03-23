@@ -73,7 +73,6 @@ export async function POST(req: NextRequest) {
     .insert({
       status: 'accepted',
       partner_id: null,
-      provider_id: null,  // nullable after migration 014; set when a provider accepts
       booking_id: (body.booking_id as string) ?? null,
       service_name: body.service_name as string,
       customer_name: body.customer_name as string,

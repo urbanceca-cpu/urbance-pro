@@ -80,7 +80,6 @@ export async function acceptJob(jobId: string, userId: string): Promise<ApiResul
     .from('jobs')
     .update({
       partner_id: userId,
-      provider_id: userId,  // keep legacy FK column in sync
       status: 'assigned',
       updated_at: new Date().toISOString(),
     })
