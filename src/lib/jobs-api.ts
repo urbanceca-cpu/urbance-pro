@@ -78,7 +78,12 @@ export async function acceptJob(jobId: string, userId: string): Promise<ApiResul
   const supabase = createClient();
   const { data, error } = await supabase
     .from('jobs')
-    .update({ partner_id: userId, status: 'assigned', updated_at: new Date().toISOString() })
+    .update({
+      partner_id: userId,
+      provider_id: userId,  // keep legacy FK column in sync
+      status: 'assigned',
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', jobId)
     .eq('status', 'accepted')
     .is('partner_id', null)
