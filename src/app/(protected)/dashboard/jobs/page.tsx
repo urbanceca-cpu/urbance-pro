@@ -1,6 +1,7 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
+import { createClient } from '@/lib/supabase/client';
 import {
   fetchAvailableJobs, fetchMyJobs, acceptJob, startJob, completeJob,
   getCurrentUser, type ProviderJob, netAmount,
@@ -282,11 +283,14 @@ export default function JobsPage() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [selectedJob, setSelectedJob] = useState<ProviderJob | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'live' | 'error'>('connecting');
+  const availableRef = useRef<ProviderJob[]>([]);
+  availableRef.current = available;
 
   function addToast(msg: string, ok: boolean) {
     const id = ++_tid;
     setToasts(t => [...t, { id, msg, ok }]);
-    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3800);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 4500);
   }
 
   const load = useCallback(async (uid: string, silent = false) => {
@@ -294,15 +298,14 @@ export default function JobsPage() {
     const [av, my] = await Promise.all([fetchAvailableJobs(), fetchMyJobs(uid)]);
     if (av.error) { if (!silent) setError(av.error); return; }
     if (my.error) { if (!silent) setError(my.error); return; }
-    // Detect new available jobs (for toast notification)
-    const newJobs = (av.data ?? []).filter(nj => !available.find(oj => oj.id === nj.id));
+    const newJobs = (av.data ?? []).filter(nj => !availableRef.current.find(oj => oj.id === nj.id));
     if (silent && newJobs.length > 0) {
-      addToast(`${newJobs.length} new job${newJobs.length > 1 ? 's' : ''} available!`, true);
+      addToast(`${newJobs.length} new booking${newJobs.length > 1 ? 's' : ''} just came in!`, true);
     }
     setAvailable(av.data ?? []);
     setMyJobs(my.data ?? []);
     setLastRefresh(new Date());
-  }, [available]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     (async () => {
@@ -317,20 +320,76 @@ export default function JobsPage() {
     })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-poll every 30 seconds for new bookings from the main website
+  // ── Realtime: listen for new jobs inserted by the main website ──────────────
   useEffect(() => {
     if (!userId) return;
-    const interval = setInterval(() => {
-      load(userId, true);
-    }, 30_000);
-    return () => clearInterval(interval);
-  }, [userId, load]);
+    const supabase = createClient();
+
+    const channel = supabase
+      .channel('available-jobs-broadcast')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'jobs',
+          filter: 'status=eq.accepted',
+        },
+        (payload) => {
+          const newJob = payload.new as ProviderJob;
+          // Only add if not already in list and has no partner (truly available)
+          if (!newJob.partner_id && !availableRef.current.find(j => j.id === newJob.id)) {
+            setAvailable(prev => [newJob, ...prev]);
+            setLastRefresh(new Date());
+            addToast(`🔔 New booking: ${newJob.service_name} in ${newJob.service_city} — $${Math.round(netAmount(newJob.payout_amount))} payout`, true);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'jobs',
+        },
+        (payload) => {
+          const updated = payload.new as ProviderJob;
+          // If someone else accepted an available job, remove it from our list
+          if (updated.partner_id && updated.partner_id !== userId) {
+            setAvailable(prev => prev.filter(j => j.id !== updated.id));
+          }
+          // If it's our job, update it in myJobs
+          if (updated.partner_id === userId) {
+            setMyJobs(prev => prev.map(j => j.id === updated.id ? updated : j));
+            setSelectedJob(prev => prev?.id === updated.id ? updated : prev);
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') setRealtimeStatus('live');
+        else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          setRealtimeStatus('error');
+          // Fall back to polling if realtime fails
+          const interval = setInterval(() => load(userId, true), 30_000);
+          return () => clearInterval(interval);
+        }
+      });
+
+    // Fallback poll every 60s as a safety net even when realtime is live
+    const poll = setInterval(() => load(userId, true), 60_000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(poll);
+    };
+  }, [userId, load]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleRefresh() {
     if (!userId) return;
     setRefreshing(true);
     await load(userId, false);
     setRefreshing(false);
+    addToast('Jobs refreshed', true);
   }
 
   async function handleAccept(job: ProviderJob) {
@@ -380,10 +439,19 @@ export default function JobsPage() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
 
         <header style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '0 36px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
-          <div>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>Jobs</div>
-            <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>
-              Browse and manage your work · Updated {timeAgo < 5 ? 'just now' : `${timeAgo}s ago`}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>Jobs</div>
+              <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>
+                Browse and manage your work · Updated {timeAgo < 5 ? 'just now' : `${timeAgo}s ago`}
+              </div>
+            </div>
+            {/* Realtime status dot */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '4px 10px', borderRadius: '20px', background: realtimeStatus === 'live' ? 'rgba(16,185,129,0.08)' : realtimeStatus === 'error' ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)' }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: realtimeStatus === 'live' ? '#10B981' : realtimeStatus === 'error' ? '#EF4444' : '#F59E0B', animation: realtimeStatus === 'live' ? 'pulse 2s infinite' : 'none' }} />
+              <span style={{ fontSize: '11px', fontWeight: 600, color: realtimeStatus === 'live' ? '#10B981' : realtimeStatus === 'error' ? '#EF4444' : '#F59E0B' }}>
+                {realtimeStatus === 'live' ? 'Live' : realtimeStatus === 'error' ? 'Offline' : 'Connecting...'}
+              </span>
             </div>
           </div>
           <button onClick={handleRefresh} disabled={refreshing} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #E2E8F0', background: '#FFF', fontSize: '12.5px', fontWeight: 600, cursor: refreshing ? 'not-allowed' : 'pointer', color: '#475569', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px', opacity: refreshing ? 0.6 : 1 }}>
@@ -502,6 +570,7 @@ export default function JobsPage() {
         @keyframes shimmer{0%{opacity:1}50%{opacity:.45}100%{opacity:1}}
         @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
         @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
       `}</style>
     </div>
   );
