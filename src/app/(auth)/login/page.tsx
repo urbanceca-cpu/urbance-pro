@@ -36,6 +36,7 @@ export default function Login() {
 
       if (data.user) {
         toast.success('Signed in successfully!');
+        router.refresh();
         router.push('/dashboard');
       }
     } catch {
@@ -123,7 +124,7 @@ export default function Login() {
                       setIsLoading(true);
                       const { data, error } = await supabase.auth.signInWithPassword({ email: 'test@urbance.ca', password: 'Test1234!' });
                       if (error) { toast.error(error.message); setIsLoading(false); return; }
-                      if (data.user) router.push('/dashboard');
+                      if (data.user) { router.refresh(); router.push('/dashboard'); }
                     }}
                     className="w-full text-xs font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg py-2 px-3 transition-colors"
                   >
