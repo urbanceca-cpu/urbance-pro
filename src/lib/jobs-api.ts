@@ -53,7 +53,7 @@ export interface DashboardSummary {
   totalEarned: number;
 }
 
-const COMMISSION = 0.12;
+const COMMISSION = 0.07;
 export const netAmount = (gross: number) => gross * (1 - COMMISSION);
 
 export async function getCurrentUser() {
