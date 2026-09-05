@@ -225,8 +225,8 @@ export function HomePage() {
                   {/* Coloured stat pills */}
                   <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '16px' }}>
                     {[
-                      { stat: '2–3×', label: 'avg. earnings vs. self-sourced work', bg: '#EBF3FD', statColor: '#2F80ED' },
-                      { stat: '98%',   label: 'pro retention after year one',        bg: '#FFF7ED', statColor: '#EA580C' },
+                      { stat: 'Launch', label: 'founding provider opportunities', bg: '#EBF3FD', statColor: '#2F80ED' },
+                      { stat: 'BC',   label: 'local service network',        bg: '#FFF7ED', statColor: '#EA580C' },
                     ].map(s => (
                       <div key={s.stat} style={{
                         display: 'flex',
@@ -371,7 +371,7 @@ export function HomePage() {
                     n: '03',
                     title: 'Receive Jobs',
                     desc: 'Matched jobs land in your dashboard. No bidding.',
-                    time: 'Day 1',
+                    time: 'After approval',
                     color: '#059669',
                     light: '#ECFDF5',
                   },
@@ -485,7 +485,7 @@ export function HomePage() {
                     boxShadow: '0 4px 24px rgba(0,0,0,0.05)',
                   }}>
                     {[
-                      { label: 'Commission Rate', value: '5–7%', note: 'Scales with volume', highlight: true },
+                      { label: 'Commission Rate', value: '7%', note: 'Flat on completed jobs', highlight: true },
                       { label: 'Monthly Subscription', value: '$0', note: 'No monthly charges', highlight: false },
                       { label: 'Lead Buying', value: 'None', note: 'Jobs come to you', highlight: false },
                       { label: 'Payment Security', value: '100%', note: 'All transactions secured', highlight: false },
@@ -596,7 +596,7 @@ export function HomePage() {
                 Ready to grow<br />your business?
               </h2>
               <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.65)', margin: '0 0 52px', lineHeight: 1.75 }}>
-                Apply in under 5 minutes. No fees, no commitment — just more work, better clients, and weekly pay.
+                Apply in about 10 minutes. No fees, no commitment — just more work, better clients, and weekly pay.
               </p>
               <Link href="/apply" className="home-cta-btn" style={{
                 display: 'inline-flex',
