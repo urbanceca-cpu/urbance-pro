@@ -329,36 +329,28 @@ export default function JobsPage() {
       .channel('available-jobs-broadcast')
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'jobs',
-          filter: 'status=eq.accepted',
-        },
+        { event: 'INSERT', schema: 'public', table: 'job_offers' },
+        async () => {
+          await load(userId, true);
+          addToast('🔔 A new customer booking is available.', true);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'job_offers' },
         (payload) => {
-          const newJob = payload.new as ProviderJob;
-          // Only add if not already in list and has no partner (truly available)
-          if (!newJob.partner_id && !availableRef.current.find(j => j.id === newJob.id)) {
-            setAvailable(prev => [newJob, ...prev]);
-            setLastRefresh(new Date());
-            addToast(`🔔 New booking: ${newJob.service_name} in ${newJob.service_city} — $${Math.round(netAmount(newJob.payout_amount))} payout`, true);
+          const removed = payload.old as { job_id?: string };
+          if (removed.job_id) {
+            setAvailable(prev => prev.filter(j => j.id !== removed.job_id));
+            setSelectedJob(prev => prev?.id === removed.job_id ? null : prev);
           }
         }
       )
       .on(
         'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'jobs',
-        },
+        { event: 'UPDATE', schema: 'public', table: 'jobs' },
         (payload) => {
           const updated = payload.new as ProviderJob;
-          // If someone else accepted an available job, remove it from our list
-          if (updated.partner_id && updated.partner_id !== userId) {
-            setAvailable(prev => prev.filter(j => j.id !== updated.id));
-          }
-          // If it's our job, update it in myJobs
           if (updated.partner_id === userId) {
             setMyJobs(prev => prev.map(j => j.id === updated.id ? updated : j));
             setSelectedJob(prev => prev?.id === updated.id ? updated : prev);
@@ -367,12 +359,7 @@ export default function JobsPage() {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') setRealtimeStatus('live');
-        else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          setRealtimeStatus('error');
-          // Fall back to polling if realtime fails
-          const interval = setInterval(() => load(userId, true), 30_000);
-          return () => clearInterval(interval);
-        }
+        else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setRealtimeStatus('error');
       });
 
     // Fallback poll every 60s as a safety net even when realtime is live
@@ -443,7 +430,7 @@ export default function JobsPage() {
             <div>
               <div style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>Jobs</div>
               <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>
-                Browse and manage your work · Updated {timeAgo < 5 ? 'just now' : `${timeAgo}s ago`}
+                Launch-wide jobs · first qualified provider to accept is assigned · Updated {timeAgo < 5 ? 'just now' : `${timeAgo}s ago`}
               </div>
             </div>
             {/* Realtime status dot */}
@@ -529,7 +516,7 @@ export default function JobsPage() {
                 {tab === 'available' ? 'No available jobs right now' : myFilter !== 'All' ? `No ${myFilter.toLowerCase()} jobs` : 'No jobs yet'}
               </div>
               <div style={{ fontSize: '13px', color: '#94A3B8', lineHeight: 1.6 }}>
-                {tab === 'available' ? 'New bookings from the website will appear here automatically — refreshes every 30s.' : 'Accept your first job from the Available tab.'}
+                {tab === 'available' ? 'New customer bookings from every launch city appear here automatically. Customer contact details stay private until you accept.' : 'Accept your first job from the Available tab.'}
               </div>
             </div>
           ) : (
