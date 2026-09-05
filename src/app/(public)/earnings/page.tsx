@@ -104,7 +104,7 @@ export default function Earnings() {
                 <div className="earn-hero-stats" style={{ display: 'flex', flexDirection: 'column' as const, gap: '16px' }}>
                   {[
                     { label: 'Industry average platform cut', value: '20–30%', sub: 'What most platforms take off every job', color: '#EF4444', light: '#FEF2F2' },
-                    { label: 'Urbance commission', value: '12%', sub: 'Our rate — industry\'s lowest for full-service networks', color: '#059669', light: '#ECFDF5' },
+                    { label: 'Urbance commission', value: '7%', sub: 'Our rate — industry\'s lowest for full-service networks', color: '#059669', light: '#ECFDF5' },
                     { label: 'No monthly fees', value: '$0', sub: 'No subscriptions, no pay-per-lead, no hidden charges', color: '#2F80ED', light: '#EBF3FD' },
                     { label: 'Payout schedule', value: 'Weekly', sub: 'Direct to your bank every Friday', color: '#D97706', light: '#FFFBEB' },
                   ].map((item) => (
@@ -159,7 +159,7 @@ export default function Earnings() {
                   <div style={{ padding: '20px 24px', fontSize: '12px', fontWeight: 700, color: '#60A5FA', textTransform: 'uppercase' as const, letterSpacing: '0.1em', borderLeft: '1px solid rgba(255,255,255,0.06)' }}>Urbance</div>
                 </div>
                 {[
-                  { feature: 'Commission rate',         others: '20–30% per job',         urbance: '12% — industry low',        good: true },
+                  { feature: 'Commission rate',         others: '20–30% per job',         urbance: '7% — industry low',        good: true },
                   { feature: 'Monthly platform fee',    others: '$30–$100 / month',        urbance: 'None — ever',               good: true },
                   { feature: 'Lead purchasing',         others: 'Pay per lead, no guarantee', urbance: 'Pre-matched, no buying', good: true },
                   { feature: 'Payment guarantee',       others: 'Not always',              urbance: 'Every job, guaranteed',     good: true },
@@ -242,10 +242,10 @@ export default function Earnings() {
                     {/* Rows */}
                     {[
                       { label: 'Job total (client pays)', value: '—', note: 'Full service amount', highlight: false, bold: false },
-                      { label: 'Urbance commission', value: '12%', note: 'Industry lowest', highlight: false, bold: false, red: true },
+                      { label: 'Urbance commission', value: '7%', note: 'Industry lowest', highlight: false, bold: false, red: true },
                       { label: 'No monthly fee', value: '$0', note: 'Never charged', highlight: false, bold: false },
                       { label: 'No lead fee', value: '$0', note: 'Jobs matched to you free', highlight: false, bold: false },
-                      { label: 'Your earnings', value: '88%+', note: 'Of every completed job', highlight: true, bold: true },
+                      { label: 'Your earnings', value: '93%+', note: 'Of every completed job', highlight: true, bold: true },
                     ].map((row, i) => (
                       <div key={row.label} style={{
                         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -317,7 +317,7 @@ export default function Earnings() {
           <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
             <div className="earn-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
               {[
-                { stat: '12%',    label: 'Flat commission',         sub: 'The lowest in the industry for full-service networks', color: '#2F80ED', light: '#EBF3FD' },
+                { stat: '7%',    label: 'Flat commission',         sub: 'The lowest in the industry for full-service networks', color: '#2F80ED', light: '#EBF3FD' },
                 { stat: 'Weekly', label: 'Direct bank payouts',     sub: 'Every Friday, automatically — no action needed',       color: '#059669', light: '#ECFDF5' },
                 { stat: '$0',     label: 'Platform or monthly fees', sub: 'No subscriptions, no lead buying, no hidden costs',   color: '#7C3AED', light: '#F5F3FF' },
               ].map((item) => (
