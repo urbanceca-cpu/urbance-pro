@@ -33,7 +33,7 @@ const JOB_STATUS: Record<string, { label: string; color: string; dot: string }> 
 const KPIS = [
   { key: 'completedCount', label: 'Jobs Completed', sub: 'All time',         icon: '✓', accent: '#10B981', accentBg: 'rgba(16,185,129,0.08)', format: (v: number) => String(v) },
   { key: 'activeCount',    label: 'Active Jobs',    sub: 'In progress',      icon: '↗', accent: '#3B82F6', accentBg: 'rgba(59,130,246,0.08)', format: (v: number) => String(v) },
-  { key: 'totalEarned',    label: 'Total Earnings', sub: 'After 12% fee',    icon: '$', accent: '#8B5CF6', accentBg: 'rgba(139,92,246,0.08)', format: (v: number) => `$${v.toFixed(2)}` },
+  { key: 'totalEarned',    label: 'Total Earnings', sub: 'After 7% fee',    icon: '$', accent: '#8B5CF6', accentBg: 'rgba(139,92,246,0.08)', format: (v: number) => `$${v.toFixed(2)}` },
   { key: 'availableCount', label: 'Available Jobs', sub: 'Ready to accept',  icon: '◈', accent: '#F59E0B', accentBg: 'rgba(245,158,11,0.08)', format: (v: number) => String(v) },
 ] as const;
 
