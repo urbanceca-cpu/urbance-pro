@@ -65,32 +65,46 @@ export async function getCurrentUser() {
 export async function fetchAvailableJobs(): Promise<ApiResult<ProviderJob[]>> {
   const supabase = createClient();
   const { data, error } = await supabase
-    .from('jobs')
+    .from('job_offers')
     .select('*')
-    .eq('status', 'accepted')
-    .is('partner_id', null)
     .order('scheduled_date', { ascending: true });
   if (error) return { data: null, error: error.message };
-  return { data: data as ProviderJob[], error: null };
+  const offers = (data ?? []).map((offer) => ({
+    id: offer.job_id,
+    booking_id: null,
+    partner_id: null,
+    service_name: offer.service_name,
+    customer_name: 'Revealed after acceptance',
+    customer_phone: null,
+    service_address: 'Exact address revealed after acceptance',
+    service_city: offer.service_city,
+    latitude: null,
+    longitude: null,
+    status: 'accepted' as JobStatus,
+    eta: null,
+    payout_amount: Number(offer.payout_amount),
+    scheduled_date: offer.scheduled_date,
+    scheduled_time: offer.scheduled_time,
+    service_details: offer.service_details,
+    created_at: offer.created_at,
+    updated_at: offer.created_at,
+    has_additional_charges: false,
+    final_amount: null,
+    payment_captured: false,
+  }));
+  return { data: offers as ProviderJob[], error: null };
 }
 
-export async function acceptJob(jobId: string, userId: string): Promise<ApiResult<ProviderJob>> {
+export async function acceptJob(jobId: string, _userId: string): Promise<ApiResult<ProviderJob>> {
   const supabase = createClient();
-  const { data, error } = await supabase
-    .from('jobs')
-    .update({
-      partner_id: userId,
-      status: 'assigned',
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', jobId)
-    .eq('status', 'accepted')
-    .is('partner_id', null)
-    .select()
-    .maybeSingle();
-  if (error) return { data: null, error: error.message };
-  if (!data) return { data: null, error: 'Job already taken by another provider.' };
-  return { data: data as ProviderJob, error: null };
+  const { data, error } = await supabase.rpc('accept_job_offer', { p_job_id: jobId });
+  if (error) {
+    const taken = error.message.includes('JOB_ALREADY_TAKEN');
+    return { data: null, error: taken ? 'Job already taken by another provider.' : error.message };
+  }
+  const accepted = Array.isArray(data) ? data[0] : data;
+  if (!accepted) return { data: null, error: 'Job already taken by another provider.' };
+  return { data: accepted as ProviderJob, error: null };
 }
 
 export async function fetchMyJobs(userId: string): Promise<ApiResult<ProviderJob[]>> {
@@ -168,7 +182,7 @@ export async function fetchDashboardSummary(userId: string): Promise<ApiResult<D
   const supabase = createClient();
   const [{ data: myJobs }, { data: available }] = await Promise.all([
     supabase.from('jobs').select('id, status, payout_amount, final_amount').eq('partner_id', userId),
-    supabase.from('jobs').select('id').eq('status', 'accepted').is('partner_id', null),
+    supabase.from('job_offers').select('job_id'),
   ]);
 
   const jobs = (myJobs ?? []) as { id: string; status: string; payout_amount: number; final_amount: number | null }[];
