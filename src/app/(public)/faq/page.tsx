@@ -43,7 +43,7 @@ const CAT_COLOR: Record<string, { color: string; bg: string }> = {
 
 const FAQS = [
   // Getting Started
-  { cat: 'getting-started', q: 'Is there a cost to join Urbance?',      a: 'Joining Urbance is completely free. There are no signup fees or monthly subscriptions. Urbance operates on a simple 12% service commission on completed jobs, which helps support the platform, customer acquisition, and payment processing.' },
+  { cat: 'getting-started', q: 'Is there a cost to join Urbance?',      a: 'Joining Urbance is completely free. There are no signup fees or monthly subscriptions. Urbance operates on a simple 7% service commission on completed jobs, which helps support the platform, customer acquisition, and payment processing.' },
   { cat: 'getting-started', q: 'How long does the approval process take?', a: 'Most applications are reviewed within 3–5 business days. Once your profile is approved, you can start accepting jobs and receiving bookings through the platform.' },
   { cat: 'getting-started', q: 'Which locations does Urbance currently serve?', a: 'Urbance currently operates across British Columbia, with strong demand throughout Metro Vancouver, including Vancouver, Surrey, Burnaby, Richmond, Coquitlam, and Langley. We are gradually expanding to additional cities.' },
   { cat: 'getting-started', q: 'Is insurance required to work on the platform?', a: 'Many professional services benefit from having liability insurance as part of standard business practice. During onboarding, professionals can provide their existing coverage details if applicable.' },
@@ -51,8 +51,8 @@ const FAQS = [
   { cat: 'getting-started', q: 'Can I work independently or with other platforms?', a: 'Yes. Urbance professionals are independent service providers and are free to manage their work however they choose. Many professionals use Urbance alongside their own client base or other opportunities.' },
   // Payments
   { cat: 'payments', q: 'When are payments processed?',             a: 'Payments for completed jobs are processed weekly, typically every Friday for the previous week\'s work. Your dashboard allows you to track upcoming payments and job earnings.' },
-  { cat: 'payments', q: 'How does Urbance\'s platform commission work?', a: 'Urbance applies a 12% commission on completed jobs, which is lower than many service marketplaces. This helps support platform operations, booking tools, payment processing, and customer support.' },
-  { cat: 'payments', q: 'Are there additional platform fees?',       a: 'Urbance keeps things simple with a single 12% commission on completed jobs. There are no subscriptions or recurring platform fees.' },
+  { cat: 'payments', q: 'How does Urbance\'s platform commission work?', a: 'Urbance applies a 7% commission on completed jobs, which is lower than many service marketplaces. This helps support platform operations, booking tools, payment processing, and customer support.' },
+  { cat: 'payments', q: 'Are there additional platform fees?',       a: 'Urbance keeps things simple with a single 7% commission on completed jobs. There are no subscriptions or recurring platform fees.' },
   // Jobs
   { cat: 'jobs', q: 'Can I choose which jobs I accept?',              a: 'Yes. Professionals can review job details and accept bookings that fit their schedule and service preferences.' },
   { cat: 'jobs', q: 'How can professionals increase their bookings?', a: 'A strong profile, reliable service, and positive customer reviews help professionals receive more visibility on the platform. Completing jobs consistently and maintaining a great customer experience helps build a strong reputation.' },
@@ -206,7 +206,7 @@ export default function FAQPage() {
         <section className="faq-stats-strip" style={{ padding: '64px 24px', background: '#fff', borderTop: '1px solid #F3F4F6', borderBottom: '1px solid #F3F4F6' }}>
           <div style={{ maxWidth: '900px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '24px', textAlign: 'center' }} className="faq-stats-grid">
             {[
-              { v: '12%',       label: 'Platform fee only', sub: 'No hidden costs' },
+              { v: '7%',       label: 'Platform fee only', sub: 'No hidden costs' },
               { v: '3–5 days',  label: 'Approval time',     sub: 'Fast review process' },
               { v: '$6,200',    label: 'Average earnings',   sub: 'Per month for active pros' },
               { v: '24 hrs',    label: 'Support response',   sub: 'On weekdays' },
