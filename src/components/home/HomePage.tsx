@@ -247,8 +247,8 @@ export function HomePage() {
                 <div className="home-why-right" style={{ paddingLeft: '72px' }}>
                   {[
                     {
-                      title: 'Jobs matched to you — no bidding',
-                      body: 'We analyze your skills, location, and availability to surface the right jobs at the right time. You never have to fight for work again.',
+                      title: 'Launch-wide job opportunities',
+                      body: 'During launch, approved providers can see eligible opportunities across active cities. The first qualified provider to accept is assigned.',
                       tag: 'Smart Matching',
                       tagBg: '#EBF3FD',
                       tagColor: '#2F80ED',
@@ -618,7 +618,7 @@ export function HomePage() {
                 </svg>
               </Link>
               <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', margin: '20px 0 0' }}>
-                Takes less than 5 minutes · No commitment required
+                Takes about 10 minutes · No commitment required
               </p>
             </div>
           </div>
