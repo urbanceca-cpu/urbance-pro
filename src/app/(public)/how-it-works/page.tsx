@@ -56,9 +56,9 @@ const steps = [
   },
   {
     n: '04',
-    title: 'Receive Matched Jobs',
-    body: 'Pre-qualified job requests matched to your skills and location arrive directly in your dashboard. No bidding, no cold leads — just ready-to-book work.',
-    details: ['Pre-qualified clients', 'Job details upfront', 'Accept or decline freely', 'Real-time notifications'],
+    title: 'Receive Live Job Offers',
+    body: 'Paid customer bookings appear live in every approved provider dashboard during launch. The first qualified provider to accept is assigned.',
+    details: ['Paid customer bookings', 'Private details protected', 'First qualified acceptance wins', 'Real-time notifications'],
     time: 'After approval',
     color: '#D97706',
     light: '#FFFBEB',
