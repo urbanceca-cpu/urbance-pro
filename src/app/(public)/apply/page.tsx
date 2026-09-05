@@ -427,7 +427,15 @@ export default function ApplyPage() {
         break;
       }
       case 5: {
-        if (!docs.some(d => d.status === 'done')) e.docs = 'At least one document is required';
+        const uploaded = new Set(docs.filter(d => d.status === 'done').map(d => d.category));
+        const missing: string[] = [];
+        if (!uploaded.has('government_id')) missing.push('Government ID');
+        if (!uploaded.has('proof_of_address')) missing.push('Proof of Address');
+        if (experience.is_insured === 'yes' && !uploaded.has('insurance_certificate')) missing.push('Insurance Certificate');
+        if (experience.is_licensed === 'yes' && !uploaded.has('trade_certification') && !uploaded.has('business_license')) {
+          missing.push('Trade Certification or Business License');
+        }
+        if (missing.length) e.docs = `Required: ${missing.join(', ')}`;
         break;
       }
     }
@@ -450,8 +458,6 @@ export default function ApplyPage() {
         return false;
       }
 
-      console.log('[apply] Signup email:', cleanEmail, '| name:', cleanName);
-
       const res = await fetch('/api/provider-signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -469,7 +475,6 @@ export default function ApplyPage() {
           // User already has an account — try signing in instead
           setAuthError('An account with this email already exists. Trying to sign you in...');
 
-          console.log('[apply] Existing account, trying signIn with:', cleanEmail);
           const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
             email: cleanEmail,
             password: basicInfo.password,
@@ -517,7 +522,6 @@ export default function ApplyPage() {
       }
 
       // ── 2. Client-side: sign in with password to get a live session ──
-      console.log('[apply] Account created, signing in with:', cleanEmail);
       const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password: basicInfo.password,
@@ -1445,7 +1449,7 @@ export default function ApplyPage() {
               </button>
               <FieldHint>Accepted: PDF, JPG, PNG, HEIC · Max 20 MB per file.</FieldHint>
               {/* Show upload errors (not validation gate errors) */}
-              {errors.docs && errors.docs !== 'At least one document is required' && (
+              {errors.docs && (
                 <FieldError msg={errors.docs} />
               )}
             </div>
