@@ -242,10 +242,10 @@ export default function Earnings() {
                     {/* Rows */}
                     {[
                       { label: 'Job total (client pays)', value: '—', note: 'Full service amount', highlight: false, bold: false },
-                      { label: 'Urbance commission', value: '7%', note: 'Industry lowest', highlight: false, bold: false, red: true },
+                      { label: 'Urbance commission', value: '7%', note: 'Flat on completed jobs', highlight: false, bold: false, red: true },
                       { label: 'No monthly fee', value: '$0', note: 'Never charged', highlight: false, bold: false },
-                      { label: 'No lead fee', value: '$0', note: 'Jobs matched to you free', highlight: false, bold: false },
-                      { label: 'Your earnings', value: '93%+', note: 'Of every completed job', highlight: true, bold: true },
+                      { label: 'No lead fee', value: '$0', note: 'No charge to view offers', highlight: false, bold: false },
+                      { label: 'Your earnings', value: '93%', note: 'Of every completed job', highlight: true, bold: true },
                     ].map((row, i) => (
                       <div key={row.label} style={{
                         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
