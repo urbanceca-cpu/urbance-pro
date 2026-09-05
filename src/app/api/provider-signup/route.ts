@@ -3,6 +3,24 @@ import { createClient } from '@supabase/supabase-js';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+const signupAttempts = new Map<string, { count: number; resetAt: number }>();
+const SIGNUP_WINDOW_MS = 15 * 60 * 1000;
+const SIGNUP_LIMIT = 5;
+
+function isRateLimited(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  const now = Date.now();
+  const current = signupAttempts.get(ip);
+  if (!current || current.resetAt <= now) {
+    signupAttempts.set(ip, { count: 1, resetAt: now + SIGNUP_WINDOW_MS });
+    return false;
+  }
+  current.count += 1;
+  signupAttempts.set(ip, current);
+  return current.count > SIGNUP_LIMIT;
+}
+
+
 function json(body: Record<string, unknown>, status = 200) {
   return NextResponse.json(body, { status });
 }
@@ -35,6 +53,8 @@ function getAdminClient() {
 // Client should call signInWithPassword() after this succeeds.
 
 export async function POST(req: NextRequest) {
+  if (isRateLimited(req)) return err('Too many signup attempts. Please wait 15 minutes and try again.', 429);
+
   const admin = getAdminClient();
   if (!admin) {
     console.error('[provider-signup] Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
@@ -57,8 +77,6 @@ export async function POST(req: NextRequest) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return err('Invalid email format.');
   if (!password || password.length < 8) return err('Password must be at least 8 characters.');
   if (!fullName) return err('Full name is required.');
-
-  console.log('[provider-signup] Creating user:', email);
 
   // Try to create the user. If it fails with "already exists", handle gracefully.
   const { data: newUser, error: createErr } = await admin.auth.admin.createUser({
@@ -85,7 +103,7 @@ export async function POST(req: NextRequest) {
       );
     }
     console.error('[provider-signup] Create user failed:', createErr.message);
-    return err('Failed to create account: ' + createErr.message, 500);
+    return err('Unable to create account right now. Please try again.', 500);
   }
 
   const userId = newUser.user.id;
