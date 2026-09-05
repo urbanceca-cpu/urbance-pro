@@ -34,6 +34,11 @@ CREATE TABLE IF NOT EXISTS public.job_offers (
 
 ALTER TABLE public.job_offers ENABLE ROW LEVEL SECURITY;
 
+-- A paid customer booking can create at most one provider job.
+CREATE UNIQUE INDEX IF NOT EXISTS jobs_booking_id_unique
+ON public.jobs (booking_id)
+WHERE booking_id IS NOT NULL;
+
 DROP POLICY IF EXISTS "approved_providers_read_job_offers" ON public.job_offers;
 CREATE POLICY "approved_providers_read_job_offers"
 ON public.job_offers FOR SELECT
