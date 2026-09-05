@@ -112,7 +112,7 @@ export default function PayoutsPage() {
 
           {/* Stat cards */}
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-            <StatCard label="Total Earned"  value={loading ? '-' : fmt(summary?.totalNet ?? 0)}       sub="After 12% platform fee"    accent="#8B5CF6" loading={loading} />
+            <StatCard label="Total Earned"  value={loading ? '-' : fmt(summary?.totalNet ?? 0)}       sub="After 7% platform fee"    accent="#8B5CF6" loading={loading} />
             <StatCard label="This Month"    value={loading ? '-' : fmt(summary?.thisMonthNet ?? 0)}   sub="Current calendar month"    accent="#3B82F6" loading={loading} />
             <StatCard label="In Progress"   value={loading ? '-' : fmt(summary?.inProgressNet ?? 0)} sub="Assigned + en route jobs"  accent="#F59E0B" loading={loading} />
           </div>
@@ -121,7 +121,7 @@ export default function PayoutsPage() {
           <div style={{ background: 'rgba(59,130,246,0.05)', borderRadius: '12px', border: '1px solid rgba(59,130,246,0.15)', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <span style={{ fontSize: '12.5px', color: '#334155', lineHeight: 1.5 }}>
-              Urbance charges a <strong>12% platform fee</strong> on all jobs. You keep <strong>88%</strong> of each job value. Payments are issued within 3–5 business days after completion.
+              Urbance charges a <strong>7% platform fee</strong> on all jobs. You keep <strong>93%</strong> of each job value. Payments are issued within 3–5 business days after completion.
             </span>
           </div>
 
