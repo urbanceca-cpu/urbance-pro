@@ -59,7 +59,7 @@ const steps = [
     title: 'Receive Matched Jobs',
     body: 'Pre-qualified job requests matched to your skills and location arrive directly in your dashboard. No bidding, no cold leads — just ready-to-book work.',
     details: ['Pre-qualified clients', 'Job details upfront', 'Accept or decline freely', 'Real-time notifications'],
-    time: 'Day 1',
+    time: 'After approval',
     color: '#D97706',
     light: '#FFFBEB',
   },
@@ -122,7 +122,7 @@ export default function HowItWorks() {
                     From application<br />to your first payout.
                   </h1>
                   <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.60)', lineHeight: 1.8, margin: '0 0 48px', maxWidth: '400px' }}>
-                    Five steps. Under a week. Most pros are earning on day one after approval.
+                    Five steps. Under a week. Once approved, providers can view and accept available jobs as customer demand launches.
                   </p>
                   <div className="hiw-hero-cta" style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' as const }}>
                     <Link href="/apply" style={{
