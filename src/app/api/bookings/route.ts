@@ -63,17 +63,42 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  const payoutAmount = Number(body.payout_amount);
+  if (!Number.isFinite(payoutAmount) || payoutAmount <= 0) {
+    return NextResponse.json({ error: 'payout_amount must be a positive number' }, { status: 400 });
+  }
+  if (Number.isNaN(Date.parse(String(body.scheduled_date)))) {
+    return NextResponse.json({ error: 'scheduled_date must be a valid date' }, { status: 400 });
+  }
+
   // ── Insert using service role (bypasses RLS) ──────────────────────────────
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+
+  const bookingId = (body.booking_id as string) ?? null;
+  if (bookingId) {
+    const { data: existing } = await supabase
+      .from('jobs')
+      .select('id')
+      .eq('booking_id', bookingId)
+      .maybeSingle();
+    if (existing) {
+      return NextResponse.json({
+        success: true,
+        duplicate: true,
+        job_id: existing.id,
+        message: 'Booking was already published to providers.',
+      });
+    }
+  }
 
   const { data, error } = await supabase
     .from('jobs')
     .insert({
       status: 'accepted',
       partner_id: null,
-      booking_id: (body.booking_id as string) ?? null,
+      booking_id: bookingId,
       service_name: body.service_name as string,
       customer_name: body.customer_name as string,
       customer_phone: (body.customer_phone as string) ?? null,
@@ -81,7 +106,7 @@ export async function POST(req: NextRequest) {
       service_city: body.service_city as string,
       scheduled_date: body.scheduled_date as string,
       scheduled_time: (body.scheduled_time as string) ?? null,
-      payout_amount: Number(body.payout_amount),
+      payout_amount: payoutAmount,
       service_details: (body.service_details as string) ?? null,
       latitude: body.latitude ? Number(body.latitude) : null,
       longitude: body.longitude ? Number(body.longitude) : null,
@@ -96,8 +121,12 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) {
+    if (error.code === '23505' && bookingId) {
+      const { data: existing } = await supabase.from('jobs').select('id').eq('booking_id', bookingId).maybeSingle();
+      return NextResponse.json({ success: true, duplicate: true, job_id: existing?.id ?? null });
+    }
     console.error('[/api/bookings] Supabase insert error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Unable to publish booking' }, { status: 500 });
   }
 
   // ── Success: job is now live for all providers ────────────────────────────
