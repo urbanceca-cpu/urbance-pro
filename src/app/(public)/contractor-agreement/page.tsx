@@ -1,0 +1,3 @@
+import {PublicShell,Hero} from '@/components/ops/PublicShell';
+import {policies} from '@/lib/ops/policies';
+export default function Page(){const p=policies['contractor-agreement'];return <PublicShell><div className="pro-container pro-policy"><Hero eyebrow="CLEAR EXPECTATIONS. GOOD WORK." title={p.title} copy={p.intro}/><div className="pro-policy-layout"><aside><p>Clear expectations for your business and the people who trust it.</p><a href="mailto:support@urbance.ca">Questions? Contact our team ↗</a></aside><article>{p.sections.map(([heading,copy],index)=><section key={heading}><span className="pro-kicker">{String(index+1).padStart(2,'0')}</span><h2>{heading}</h2><p>{copy}</p></section>)}</article></div></div></PublicShell>}

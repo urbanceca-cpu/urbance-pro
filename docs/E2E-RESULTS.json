@@ -1,0 +1,20 @@
+{
+  "tested_at": "2026-10-21T21:31:10.308Z",
+  "checks": [
+    "anonymous users cannot read the workspace",
+    "unfinished applicants cannot use provider sign-in",
+    "owner loads isolated demo workspace and technician lacks admin permissions",
+    "technician cannot accept jobs, invoice, invite or change settings",
+    "non-administrators cannot review applications",
+    "two simultaneous providers cannot claim the same job",
+    "an eligible owner accepts and a dispatcher assigns a technician",
+    "cross-business job access is denied",
+    "travel and arrival produce server timestamps and evidence is required to start",
+    "private before/during/after photo upload and full completion workflow",
+    "completed provider job synchronizes canonical customer booking",
+    "owner creates, sends and marks a demo invoice paid without external email",
+    "membership deactivation immediately revokes existing-session access",
+    "demo records never enqueue external job notifications"
+  ],
+  "scope": "Isolated demo accounts and records; no real customers, email or payments"
+}

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import './provider-system.css';
 import { ToastProvider } from '@/components/ui/ToastProvider';
 import { DeployCheck } from '@/components/DeployCheck';
 
