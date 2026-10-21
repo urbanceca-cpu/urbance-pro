@@ -1,0 +1,8 @@
+{
+  "tested_at": "2026-10-21T21:46:25.567Z",
+  "checks": [
+    "team invite requires matching verified email and can be accepted only once",
+    "onboarding rejects incomplete submission and accepts private documents with current agreements"
+  ],
+  "scope": "Fictional onboarding and invitations; no real documents or external mail"
+}
