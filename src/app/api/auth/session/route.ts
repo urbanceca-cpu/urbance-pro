@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, redirect: "/invite" });
     const { data: member } = await admin
       .from("ops_members")
-      .select("id")
+      .select("id,owner_user_id")
       .eq("user_id", data.user.id)
       .eq("active", true)
       .maybeSingle();
@@ -89,10 +89,12 @@ export async function POST(req: NextRequest) {
       .select("status")
       .eq("user_id", data.user.id)
       .maybeSingle();
-    if (
-      !member &&
-      !["submitted", "under_review", "approved"].includes(app?.status || "")
-    ) {
+    let approvedTeamAccess = false;
+    if (member && member.owner_user_id !== data.user.id) {
+      const { data: ownerApplication } = await admin.from("provider_applications").select("status").eq("user_id",member.owner_user_id).maybeSingle();
+      approvedTeamAccess = ownerApplication?.status === "approved";
+    }
+    if (!approvedTeamAccess && !["submitted", "under_review", "approved"].includes(app?.status || "")) {
       await client.auth.signOut();
       throw new OpsError(
         "Finish and submit your application before using provider sign-in. Choose Resume application to continue.",
