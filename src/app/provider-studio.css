@@ -6,7 +6,7 @@
   --pro-muted: #53666d;
   --pro-line: #cfd8d5;
   --pro-soft: #e7ece8;
-  --studio-ink: #142f3b;
+  --studio-ink: #172b41;
   --studio-sage: #c8decf;
   --studio-paper: #f3f3ec;
   --studio-blue: #cee1ee;
@@ -16,10 +16,10 @@ html {
   scroll-padding-top: 100px;
 }
 body {
-  background: #e8ede9 !important;
+  background: #e9eef3 !important;
 }
 .pro-public {
-  background: #e8ede9;
+  background: #e9eef3;
 }
 .pro-icon {
   width: 22px;
@@ -175,7 +175,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 40;
-  background: #193743f5;
+  background: #172b41f5;
   color: #edf3ef;
   border: 0;
   border-radius: 0;
@@ -227,7 +227,7 @@ body {
   position: relative;
   isolation: isolate;
   min-height: 640px;
-  background: #17323e;
+  background: #172b41;
   overflow: hidden;
 }
 .pro-studio-hero-image {
@@ -245,11 +245,11 @@ body {
   z-index: -1;
   background: linear-gradient(
     90deg,
-    #17323e 3%,
-    #17323efc 29%,
-    #17323ed9 41%,
-    #17323e3b 66%,
-    #17323e05 100%
+    #172b41 3%,
+    #172b41fc 29%,
+    #172b41d9 41%,
+    #172b413b 66%,
+    #172b4105 100%
   );
 }
 .pro-studio-hero-copy {
@@ -266,7 +266,7 @@ body {
 }
 .pro-studio-hero h1 em {
   font-style: normal;
-  color: #b8d9d1;
+  color: #8ebaf6;
 }
 .pro-studio-hero .pro-kicker {
   color: #b8ced0;
@@ -332,7 +332,7 @@ body {
   backdrop-filter: blur(8px);
 }
 .pro-proof-bar {
-  background: #d7e1dc;
+  background: #d9e4f1;
   display: grid;
   grid-template-columns: 1.1fr 1.1fr 1.1fr 1fr;
   padding: 27px max(48px, calc((100vw - 1180px) / 2));
@@ -478,7 +478,7 @@ body {
   white-space: nowrap;
 }
 .pro-work-story {
-  background: #dbe4df;
+  background: #dce6f2;
   padding: 85px 0;
 }
 .pro-story-grid {
@@ -592,7 +592,7 @@ body {
   font-size: 12px;
 }
 .pro-earnings-band {
-  background: #193a48;
+  background: #17314d;
   color: #edf2ec;
   padding: 85px 0;
 }
@@ -726,7 +726,7 @@ body {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(90deg, #163440 15%, #163440e8 35%, #16344008);
+  background: linear-gradient(90deg, #172b41 15%, #172b41e8 35%, #172b4108);
 }
 .pro-neighbourhood > .pro-container {
   padding-top: 85px;
@@ -800,7 +800,7 @@ body {
 }
 .pro-studio-last {
   border-radius: 22px;
-  background: #c8dcd2;
+  background: #d2e3f7;
   padding: 65px 70px;
   margin-bottom: 90px;
   position: relative;
@@ -861,7 +861,7 @@ body {
   color: #276b8b;
 }
 .pro-footer {
-  background: #102d39;
+  background: #14283f;
   color: #d2e0df;
   grid-template-columns: 1.5fr 1fr 1fr 1fr;
   width: 100%;
@@ -904,7 +904,7 @@ body {
 .pro-page-hero {
   display: grid;
   grid-template-columns: 1.05fr 1fr;
-  background: #1b3a47;
+  background: #19334f;
   color: #eef2ec;
   border-radius: 18px;
   overflow: hidden;
@@ -1048,7 +1048,7 @@ body {
   color: #23414a;
 }
 .pro-application-layout {
-  background: #e8ede9;
+  background: #e9eef3;
 }
 .pro-application-sidebar {
   background: #d4e2d9;
@@ -1066,10 +1066,10 @@ body {
 }
 /* A persistent workspace, with purposeful colour and a stable loading shell. */
 .pro-workspace {
-  background: #e4ebe6;
+  background: #e7edf4;
 }
 .pro-sidebar {
-  background: #163440;
+  background: #172b41;
   color: #d4e3e2;
   border-right: 1px solid #31505a;
   box-shadow: none;
@@ -1247,7 +1247,7 @@ body {
   mask-image: linear-gradient(90deg, transparent, #000 20%);
 }
 .pro-stat {
-  background: #d7e4dc;
+  background: #d9e7f7;
   border: 1px solid #bdcfc2;
   border-radius: 13px;
   box-shadow: none;
@@ -1354,11 +1354,11 @@ body {
   display: grid;
   grid-template-columns: 252px 1fr;
   min-height: 100vh;
-  background: #e4ebe6;
+  background: #e7edf4;
   color: #375b62;
 }
 .pro-route-loading > aside {
-  background: #163440;
+  background: #172b41;
   padding: 35px 28px;
 }
 .pro-route-loading > div {
@@ -1424,7 +1424,7 @@ body {
   animation: studio-shimmer 1.8s ease-in-out infinite;
 }
 .pro-work-loading {
-  background: #e4ebe6;
+  background: #e7edf4;
   min-height: 100vh;
   justify-content: center;
 }
@@ -1484,10 +1484,10 @@ body {
   .pro-studio-hero-shade {
     background: linear-gradient(
       90deg,
-      #17323e 5%,
-      #17323ef5 28%,
-      #17323eb5 50%,
-      #17323e08 90%
+      #172b41 5%,
+      #172b41f5 28%,
+      #172b41b5 50%,
+      #172b4108 90%
     );
   }
   .pro-proof-bar {
@@ -1714,7 +1714,7 @@ body {
     object-position: center 46%;
   }
   .pro-studio-hero-shade {
-    background: linear-gradient(0deg, #17323e 5%, #17323e 50%, #17323e00 86%);
+    background: linear-gradient(0deg, #172b41 5%, #172b41 50%, #172b4100 86%);
   }
   .pro-studio-hero-copy {
     margin: 0;
@@ -1899,7 +1899,7 @@ body {
     object-position: center;
   }
   .pro-neighbourhood:after {
-    background: linear-gradient(0deg, #163440 20%, #163440 52%, #16344010 90%);
+    background: linear-gradient(0deg, #172b41 20%, #172b41 52%, #172b4110 90%);
   }
   .pro-neighbourhood > .pro-container {
     padding-top: 25px;
@@ -2347,3 +2347,14 @@ body {
 
 .pro-business-chip>span{background:#3e6570}.pro-business-chip>span>img{width:18px;height:20px;object-fit:contain}.pro-work-footer>a{color:#416774}.pro-work-footer{background:#dbe5dc;border-top-color:#c3d3c7}
 .pro-wordmark>.pro-brand{display:inline-flex;margin:0;letter-spacing:0}.pro-public .pro-button:not(.secondary){text-decoration:none}
+
+/* Brand guard: Urbance blue is the primary brand colour across both sites. */
+:root{--pro-blue:#2f80ed;--pro-deep:#216bcf;--pro-ink:#172b41;--studio-ink:#172b41;--studio-blue:#d8e6f6}
+.pro-public .pro-button:not(.secondary),.pro-workspace .pro-button:not(.secondary){background:#216bcf;border-color:#216bcf;color:#fff!important}
+.pro-public .pro-button:not(.secondary):hover,.pro-workspace .pro-button:not(.secondary):hover{background:#195ab4;border-color:#195ab4}
+.pro-studio-hero h1 em{color:#8ebaf6}.pro-studio-hero .pro-kicker i,.pro-photo-note .pro-dot{background:#2f80ed}.pro-studio-hero{border-top:1px solid #2f80ed33}
+.pro-nav .pro-button{box-shadow:0 4px 18px #0a213d24}.pro-sidebar{background:#172b41;border-right-color:#304963}.pro-sidebar nav a[aria-current=page]{background:#d5e5fa;color:#204f8b}.pro-sidebar nav a:hover{background:#264362}.pro-sidebar nav a[aria-current=page]:hover{background:#c5dcfa}
+.pro-work-header{background:#d9e5f3;border-bottom-color:#bfd0e5}.pro-avatar{background:#c7dcf6;color:#255898}.pro-workspace .pro-offer,.pro-workspace .pro-offer:nth-child(2n){background:#dce8f6;border-color:#b9cde5}.pro-stat:first-child{background:#d7e6f8;border-color:#bacee7}.pro-stat:nth-child(4){background:#1b3d64;border-color:#1b3d64}.pro-work-footer{background:#dce6f1;border-top-color:#c3d1e2}
+.pro-earnings-preview{background:#dfe9f5;border-color:#bed0e7}.pro-earnings-preview input{accent-color:#2f80ed}.pro-earning-line{border-bottom-color:#b9cce3}.pro-proof-bar .pro-icon,.pro-process-icon>.pro-icon,.pro-detail-points>div>.pro-icon{color:#2962a1}.pro-process-icon>.pro-icon,.pro-detail-points>div>.pro-icon{background:#d2e2f5}.pro-business-chip{background:#213c5a;border-color:#3b5470}.pro-business-chip>span{background:#2f5f9b}
+.pro-application-steps{background:#dce7f3;border-color:#bdcfe3}.pro-application-steps>button[aria-current]{background:#c9def8;color:#245799;border-color:#2f80ed}.pro-mode-grid button[aria-pressed="true"]{background:#d1e3fa;border-color:#83afea;color:#285c9c}
+.pro-feature-grid>.pro-card:nth-child(4n+2){background:#dce7f4}.pro-feature-grid>.pro-card:nth-child(4n){background:#d3e1f2}.pro-workspace .pro-blue-card,.pro-day-banner{background:#1b3d5a}

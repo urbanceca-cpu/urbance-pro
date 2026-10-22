@@ -4,7 +4,7 @@ Scope: provider public pages, application/sign-in presentation and approved work
 
 ## Visual system
 
-Ink navy (#142f3b), slate blue, warm stone and muted sage replace the stark white surfaces. Public pages gain a photographic hero, service stories, workflow explanation, team section, interactive CAD commission illustration, provider standards, coverage section and FAQs. Navigation, footer and workspace link directly to the main customer website. Mobile navigation is keyboard-accessible; motion honours reduced-motion preferences.
+Urbance blue (#2f80ed) remains the canonical brand accent, paired with the existing ink navy (#172b41), softer blue-grey backgrounds and warm neutral surfaces. Primary buttons use a darker brand-blue shade (#216bcf) for readable white labels; green is reserved chiefly for availability/success status. Public pages gain a photographic hero, service stories, workflow explanation, team section, interactive CAD commission illustration, provider standards, coverage section and FAQs. Navigation, footer and workspace link directly to the main customer website. Mobile navigation is keyboard-accessible; motion honours reduced-motion preferences.
 
 The four user-supplied PNG logos are used as intact brand artwork. Production derivatives trim transparent margins without changing the mark: white/dark wordmarks and white/dark symbols. Uploaded originals are unchanged. No generated logo substitutes.
 
@@ -32,3 +32,9 @@ Authorization still verifies the identity and live membership on every API reque
 The existing provider functions ran in Portland (pdx1), while the shared database is in Canada Central. This release places provider functions in Montréal (yul1 / ca-central-1), alongside the database, to reduce function-to-database round trips. Static public assets still use the CDN.
 
 The existing live-intake, dispatch and email rollout gates remain unchanged. This redesign does not activate them.
+
+## Live release verification
+
+Production deployment 5ccc4afa in yul1 is READY at https://pros.urbance.ca. Seven flow checks pass on the live domain. Workspace API returned 679, 393 and 304 ms; completed authenticated dashboard HTML returned 1,125 ms. This is a small sample, not a latency guarantee. Browser inspection confirms the landing and how-it-works layouts and correct earnings-slider arithmetic. Authenticated dashboard checks used HTTP and server-rendered HTML; no claim of a signed-in browser visual review. Platform runtime error-log access was denied (403); deployment readiness, direct browser observations and live HTTP checks are the available release evidence.
+
+Brand follow-up: the owner explicitly requested that company colours remain prominent. Primary CTAs, dashboard selection, service highlights and earnings accents now use the customer site’s Urbance blue family. The photographic direction and lower-glare surfaces remain. Logos are unchanged.
