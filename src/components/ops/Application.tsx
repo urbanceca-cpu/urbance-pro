@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import AuthForm, { api } from "./AuthForm";
-import { PublicShell } from "./PublicShell";
+import { PublicShell, Hero } from "./PublicShell";
 import { CATEGORIES, CITIES, POLICY_VERSION } from "@/lib/ops/domain";
 import { createClient } from "@/lib/supabase/client";
 type Values = {
@@ -195,14 +195,7 @@ export default function Application() {
   return (
     <PublicShell>
       <div className="pro-container pro-application">
-        <div className="pro-page-hero">
-          <span className="pro-kicker">YOUR NEXT CHAPTER STARTS HERE</span>
-          <h1>A little about your business.</h1>
-          <p>
-            Complete your profile, share your credentials and review the
-            agreements. We’ll review the details before enabling job access.
-          </p>
-        </div>
+        <Hero eyebrow="YOUR NEXT CHAPTER STARTS HERE" title="A little about your business." copy="Complete your profile, share your credentials and review the agreements. We’ll review the details before enabling job access." image="cleaning" alt="A professional caring for a kitchen in a Vancouver home" />
         {loading ? (
           <div className="pro-card" role="status">
             Loading your secure application…

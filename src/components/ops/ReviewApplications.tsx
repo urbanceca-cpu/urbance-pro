@@ -44,7 +44,7 @@ export default function ReviewApplications() {
       <Link className="pro-link" href="/admin">
         ← Administration
       </Link>
-      <div className="pro-page-hero">
+      <div className="pro-review-header">
         <span className="pro-kicker">URBANCE · AUTHORIZED REVIEW</span>
         <h1>
           Professional starts,

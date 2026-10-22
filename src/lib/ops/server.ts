@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createClient as supabaseClient } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { permissionsFor, type Permission } from "./domain";
@@ -22,7 +23,7 @@ export function db() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
-export async function identity() {
+export const identity = cache(async function identity() {
   const client = await createServerSupabaseClient();
   const {
     data: { user },
@@ -30,7 +31,7 @@ export async function identity() {
   } = await client.auth.getUser();
   if (error || !user) throw new OpsError("Sign in to continue.", 401);
   return user;
-}
+});
 export async function context(permission?: Permission) {
   const user = await identity(),
     admin = db();

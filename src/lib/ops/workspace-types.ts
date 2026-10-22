@@ -1,0 +1,128 @@
+export type Job = {
+  id: string;
+  service_name: string;
+  service_type: string;
+  service_city: string;
+  scheduled_date: string;
+  scheduled_time: string;
+  service_address: string;
+  address: string;
+  customer_name: string;
+  customer_phone: string;
+  service_details: string;
+  notes: string;
+  payout_amount: number;
+  price: number;
+  job_status: string;
+  booking_ref: string;
+  is_demo: boolean;
+  latitude: number | null;
+  longitude: number | null;
+};
+export type State = {
+  job_id: string;
+  phase: string;
+  assigned_user_id: string;
+  eta_minutes: number | null;
+  en_route_at: string;
+  arrived_at: string;
+  started_at: string;
+  completed_at: string;
+  sharing_location: boolean;
+  latitude: number | null;
+  longitude: number | null;
+  location_at: string;
+};
+export type Member = {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+  role: string;
+  permissions: string[] | null;
+  active: boolean;
+};
+export type Business = {
+  id: string;
+  owner_user_id: string;
+  display_name: string;
+  mode: "individual" | "team";
+  city: string;
+  address: string;
+  phone: string;
+  max_travel_km: number;
+  gst_number: string;
+  online: boolean;
+  repeat_offer_emails: boolean;
+  is_demo: boolean;
+};
+export type Offer = {
+  id: string;
+  service: string;
+  category: string;
+  city: string;
+  date: string;
+  time: string;
+  gross: number;
+  net: number;
+  wave: string;
+  expires_at: string;
+  scope: string[];
+};
+export type Invoice = {
+  id: string;
+  invoice_number: string;
+  customer_name: string;
+  customer_email: string;
+  customer_address: string;
+  issuer_name: string;
+  issuer_address: string;
+  gst_number: string;
+  items: { description: string; quantity: number; unit_cents: number }[];
+  subtotal_cents: number;
+  tax_cents: number;
+  total_cents: number;
+  issued_date: string;
+  due_date: string;
+  notes: string;
+  status: string;
+};
+export type WorkspaceData = {
+  business: Business;
+  member: Member;
+  permissions: string[];
+  jobs: Job[];
+  states: State[];
+  offers: Offer[];
+  members: Member[];
+  invoices: Invoice[];
+  documents: {
+    id: string;
+    kind: string;
+    original_name: string;
+    expires_at: string | null;
+    verified_at: string | null;
+  }[];
+  notifications: {
+    id: string;
+    subject: string;
+    status: string;
+    created_at: string;
+  }[];
+  ready: boolean;
+  emailConfigured: boolean;
+};
+export type JobDetail = {
+  job: Job;
+  state: State;
+  events: { id: string; event: string; created_at: string }[];
+  photos: {
+    id: string;
+    phase: string;
+    caption: string;
+    url: string;
+    created_at: string;
+  }[];
+  customerPhotos: string[];
+  booking: { breakdown: unknown; selections: unknown; notes: string } | null;
+};

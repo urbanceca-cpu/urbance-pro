@@ -3,6 +3,6 @@
   "outputDirectory": ".next",
   "framework": "nextjs",
   "regions": [
-    "pdx1"
+    "yul1"
   ]
 }

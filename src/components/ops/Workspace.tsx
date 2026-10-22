@@ -1,138 +1,21 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { api } from "./AuthForm";
 import { createClient } from "@/lib/supabase/client";
 import { CITIES, ROLES, permissionsFor } from "@/lib/ops/domain";
 
-type Job = {
-  id: string;
-  service_name: string;
-  service_type: string;
-  service_city: string;
-  scheduled_date: string;
-  scheduled_time: string;
-  service_address: string;
-  address: string;
-  customer_name: string;
-  customer_phone: string;
-  service_details: string;
-  notes: string;
-  payout_amount: number;
-  price: number;
-  job_status: string;
-  booking_ref: string;
-  is_demo: boolean;
-  latitude: number | null;
-  longitude: number | null;
-};
-type State = {
-  job_id: string;
-  phase: string;
-  assigned_user_id: string;
-  eta_minutes: number | null;
-  en_route_at: string;
-  arrived_at: string;
-  started_at: string;
-  completed_at: string;
-  sharing_location: boolean;
-  latitude: number | null;
-  longitude: number | null;
-  location_at: string;
-};
-type Member = {
-  id: string;
-  user_id: string;
-  name: string;
-  email: string;
-  role: string;
-  permissions: string[] | null;
-  active: boolean;
-};
-type Business = {
-  id: string;
-  owner_user_id: string;
-  display_name: string;
-  mode: "individual" | "team";
-  city: string;
-  address: string;
-  phone: string;
-  max_travel_km: number;
-  gst_number: string;
-  online: boolean;
-  repeat_offer_emails: boolean;
-  is_demo: boolean;
-};
-type Offer = {
-  id: string;
-  service: string;
-  category: string;
-  city: string;
-  date: string;
-  time: string;
-  gross: number;
-  net: number;
-  wave: string;
-  expires_at: string;
-  scope: string[];
-};
-type Invoice = {
-  id: string;
-  invoice_number: string;
-  customer_name: string;
-  customer_email: string;
-  customer_address: string;
-  issuer_name: string;
-  issuer_address: string;
-  gst_number: string;
-  items: { description: string; quantity: number; unit_cents: number }[];
-  subtotal_cents: number;
-  tax_cents: number;
-  total_cents: number;
-  issued_date: string;
-  due_date: string;
-  notes: string;
-  status: string;
-};
-type WorkspaceData = {
-  business: Business;
-  member: Member;
-  permissions: string[];
-  jobs: Job[];
-  states: State[];
-  offers: Offer[];
-  members: Member[];
-  invoices: Invoice[];
-  documents: {
-    id: string;
-    kind: string;
-    original_name: string;
-    expires_at: string | null;
-    verified_at: string | null;
-  }[];
-  notifications: {
-    id: string;
-    subject: string;
-    status: string;
-    created_at: string;
-  }[];
-  ready: boolean;
-  emailConfigured: boolean;
-};
-type JobDetail = {
-  job: Job;
-  state: State;
-  events: { id: string; event: string; created_at: string }[];
-  photos: {
-    id: string;
-    phase: string;
-    caption: string;
-    url: string;
-    created_at: string;
-  }[];
-  customerPhotos: string[];
-  booking: { breakdown: unknown; selections: unknown; notes: string } | null;
-};
+import type {
+  Job,
+  State,
+  Member,
+  Business,
+  Invoice,
+  WorkspaceData,
+  JobDetail,
+} from "@/lib/ops/workspace-types";
+import { useWorkspaceSession } from "./WorkspaceSession";
+import { Brand, Icon } from "./Brand";
 const money = (n: number) =>
   new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" }).format(
     n,
@@ -163,28 +46,13 @@ export default function Workspace({
   tab?: string;
   jobId?: string;
 }) {
-  const [data, setData] = useState<WorkspaceData | null>(null),
-    [error, setError] = useState(""),
+  const { data, reload: load, error: sessionError } = useWorkspaceSession();
+  const [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false),
     [query, setQuery] = useState(""),
     [detail, setDetail] = useState<JobDetail | null>(null),
     [selected, setSelected] = useState(jobId || "");
-  const load = useCallback(async () => {
-    try {
-      setData(await api<WorkspaceData>("workspace"));
-      setError("");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Unable to load workspace.");
-    }
-  }, []);
-  useEffect(() => {
-    void api<WorkspaceData>("workspace")
-      .then(setData)
-      .catch((e) => setError(e.message));
-    const timer = setInterval(() => void load(), 20000);
-    return () => clearInterval(timer);
-  }, [load]);
   useEffect(() => {
     if (!data?.business.online || !data.permissions.includes("jobs.accept"))
       return;
@@ -240,9 +108,9 @@ export default function Workspace({
     return (
       <div className="pro-work-loading" role="status">
         <span className="pro-wordmark">urbance</span>
-        <h1>Your working day, coming together.</h1>
-        {error ? (
-          <p className="pro-error">{error}</p>
+        <h1>Let’s reconnect your workspace.</h1>
+        {error || sessionError ? (
+          <p className="pro-error">{error || sessionError}</p>
         ) : (
           <div className="pro-skeleton" />
         )}
@@ -278,10 +146,10 @@ export default function Workspace({
       </a>
       <aside className="pro-sidebar">
         <Link className="pro-wordmark" href="/">
-          urbance<span>PRO WORKSPACE</span>
+          <Brand light subtitle="PRO WORKSPACE" />
         </Link>
         <div className="pro-business-chip">
-          <span>{data.business.display_name.slice(0, 2).toUpperCase()}</span>
+          <span><img src="/brand/symbol-white.png" alt="" width="18" height="20" /></span>
           <div>
             <strong>{data.business.display_name}</strong>
             <small>
@@ -305,13 +173,13 @@ export default function Workspace({
             )
             .filter(([key]) => key !== "settings" || can("settings.manage"))
             .filter(([key]) => key !== "documents" || can("documents.manage"))
-            .map(([key, label, symbol]) => (
+            .map(([key, label]) => (
               <Link
                 key={key}
                 href={"/dashboard" + (key === "overview" ? "" : "/" + key)}
                 aria-current={tab === key ? "page" : undefined}
               >
-                <span aria-hidden="true">{symbol}</span>
+                <Icon name={key} />
                 {label}
                 {key === "jobs" && data.offers.length > 0 && (
                   <b>{data.offers.length}</b>
@@ -326,6 +194,9 @@ export default function Workspace({
             <br />
             Room for the craft.
           </p>
+          <a className="pro-customer-link" href="https://www.urbance.ca">
+            Visit customer website <Icon name="external" />
+          </a>
           <button
             onClick={async () => {
               await createClient().auth.signOut();
@@ -344,6 +215,9 @@ export default function Workspace({
             </span>
             <strong>{data.business.display_name}</strong>
           </div>
+          <a className="pro-work-customer" href="https://www.urbance.ca">
+            Urbance home <Icon name="external" />
+          </a>
           <span
             className={"pro-presence " + (data.business.online ? "online" : "")}
           >
@@ -406,9 +280,9 @@ export default function Workspace({
               </label>
             )}
           </div>
-          {error && (
+          {(error || sessionError) && (
             <div className="pro-error" role="alert">
-              {error}
+              {error || sessionError}
             </div>
           )}
           {notice && (
@@ -424,6 +298,29 @@ export default function Workspace({
           )}
           {tab === "overview" && (
             <>
+              <section className="pro-day-banner">
+                <div>
+                  <span className="pro-kicker">MAKE TODAY A GOOD WORK DAY</span>
+                  <h2>
+                    Your next chapter
+                    <br />
+                    starts with your next job.
+                  </h2>
+                  <p>
+                    Stay available, review the details, and take on the work
+                    that fits.
+                  </p>
+                  <Link className="pro-button" href="/dashboard/jobs">
+                    Explore your job board <Icon name="external" />
+                  </Link>
+                </div>
+                <img
+                  src="/images/pro/team.webp"
+                  alt="Home service teammates planning their working day"
+                  width="640"
+                  height="420"
+                />
+              </section>
               <div className="pro-stat-grid">
                 {[
                   [
@@ -767,6 +664,7 @@ export default function Workspace({
           )}
         </main>
         <footer className="pro-work-footer">
+          <a href="https://www.urbance.ca">Visit customer website ↗</a>
           Urbance Technologies Inc. · Your business, thoughtfully connected.{" "}
           <a href="mailto:support@urbance.ca">Get help ↗</a>
         </footer>

@@ -18,7 +18,7 @@ export default function ApplicationStatus() {
         <div className="pro-review pro-card">
           <span className="pro-kicker">YOUR APPLICATION, IN VIEW</span>
           <span className="pro-status">{status.replaceAll("_", " ")}</span>
-          <h1 className="pro-page-hero">
+          <h1 className="pro-status-heading">
             A professional start.
             <br />
             One step at a time.
