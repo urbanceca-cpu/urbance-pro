@@ -108,7 +108,7 @@ export default function Workspace({
     return (
       <div className="pro-work-loading" role="status">
         <span className="pro-wordmark">urbance</span>
-        <h1>Your working day, coming together.</h1>
+        <h1>Let’s reconnect your workspace.</h1>
         {error || sessionError ? (
           <p className="pro-error">{error || sessionError}</p>
         ) : (
@@ -149,7 +149,7 @@ export default function Workspace({
           <Brand light subtitle="PRO WORKSPACE" />
         </Link>
         <div className="pro-business-chip">
-          <span>{data.business.display_name.slice(0, 2).toUpperCase()}</span>
+          <span><img src="/brand/symbol-white.png" alt="" width="18" height="20" /></span>
           <div>
             <strong>{data.business.display_name}</strong>
             <small>
@@ -664,6 +664,7 @@ export default function Workspace({
           )}
         </main>
         <footer className="pro-work-footer">
+          <a href="https://www.urbance.ca">Visit customer website ↗</a>
           Urbance Technologies Inc. · Your business, thoughtfully connected.{" "}
           <a href="mailto:support@urbance.ca">Get help ↗</a>
         </footer>

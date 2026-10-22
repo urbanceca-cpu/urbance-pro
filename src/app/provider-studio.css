@@ -2344,3 +2344,6 @@ body {
   color: #c1d4d4;
 }
 .pro-nav .pro-button,.pro-studio-hero .pro-button,.pro-page-hero .pro-button,.pro-day-banner .pro-button,.pro-neighbourhood .pro-button{color:#173b45!important}.pro-button.secondary{color:#234e5a!important}
+
+.pro-business-chip>span{background:#3e6570}.pro-business-chip>span>img{width:18px;height:20px;object-fit:contain}.pro-work-footer>a{color:#416774}.pro-work-footer{background:#dbe5dc;border-top-color:#c3d3c7}
+.pro-wordmark>.pro-brand{display:inline-flex;margin:0;letter-spacing:0}.pro-public .pro-button:not(.secondary){text-decoration:none}

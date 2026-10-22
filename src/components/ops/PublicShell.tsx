@@ -44,7 +44,8 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             </summary>
             <nav aria-label="Mobile navigation">
               {menu}
-              <Link href="/login">Provider sign in</Link>
+              <Link href="/apply">Become a professional ↗</Link>
+                <Link href="/login">Provider sign in</Link>
               <a href="https://www.urbance.ca">Customer website ↗</a>
             </nav>
           </details>
