@@ -27,6 +27,7 @@ import {
   deliverMail,
   queueJobNotifications,
 } from "@/lib/ops/dispatch";
+import { getWorkspace } from "@/lib/ops/workspace";
 import { businessReady } from "@/lib/ops/readiness";
 
 export const dynamic = "force-dynamic";
@@ -148,126 +149,15 @@ export async function GET(req: NextRequest, route: RouteContext) {
         .maybeSingle();
       return json({ access: false, status: app?.status || "draft" });
     }
+    const authStarted = performance.now();
     const ctx = await context();
+    const authDuration = performance.now() - authStarted;
     if (path === "workspace") {
-      const { data: state } = await ctx.admin
-        .from("ops_job_state")
-        .select("*")
-        .eq("business_id", ctx.business.id);
-      const assigned = (state || [])
-        .filter(
-          (s) =>
-            ctx.permissions.includes("jobs.view") ||
-            s.assigned_user_id === ctx.user.id,
-        )
-        .map((s) => s.job_id);
-      const { data: jobs } = assigned.length
-        ? await ctx.admin
-            .from("jobs")
-            .select("*")
-            .in("id", assigned)
-            .order("scheduled_date")
-        : { data: [] };
-      const { data: offers } = ctx.permissions.includes("jobs.accept")
-        ? await ctx.admin
-            .from("ops_dispatch_offers")
-            .select("id,job_id,wave,status,expires_at")
-            .eq("business_id", ctx.business.id)
-            .eq("status", "open")
-            .gt("expires_at", new Date().toISOString())
-        : { data: [] };
-      const ids = (offers || []).map((o) => o.job_id);
-      const { data: offerJobs } = ids.length
-        ? await ctx.admin
-            .from("jobs")
-            .select(
-              "id,service_type,service_name,service_city,scheduled_date,scheduled_time,price,payout_amount,created_at,partner_id,job_status,booking_details,is_demo",
-            )
-            .in("id", ids)
-            .is("partner_id", null)
-            .eq("job_status", "pending")
-        : { data: [] };
-      const ready = await businessReady(
-        ctx.admin,
-        ctx.business.owner_user_id,
-        ctx.business.is_demo,
-      );
-      const safeOffers = (ready ? offerJobs || [] : []).map((j) => ({
-        id: j.id,
-        service: j.service_name || j.service_type,
-        category: normalizeCategory(j.service_type || j.service_name || ""),
-        city: j.service_city,
-        date: j.scheduled_date,
-        time: j.scheduled_time,
-        gross: Number(j.price || j.payout_amount),
-        net: Math.round(Number(j.price || j.payout_amount) * 0.93 * 100) / 100,
-        wave: offers?.find((o) => o.job_id === j.id)?.wave,
-        expires_at: offers?.find((o) => o.job_id === j.id)?.expires_at,
-        scope: (j.booking_details?.breakdown?.items || [])
-          .slice(0, 12)
-          .map((i: { label: string }) => i.label),
-      }));
-      const { data: members } =
-        ctx.permissions.includes("team.manage") ||
-        ctx.permissions.includes("team.track") ||
-        ctx.permissions.includes("jobs.assign")
-          ? await ctx.admin
-              .from("ops_members")
-              .select("id,user_id,name,email,role,permissions,active")
-              .eq("business_id", ctx.business.id)
-          : { data: [] };
-      const { data: invoices } = ctx.permissions.includes("billing.manage")
-        ? await ctx.admin
-            .from("ops_invoices")
-            .select("*")
-            .eq("business_id", ctx.business.id)
-            .order("created_at", { ascending: false })
-            .limit(100)
-        : { data: [] };
-      const { data: documents } = ctx.permissions.includes("documents.manage")
-        ? await ctx.admin
-            .from("ops_documents")
-            .select("id,kind,original_name,expires_at,verified_at")
-            .eq("user_id", ctx.business.owner_user_id)
-        : { data: [] };
-      const { data: messages } =
-        ctx.membership.role === "owner"
-          ? await ctx.admin
-              .from("ops_outbox")
-              .select("id,subject,status,last_error,created_at")
-              .eq("business_id", ctx.business.id)
-              .order("created_at", { ascending: false })
-              .limit(30)
-          : { data: [] };
-      return json({
-        business: ctx.business,
-        member: ctx.membership,
-        permissions: ctx.permissions,
-        jobs: jobs || [],
-        states: (state || [])
-          .filter((s) => assigned.includes(s.job_id))
-          .map((s) =>
-            (ctx.permissions.includes("team.track") ||
-              s.assigned_user_id === ctx.user.id) &&
-            (!s.location_at || Date.now() - Date.parse(s.location_at) < 300000)
-              ? s
-              : {
-                  ...s,
-                  latitude: null,
-                  longitude: null,
-                  sharing_location: false,
-                  location_at: null,
-                },
-          ),
-        offers: safeOffers,
-        members: members || [],
-        invoices: invoices || [],
-        documents: documents || [],
-        notifications: messages || [],
-        ready,
-        emailConfigured:
-          !!process.env.RESEND_API_KEY && !!process.env.NOTIFICATIONS_FROM,
-      });
+      const started = performance.now();
+      const data = await getWorkspace(ctx);
+      const response = json(data);
+      response.headers.set("Server-Timing", `auth;dur=${Math.round(authDuration)},workspace;dur=${Math.round(performance.now()-started)}`);
+      return response;
     }
     if (path.startsWith("job/")) {
       const id = uuid.parse(path.split("/")[1]);

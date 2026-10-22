@@ -1,0 +1,13 @@
+{
+  "tested_at": "2026-10-22T04:13:18.290Z",
+  "base": "http://127.0.0.1:3201",
+  "checks": [
+    "anonymous users cannot read workspace or dashboard",
+    "public pages, six optimized photos and supplied logos are served",
+    "owner data loads with live role-scoped access checks",
+    "dashboard HTML contains authenticated content on first response",
+    "team and billing navigation renders without the old client fetch waterfall",
+    "technicians receive only assigned jobs and no finance or team data",
+    "another business cannot receive this business jobs or documents"
+  ]
+}

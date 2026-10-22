@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import './provider-system.css';
+import './provider-studio.css';
 import { ToastProvider } from '@/components/ui/ToastProvider';
 import { DeployCheck } from '@/components/DeployCheck';
 
@@ -8,7 +9,8 @@ import { DeployCheck } from '@/components/DeployCheck';
 const interFontLink = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
 
 export const metadata: Metadata = {
-  title: 'Urbance Pros',
+  title: 'Urbance Pros — Good work. More possibility.',
+  icons: { icon: '/brand/symbol-ink.png', apple: '/brand/symbol-ink.png' },
   description: 'Join Canada\'s trust-first marketplace for premium home services.',
 };
 
