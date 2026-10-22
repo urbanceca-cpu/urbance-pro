@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import PasswordInput from "./PasswordInput";
 export async function api<T = Record<string, unknown>>(
   path: string,
   body?: unknown,
@@ -94,8 +95,7 @@ export default function AuthForm({
         </label>
         <label>
           Password
-          <input
-            type="password"
+          <PasswordInput
             name="password"
             autoComplete={
               current === "signup" ? "new-password" : "current-password"
