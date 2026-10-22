@@ -1,6 +1,6 @@
 {
-  "tested_at": "2026-10-22T04:13:18.290Z",
-  "base": "http://127.0.0.1:3201",
+  "tested_at": "2026-10-22T04:19:27.213Z",
+  "base": "https://pros.urbance.ca",
   "checks": [
     "anonymous users cannot read workspace or dashboard",
     "public pages, six optimized photos and supplied logos are served",
@@ -9,5 +9,18 @@
     "team and billing navigation renders without the old client fetch waterfall",
     "technicians receive only assigned jobs and no finance or team data",
     "another business cannot receive this business jobs or documents"
-  ]
+  ],
+  "live_timings_ms": {
+    "workspace_first_check": 679,
+    "workspace_followup_checks": [
+      393,
+      304
+    ],
+    "dashboard_html": 1125
+  },
+  "previous_workspace_baseline_ms": [
+    3847,
+    4886
+  ],
+  "notes": "Small sample; network, cache and cold-start conditions vary. Public visual checks cover landing and how-it-works; authenticated dashboard verified through HTTP and rendered HTML."
 }

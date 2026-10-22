@@ -32,3 +32,7 @@ Authorization still verifies the identity and live membership on every API reque
 The existing provider functions ran in Portland (pdx1), while the shared database is in Canada Central. This release places provider functions in Montréal (yul1 / ca-central-1), alongside the database, to reduce function-to-database round trips. Static public assets still use the CDN.
 
 The existing live-intake, dispatch and email rollout gates remain unchanged. This redesign does not activate them.
+
+## Live release verification
+
+Production deployment 5ccc4afa in yul1 is READY at https://pros.urbance.ca. Seven flow checks pass on the live domain. Workspace API returned 679, 393 and 304 ms; completed authenticated dashboard HTML returned 1,125 ms. This is a small sample, not a latency guarantee. Browser inspection confirms the landing and how-it-works layouts and correct earnings-slider arithmetic. Authenticated dashboard checks used HTTP and server-rendered HTML; no claim of a signed-in browser visual review. Platform runtime error-log access was denied (403); deployment readiness, direct browser observations and live HTTP checks are the available release evidence.
