@@ -61,16 +61,14 @@ export default function ResetPassword({
             }}
           >
             {recovery ? (
-              <label>
-                New password
-                <PasswordInput
+              <PasswordInput
+                  label="New password"
                   name="password"
                   autoComplete="new-password"
                   minLength={12}
                   maxLength={128}
                   required
                 />
-              </label>
             ) : (
               <label>
                 Email

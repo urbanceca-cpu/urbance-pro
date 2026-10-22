@@ -2,12 +2,14 @@
 
 import { useId, useState, type InputHTMLAttributes } from "react";
 
-export default function PasswordInput(props: Omit<InputHTMLAttributes<HTMLInputElement>, "type">) {
+export default function PasswordInput({ label = "Password", ...props }: Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & { label?: string }) {
   const [visible, setVisible] = useState(false);
   const generatedId = useId();
   const id = props.id || generatedId;
   return (
-    <span className="pro-password-field">
+    <div className="pro-password-control">
+      <label htmlFor={id}>{label}</label>
+      <span className="pro-password-field">
       <input {...props} id={id} type={visible ? "text" : "password"} />
       <button
         type="button"
@@ -23,6 +25,7 @@ export default function PasswordInput(props: Omit<InputHTMLAttributes<HTMLInputE
           {visible && <path d="m3 3 18 18" />}
         </svg>
       </button>
-    </span>
+      </span>
+    </div>
   );
 }

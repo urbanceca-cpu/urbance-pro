@@ -93,9 +93,7 @@ export default function AuthForm({
             maxLength={254}
           />
         </label>
-        <label>
-          Password
-          <PasswordInput
+        <PasswordInput
             name="password"
             autoComplete={
               current === "signup" ? "new-password" : "current-password"
@@ -104,7 +102,6 @@ export default function AuthForm({
             minLength={current === "signup" ? 12 : 8}
             maxLength={128}
           />
-        </label>
         {error && (
           <p className="pro-error" role="alert">
             {error}
