@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import PasswordInput from "./PasswordInput";
 import { PublicShell } from "./PublicShell";
 export default function ResetPassword({
   recovery = false,
@@ -62,8 +63,7 @@ export default function ResetPassword({
             {recovery ? (
               <label>
                 New password
-                <input
-                  type="password"
+                <PasswordInput
                   name="password"
                   autoComplete="new-password"
                   minLength={12}
