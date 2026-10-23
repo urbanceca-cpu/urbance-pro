@@ -27,7 +27,7 @@ import {
   deliverMail,
   queueJobNotifications,
 } from "@/lib/ops/dispatch";
-import { independentJobs, saveIndependentJob } from "@/lib/ops/independent";
+import { independentJobs, saveIndependentJob, invoiceIndependentJob } from "@/lib/ops/independent";
 import { getWorkspace } from "@/lib/ops/workspace";
 import { businessReady } from "@/lib/ops/readiness";
 
@@ -449,6 +449,7 @@ export async function POST(req: NextRequest, route: RouteContext) {
     if (!take)
       throw new OpsError("Too many requests. Please wait a minute.", 429);
     if (path === "business") return json(await saveIndependentJob(ctx,body));
+    if (path === "business/invoice") return json(await invoiceIndependentJob(ctx,body));
     if (path === "heartbeat") {
       if (
         !ctx.permissions.includes("settings.manage") &&
