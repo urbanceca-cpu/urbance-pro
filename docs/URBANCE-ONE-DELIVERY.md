@@ -17,3 +17,6 @@ Private own-client pipeline with client contact details, appointment, scope note
 - End-to-end paid booking and webhook replay tests using Stripe test mode, concurrency tests for acceptance, mobile device checks, notification lifecycle checks, performance budgets and operational alerting.
 
 These are unfinished requirements, not live feature claims. Release each complete workflow with authorization tests and honest UI states. Do not advertise supplier stock, AI diagnosis, guaranteed margins, live ETA routing or automated payouts without the corresponding working integration.
+
+## White workspace and invoice handoff
+White dashboard redesign with soft summary cards, dark readable typography and a featured My business entry. Private work has pipeline, calendar and derived client-directory views; job editing opens explicitly. Saved jobs can generate a provider-issued invoice snapshot, with chosen 0% tax or 5% GST subject to registration validation, due in 14 days. Repeated requests return the original invoice. No automatic email, client approval, payment collection or payout is implied. The full requirements above remain active.
