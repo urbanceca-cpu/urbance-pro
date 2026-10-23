@@ -2,6 +2,7 @@ import "server-only";
 import { db, check } from "./server";
 import { eligible, normalizeCategory } from "./domain";
 import { businessReady } from "./readiness";
+import { notificationEmail } from "./email";
 
 export async function dispatch() {
   if (process.env.OPS_LIVE_ENABLED !== "true")
@@ -214,7 +215,7 @@ export async function deliverMail() {
           to: [mail.recipient],
           reply_to: "support@urbance.ca",
           subject: mail.subject,
-          text: mail.body,
+          ...notificationEmail(mail),
         }),
         signal: AbortSignal.timeout(10000),
       });
