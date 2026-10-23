@@ -18,6 +18,7 @@ export function Brand({
   );
 }
 const paths: Record<string, string> = {
+  business: "M3 21V7h18v14 M8 7V3h8v4 M7 11h3 M14 11h3 M7 15h3 M14 15h3 M10 21v-3h4v3",
   overview: "M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z",
   jobs: "M8 6V4h8v2 M3 7h18v14H3z M3 12h18 M10 11v3h4v-3",
   team: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M20 21v-2a4 4 0 0 0-3-3.9 M16 3.1a4 4 0 0 1 0 7.8",

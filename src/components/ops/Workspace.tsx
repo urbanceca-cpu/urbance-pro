@@ -153,7 +153,7 @@ export default function Workspace({
         if (e.key === "Escape") { setMenuOpen(false); menuButton.current?.focus(); }
       }}>
         <Link className="pro-wordmark" href="/">
-          <Brand light subtitle="PRO WORKSPACE" />
+          <Brand subtitle="PRO WORKSPACE" />
         </Link>
         <button ref={menuButton} type="button" className="pro-work-menu" aria-controls="workspace-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -162,7 +162,7 @@ export default function Workspace({
           {menuOpen ? "Close" : "Menu"}
         </button>
         <div className="pro-business-chip">
-          <span><img src="/brand/symbol-white.png" alt="" width="18" height="20" /></span>
+          <span><img src="/brand/symbol-ink.png" alt="" width="18" height="20" /></span>
           <div>
             <strong>{data.business.display_name}</strong>
             <small>
@@ -312,28 +312,20 @@ export default function Workspace({
           )}
           {tab === "overview" && (
             <>
-              <section className="pro-day-banner">
-                <div>
-                  <span className="pro-kicker">MAKE TODAY A GOOD WORK DAY</span>
-                  <h2>
-                    Your next chapter
-                    <br />
-                    starts with your next job.
-                  </h2>
-                  <p>
-                    Stay available, review the details, and take on the work
-                    that fits.
-                  </p>
-                  <Link className="pro-button" href="/dashboard/jobs">
-                    Explore your job board <Icon name="external" />
-                  </Link>
+              <section className="pro-command-hero">
+                <div className="pro-command-intro">
+                  <span className="pro-kicker">LESS ADMIN. MORE POSSIBILITY.</span>
+                  <h2>Your work.<br/><span>Beautifully in order.</span></h2>
+                  <p>A little clarity for a big day. Your jobs, your people and your next opportunity, together.</p>
+                  <Link className="pro-button" href="/dashboard/jobs">View my jobs <Icon name="arrow" /></Link>
                 </div>
-                <img
-                  src="/images/pro/team.webp"
-                  alt="Home service teammates planning their working day"
-                  width="640"
-                  height="420"
-                />
+                {can("billing.manage") ? <Link className="pro-business-feature" href="/dashboard/business">
+                  <span className="pro-feature-icon"><Icon name="business" /></span>
+                  <span className="pro-kicker">MY BUSINESS · FREE TO START</span>
+                  <h3>Make room<br/>for your own work.</h3>
+                  <p>Your clients. Your pipeline. A clearer view of your profit.</p>
+                  <span className="pro-feature-action">Open My business <Icon name="arrow" /></span>
+                </Link> : <Link className="pro-business-feature" href="/dashboard/jobs"><span className="pro-kicker">YOUR WORKING DAY</span><h3>Every detail.<br/>One place.</h3><p>View your assigned jobs, update progress and keep your work records together.</p><span className="pro-feature-action">Open my jobs <Icon name="arrow" /></span></Link>}
               </section>
               <div className="pro-stat-grid">
                 {[
