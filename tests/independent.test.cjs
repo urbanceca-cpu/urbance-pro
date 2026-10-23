@@ -1,0 +1,9 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
+class OpsError extends Error{constructor(m,status){super(m);this.status=status;}}
+const ctx={exports:{},require:n=>n==='zod'?require('zod'):{OpsError,check:r=>{if(r.error)throw Error('db');return r.data}}};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/lib/ops/independent.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,ctx);
+const d=ctx.exports;
+const values={title:'Own client job',customer_name:'Example customer',status:'lead',revenue_cents:20000,materials_cents:2000,labour_cents:5000,travel_cents:500,overhead_cents:500};
+test('private work validates money and timestamps without accepting arbitrary stages',()=>{assert(d.independentSchema.safeParse(values).success);for(const patch of [{revenue_cents:-1},{materials_cents:1.2},{status:'paid'},{scheduled_at:'tomorrow'},{customer_email:'invalid'}])assert(!d.independentSchema.safeParse({...values,...patch}).success)});
+test('technicians and dispatch-only roles cannot access private clients or costs',()=>{for(const permissions of [[],['jobs.work'],['jobs.accept','team.track']])assert.throws(()=>d.independentAccess({permissions}),e=>e.status===403);assert.doesNotThrow(()=>d.independentAccess({permissions:['billing.manage']}))});
+test('updates require business ownership and return 404 instead of inserting foreign IDs',async()=>{const predicates=[];const query={update(){return this},eq(k,v){predicates.push([k,v]);return this},select(){return this},async maybeSingle(){return{data:null,error:null}}};await assert.rejects(d.saveIndependentJob({permissions:['billing.manage'],business:{id:'own-business'},admin:{from:()=>query}},{...values,id:'11111111-1111-4111-8111-111111111111'}),e=>e.status===404);assert(predicates.some(([k,v])=>k==='business_id'&&v==='own-business'));});

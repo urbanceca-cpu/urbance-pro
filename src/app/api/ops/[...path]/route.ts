@@ -27,6 +27,7 @@ import {
   deliverMail,
   queueJobNotifications,
 } from "@/lib/ops/dispatch";
+import { independentJobs, saveIndependentJob } from "@/lib/ops/independent";
 import { getWorkspace } from "@/lib/ops/workspace";
 import { businessReady } from "@/lib/ops/readiness";
 
@@ -152,6 +153,7 @@ export async function GET(req: NextRequest, route: RouteContext) {
     const authStarted = performance.now();
     const ctx = await context();
     const authDuration = performance.now() - authStarted;
+    if (path === "business") return json({jobs:await independentJobs(ctx)});
     if (path === "workspace") {
       const started = performance.now();
       const data = await getWorkspace(ctx);
@@ -446,6 +448,7 @@ export async function POST(req: NextRequest, route: RouteContext) {
     );
     if (!take)
       throw new OpsError("Too many requests. Please wait a minute.", 429);
+    if (path === "business") return json(await saveIndependentJob(ctx,body));
     if (path === "heartbeat") {
       if (
         !ctx.permissions.includes("settings.manage") &&
