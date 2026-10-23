@@ -31,6 +31,7 @@ const date = (value: string) =>
 const nav = [
   ["overview", "Overview", "◫"],
   ["jobs", "Job board", "↗"],
+  ["business", "My business", "◫"],
   ["team", "Team", "♧"],
   ["invoices", "Invoices", "≡"],
   ["payouts", "Earnings", "＄"],
@@ -42,9 +43,11 @@ const nav = [
 export default function Workspace({
   tab = "overview",
   jobId,
+  children,
 }: {
   tab?: string;
   jobId?: string;
+  children?: React.ReactNode;
 }) {
   const { data, reload: load, error: sessionError } = useWorkspaceSession();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -178,7 +181,7 @@ export default function Workspace({
             )
             .filter(
               ([key]) =>
-                (key !== "invoices" && key !== "payouts") ||
+                (key !== "invoices" && key !== "payouts" && key !== "business") ||
                 can("billing.manage"),
             )
             .filter(([key]) => key !== "settings" || can("settings.manage"))
@@ -530,6 +533,7 @@ export default function Workspace({
           {tab === "settings" && can("settings.manage") && (
             <Settings business={data.business} busy={busy} action={action} />
           )}
+          {children}
           {tab === "invoices" && can("billing.manage") && (
             <Invoices data={data} busy={busy} action={action} />
           )}
