@@ -29,7 +29,7 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://pros.urbanc
 
 // Supabase configuration — NEXT_PUBLIC_ vars are inlined at build time by Next.js
 export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || 'https://fayscounjvfclnlyuddv.supabase.co';
-export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZheXNjb3VuanZmY2xubHl1ZGR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNDg1MTAsImV4cCI6MjA4MDYyNDUxMH0.gWEM7AnA9JiAIa-WIQNdXmQ-VFD6uBZJqQAff-xdwkk';
+export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || 'sb_publishable_Gbm9vrGCpMo6Cc5IkxKpkg_ZCaqrnFN';
 
 /**
  * Get a safe redirect URL that never points to localhost in production
