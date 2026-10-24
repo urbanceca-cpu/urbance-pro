@@ -27,6 +27,7 @@ import {
   deliverMail,
   queueJobNotifications,
 } from "@/lib/ops/dispatch";
+import { businessRecords, publishEstimate, addWorkEntry, voidWorkEntry, revokeEstimate } from "@/lib/ops/business-tools";
 import { independentJobs, saveIndependentJob, invoiceIndependentJob } from "@/lib/ops/independent";
 import { getWorkspace } from "@/lib/ops/workspace";
 import { businessReady } from "@/lib/ops/readiness";
@@ -154,6 +155,7 @@ export async function GET(req: NextRequest, route: RouteContext) {
     const ctx = await context();
     const authDuration = performance.now() - authStarted;
     if (path === "business") return json({jobs:await independentJobs(ctx)});
+    if (path === "business/records") return json(await businessRecords(ctx));
     if (path === "workspace") {
       const started = performance.now();
       const data = await getWorkspace(ctx);
@@ -449,6 +451,10 @@ export async function POST(req: NextRequest, route: RouteContext) {
     if (!take)
       throw new OpsError("Too many requests. Please wait a minute.", 429);
     if (path === "business") return json(await saveIndependentJob(ctx,body));
+    if (path === "business/estimate/revoke") return json(await revokeEstimate(ctx,body));
+    if (path === "business/estimate") return json(await publishEstimate(ctx,body));
+    if (path === "business/entry") return json(await addWorkEntry(ctx,body));
+    if (path === "business/entry/void") return json(await voidWorkEntry(ctx,body));
     if (path === "business/invoice") return json(await invoiceIndependentJob(ctx,body));
     if (path === "heartbeat") {
       if (
