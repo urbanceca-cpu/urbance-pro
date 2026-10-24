@@ -1,0 +1,11 @@
+{
+  "checked_on": "2026-10-24",
+  "provider_pull_request": "https://github.com/urbanceca-cpu/urbance-pro/pull/15",
+  "customer_pull_request": "https://github.com/urbanceca-cpu/urbance-platform/pull/11",
+  "provider_preview": {"deployment": "dpl_6free7X4FEUvt7ZhgW8nZ9ZuHvn9", "state": "READY"},
+  "customer_preview": {"deployment": "dpl_7FvcwtTz4AU9tM7JktRT9Gnea8Ke", "last_observed_state": "QUEUED"},
+  "preview_access": "BLOCKED: Vercel connector web_fetch_vercel_url returned 403 at read_protection_bypass; no authenticated CLI fallback available. Deployment Protection was not disabled.",
+  "production_changes": "None; both repair PRs remain draft and unmerged; migrations remain unapplied.",
+  "staging_end_to_end": "NOT VERIFIED",
+  "marketplace_launch_ready": false
+}

@@ -67,8 +67,11 @@ export function normalizeCategory(value: string) {
   if (/clean/.test(s)) return "cleaning";
   if (/mov/.test(s)) return "moving";
   if (/junk|haul/.test(s)) return "junk";
+  // A named trade takes precedence over generic words such as "repair".
+  const trade = CATEGORIES.find((c) => s.includes(c));
+  if (trade) return trade;
   if (/repair|mount|assembl|handyman/.test(s)) return "handyman";
-  return CATEGORIES.find((c) => s.includes(c)) || s;
+  return s;
 }
 export function distanceKm(a: [number, number], b: [number, number]) {
   const r = Math.PI / 180;
@@ -98,11 +101,14 @@ export function eligible(
   expanded: boolean,
   now = Date.now(),
 ) {
+  const seen = Date.parse(provider.last_seen_at || "");
   if (
     !provider.approved ||
     !provider.online ||
     !provider.last_seen_at ||
-    now - Date.parse(provider.last_seen_at) > 10 * 60 * 1000 ||
+    !Number.isFinite(seen) ||
+    seen > now + 60 * 1000 ||
+    now - seen > 10 * 60 * 1000 ||
     !!provider.is_demo !== !!job.is_demo
   )
     return false;
@@ -207,7 +213,7 @@ export function validateApplication(
     )
   )
     throw Error("Choose your services.");
-  if (Number(input.insurance_limit) < 2000000)
+  if (!Number.isFinite(Number(input.insurance_limit)) || Number(input.insurance_limit) < 2000000)
     throw Error("Urbance requires at least CAD $2 million liability coverage.");
   if (
     Date.parse(String(input.insurance_expiry)) <= Date.now() ||
@@ -248,12 +254,12 @@ export function validateApplication(
   )
     throw Error("Upload the relevant trade credentials and licence number.");
   if (
-    !input.authorized_to_work ||
-    !input.accuracy_accepted ||
-    !input.terms_accepted ||
-    !input.privacy_accepted ||
-    !input.contractor_accepted ||
-    !input.safety_accepted
+    input.authorized_to_work !== true ||
+    input.accuracy_accepted !== true ||
+    input.terms_accepted !== true ||
+    input.privacy_accepted !== true ||
+    input.contractor_accepted !== true ||
+    input.safety_accepted !== true
   )
     throw Error("Review and accept each required declaration and agreement.");
 }
