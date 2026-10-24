@@ -37,7 +37,8 @@ export default function AdminHome() {
       <h1 className="text-4xl font-bold text-dark mb-2">Admin Dashboard</h1>
       <p className="text-medium-grey mb-12">Manage Urbance providers and applications</p>
 
-      <div className="grid grid-cols-3 gap-6">
+      <Link href="/admin/payments" className="pro-button" style={{marginBottom:24}}>Payment reconciliation &amp; alerts ↗</Link>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">📋 Applications</CardTitle>

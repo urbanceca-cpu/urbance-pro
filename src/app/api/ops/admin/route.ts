@@ -8,6 +8,7 @@ import {
   safeError,
   check,
 } from "@/lib/ops/server";
+import {paymentAdminContext,paymentReviewData,savePaymentAlerts} from "@/lib/ops/payment-review";
 import { validateApplication, POLICY_VERSION } from "@/lib/ops/domain";
 async function reviewer() {
   const user = await identity(),
@@ -27,6 +28,7 @@ function fail(e: unknown) {
 }
 export async function GET(req: NextRequest) {
   try {
+    if(req.nextUrl.searchParams.get("view")==="payments") return NextResponse.json(await paymentReviewData(await paymentAdminContext()),{headers:{"Cache-Control":"private, no-store"}});
     const { admin } = await reviewer();
     const id = req.nextUrl.searchParams.get("id");
     if (id) {
@@ -76,6 +78,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     guardOrigin(req);
+    const body=await req.json();
+    if(body.action==="payment-alerts"){const v=z.object({action:z.literal("payment-alerts"),enabled:z.boolean()}).strict().parse(body);return NextResponse.json(await savePaymentAlerts(await paymentAdminContext(),v.enabled));}
     const { user, admin } = await reviewer();
     const v = z
       .object({
@@ -83,7 +87,7 @@ export async function POST(req: NextRequest) {
         decision: z.enum(["approved", "rejected", "under_review"]),
         note: z.string().trim().min(10).max(2000),
       })
-      .parse(await req.json());
+      .parse(body);
     const { data: app } = await admin
       .from("provider_applications")
       .select("*")

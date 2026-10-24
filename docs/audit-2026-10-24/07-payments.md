@@ -1,5 +1,7 @@
 # Payments and reconciliation
 
+**Prepared-code update:** [The atomic settlement continuation](11-atomic-payment-repair.md) replaces the separate-write webhook in the repair branch and adds database rollback/replay tests, confirmation outbox events and a reconciliation view. The older flow is still production. The remaining limitations below describe the initial baseline; real Stripe/staging validation and financial execution remain outstanding.
+
 **No actual Stripe payment, refund, payout, SCA challenge or chargeback was exercised.** Customer project environment metadata lists production Stripe credentials only, with no dedicated test key or test webhook secret. Provider project does not implement actual payout settlement. Never use production credentials to simulate test charges.
 
 Verified locally: checkout reads a durable owned quote, ignores browser price overrides, validates schedule and uses an approved return origin. Confirmation UI polls payment records and does not infer payment from the success URL. Webhook rejects parsed request bodies and invalid/missing production signature configuration. Job unique indexes exist for Stripe session and booking IDs.

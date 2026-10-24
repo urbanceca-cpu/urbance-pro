@@ -2,6 +2,8 @@
 
 **Disposition: NOT ready for an unattended marketplace launch.** This is a verified initial audit and repair batch, not certification that the 14-phase completion standard has been met. Production remains unchanged. Code and two database migrations are prepared for review. Remaining implementation and blocked tests are listed explicitly.
 
+**Latest continuation:** [Atomic payment repair](11-atomic-payment-repair.md) adds a third pending migration, transactional fulfillment and review UI. Latest local suites: customer **70/70**, provider **23/23**; both builds pass. Initial findings below remain a dated baseline; the continuation distinguishes prepared fixes from unchanged production.
+
 ## Evidence and boundaries
 
 Customer main inspected: `f461f7e2f85e0d7482d44f7f767c0b7ae83177c9`. Provider production inspected: `65972f77abfcad718a3509b94e0bcf311a2a0638`, deployment `dpl_FPpuQ2VUvtoNHKUwtN4sWxhRs93D`, READY. Supabase project: `fayscounjvfclnlyuddv`. Read-only production queries, 17 public HTTP checks, seven authenticated read-only checks against existing isolated demo fixtures, browser menu/office-quote interaction, local regression tests, dependency scans, and rollback-only SQL validation were performed. No real payment, refund, payout, customer email, document approval, or production deployment was performed. No new accounts were created.

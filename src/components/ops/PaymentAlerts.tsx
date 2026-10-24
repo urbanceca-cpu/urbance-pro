@@ -1,0 +1,6 @@
+'use client';
+import {useState} from 'react';
+export default function PaymentAlerts({email,enabled}:{email:string;enabled:boolean}){
+ const [on,setOn]=useState(enabled),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('');
+ return <section className="pro-card"><h2>Your payment alerts</h2><p>Receive paid-booking and reconciliation alerts at {email||'your verified account email'}. Only your own administrator notification preference is changed.</p><label className="pro-checkbox"><input type="checkbox" checked={on} disabled={busy||!email} onChange={async event=>{const next=event.target.checked;setBusy(true);setError('');setMessage('');try{const r=await fetch('/api/ops/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'payment-alerts',enabled:next})});const data=await r.json();if(!r.ok)throw new Error(data.error||'Could not save alerts.');setOn(next);setMessage(next?'Payment alerts enabled.':'Payment alerts disabled.');}catch(e){setError(e instanceof Error?e.message:'Please retry.');}finally{setBusy(false);}}}/>Email me payment updates</label>{busy&&<p role="status">Saving…</p>}{message&&<p role="status">{message}</p>}{error&&<p role="alert" className="pro-error">{error}</p>}</section>;
+}

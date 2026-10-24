@@ -2,6 +2,8 @@
 
 **Marketplace launch: blocked. First repair batch: prepared for review, not production approval or full staging sign-off.**
 
+Continuation: see [atomic payment repair](11-atomic-payment-repair.md). A third migration in the customer repository must precede the new webhook and payment-review booking APIs. Latest local verification is 70 customer tests and 23 provider tests plus clean builds; this does not clear the staging, refund/payout, coverage or legal acceptance blockers.
+
 Production stays unchanged until the owner approves a concrete release. Do not merge these repair branches to main if that automatically deploys production before approval. Do not apply pending migrations merely because local tests passed.
 
 Proposed first release scope: dispatch normalization/presence/validator fixes; honest application-load retry; shared Auth profile/email correction; table privilege reduction; provider classification on approval; customer Google controls; preview payment isolation; webhook DB retry handling; manual review gates for specialized services; dependency updates. Broader billing/dispatch/admin completion is not included in this release.
