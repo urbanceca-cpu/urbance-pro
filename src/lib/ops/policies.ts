@@ -90,7 +90,7 @@ export const policies: Record<
       ],
       [
         "Who receives information",
-        "We share necessary job information with the customer and authorized team members. Verification documents are restricted to the applicant and authorized reviewers. Supabase hosts account, database and file services; Vercel hosts the websites; the configured email provider delivers operational messages; Stripe handles relevant platform payments. Service providers may process data outside Canada; applicable contracts and safeguards apply. We disclose information where legally required.",
+        "We share necessary job information with the customer and authorized team members. Verification documents are restricted to the applicant and authorized reviewers. Supabase hosts account, database and file services; Vercel hosts the websites; the configured email provider delivers operational messages; Stripe handles relevant platform payments. When you choose Vision or Shadow and confirm permission, the notes and optional photo you submit are processed by OpenAI through Vercel AI Gateway to prepare a draft. Do not include access codes, identification documents or unnecessary personal details. AI output requires your review and does not automatically contact clients, approve work or move money. Service providers may process data outside Canada; applicable contracts and safeguards apply. We disclose information where legally required.",
       ],
       [
         "Security and retention",

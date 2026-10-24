@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { check, OpsError, type Context } from "./server";
-import { calculateInvoice } from "./domain";
 
 export const independentSchema = z.object({
   id: z.string().uuid().optional(),
@@ -9,6 +8,7 @@ export const independentSchema = z.object({
   customer_email: z.union([z.string().email(), z.literal("")]).default(""),
   address: z.string().trim().max(300).default(""),
   scheduled_at: z.string().datetime({ offset: true }).nullable().default(null),
+  duration_minutes: z.number().int().min(15).max(1440).default(120),
   status: z.enum(["lead", "estimated", "scheduled", "in_progress", "completed", "cancelled"]),
   revenue_cents: z.number().int().min(0).max(100000000),
   materials_cents: z.number().int().min(0).max(100000000),
@@ -25,29 +25,24 @@ export async function independentJobs(ctx: Context) {
   independentAccess(ctx);
   return check(await ctx.admin.from("ops_independent_jobs").select("*").eq("business_id",ctx.business.id).order("updated_at",{ascending:false}).limit(500)) || [];
 }
+function saved<T>(r:{data:T;error:{message:string;code?:string}|null}):T{if(r.error?.code==='23P01')throw new OpsError("This appointment overlaps another scheduled private job. Choose another time or duration.",409);return check(r);}
 export async function saveIndependentJob(ctx: Context, body: unknown) {
   independentAccess(ctx);
   const {id,...values}=independentSchema.parse(body);
   if(id) {
-    const row=check(await ctx.admin.from("ops_independent_jobs").update({...values,updated_at:new Date().toISOString()}).eq("id",id).eq("business_id",ctx.business.id).select().maybeSingle());
+    const row=saved(await ctx.admin.from("ops_independent_jobs").update({...values,updated_at:new Date().toISOString()}).eq("id",id).eq("business_id",ctx.business.id).select().maybeSingle());
     if(!row) throw new OpsError("Private job not found.",404);
     return row;
   }
-  return check(await ctx.admin.from("ops_independent_jobs").insert({...values,business_id:ctx.business.id,created_by:ctx.user.id}).select().single());
+  return saved(await ctx.admin.from("ops_independent_jobs").insert({...values,business_id:ctx.business.id,created_by:ctx.user.id}).select().single());
 }
 
 export async function invoiceIndependentJob(ctx: Context, body: unknown) {
   independentAccess(ctx);
   const {id,gst_rate}=z.object({id:z.string().uuid(),gst_rate:z.union([z.literal(0),z.literal(0.05)])}).parse(body);
-  const job=check(await ctx.admin.from("ops_independent_jobs").select("*").eq("id",id).eq("business_id",ctx.business.id).maybeSingle());
+  const job=check(await ctx.admin.from("ops_independent_jobs").select("id").eq("id",id).eq("business_id",ctx.business.id).maybeSingle());
   if(!job) throw new OpsError("Private job not found.",404);
-  const existing=check(await ctx.admin.from("ops_invoices").select("*").eq("source_independent_job_id",id).eq("business_id",ctx.business.id).maybeSingle());
-  if(existing) return {invoice:existing,existing:true};
-  if(!z.string().email().safeParse(job.customer_email).success||job.address.trim().length<5||job.revenue_cents<=0||job.status==='cancelled') throw new OpsError("Save a client email, service address and positive job price before drafting an invoice. Cancelled jobs cannot be invoiced.");
-  const items=[{description:job.title,quantity:1,unit_cents:job.revenue_cents}];
-  let totals;
-  try{totals=calculateInvoice(items,ctx.business.gst_number,gst_rate);}catch(error){throw new OpsError(error instanceof Error?error.message:"Invalid invoice.");}
-  check(await ctx.admin.from("ops_invoices").upsert({source_independent_job_id:id,business_id:ctx.business.id,customer_name:job.customer_name,customer_email:job.customer_email,customer_address:job.address,issuer_name:ctx.business.display_name,issuer_address:ctx.business.address,gst_number:ctx.business.gst_number,items,...totals,due_date:new Date(Date.now()+14*86400000).toISOString().slice(0,10),notes:"Provider-issued invoice for independently sourced work. No Urbance marketplace commission.",created_by:ctx.user.id},{onConflict:"source_independent_job_id",ignoreDuplicates:true}));
-  const invoice=check(await ctx.admin.from("ops_invoices").select("*").eq("source_independent_job_id",id).eq("business_id",ctx.business.id).single());
-  return {invoice,existing:false};
+  const result=await ctx.admin.rpc("ops_invoice_private_job",{p_business:ctx.business.id,p_job:id,p_actor:ctx.user.id,p_tax:gst_rate});
+  if(result.error)throw new OpsError("Unable to create an invoice. Check client email, address, positive price, tax registration and any pending estimate approval.",409);
+  return {invoice:result.data};
 }
