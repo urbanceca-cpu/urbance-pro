@@ -138,6 +138,9 @@ export async function POST(req: NextRequest) {
           .update({ basic_info: values })
           .eq("id", app.id),
       );
+      // Provider classification follows review; never overwrite an admin role.
+      check(await admin.from("profiles").update({ role: "provider" })
+        .eq("id", app.user_id).eq("role", "customer"));
     }
     check(
       await admin

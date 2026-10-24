@@ -1,0 +1,124 @@
+{
+  "checked_at": "2026-10-24T03:06:05.070Z",
+  "rows": [
+    {
+      "site": "customer",
+      "path": "/",
+      "status": 200,
+      "final_url": "https://www.urbance.ca/",
+      "ms": 3964
+    },
+    {
+      "site": "customer",
+      "path": "/login",
+      "status": 200,
+      "final_url": "https://www.urbance.ca/login",
+      "ms": 3958
+    },
+    {
+      "site": "customer",
+      "path": "/signup",
+      "status": 200,
+      "final_url": "https://www.urbance.ca/signup",
+      "ms": 4038
+    },
+    {
+      "site": "customer",
+      "path": "/services",
+      "status": 200,
+      "final_url": "https://www.urbance.ca/services",
+      "ms": 27
+    },
+    {
+      "site": "customer",
+      "path": "/instant-quote",
+      "status": 200,
+      "final_url": "https://www.urbance.ca/instant-quote",
+      "ms": 31
+    },
+    {
+      "site": "customer",
+      "path": "/areas",
+      "status": 200,
+      "final_url": "https://www.urbance.ca/areas",
+      "ms": 2886
+    },
+    {
+      "site": "customer",
+      "path": "/contact",
+      "status": 200,
+      "final_url": "https://www.urbance.ca/contact",
+      "ms": 34
+    },
+    {
+      "site": "customer",
+      "path": "/legal/privacy",
+      "status": 200,
+      "final_url": "https://www.urbance.ca/legal/privacy",
+      "ms": 42
+    },
+    {
+      "site": "customer",
+      "path": "/bookings",
+      "status": 200,
+      "final_url": "https://www.urbance.ca/bookings",
+      "ms": 143
+    },
+    {
+      "site": "provider",
+      "path": "/",
+      "status": 200,
+      "final_url": "https://pros.urbance.ca/",
+      "ms": 3304
+    },
+    {
+      "site": "provider",
+      "path": "/apply",
+      "status": 200,
+      "final_url": "https://pros.urbance.ca/apply",
+      "ms": 3994
+    },
+    {
+      "site": "provider",
+      "path": "/login",
+      "status": 200,
+      "final_url": "https://pros.urbance.ca/login",
+      "ms": 3996
+    },
+    {
+      "site": "provider",
+      "path": "/requirements",
+      "status": 200,
+      "final_url": "https://pros.urbance.ca/requirements",
+      "ms": 37
+    },
+    {
+      "site": "provider",
+      "path": "/terms",
+      "status": 200,
+      "final_url": "https://pros.urbance.ca/terms",
+      "ms": 128
+    },
+    {
+      "site": "provider",
+      "path": "/privacy",
+      "status": 200,
+      "final_url": "https://pros.urbance.ca/privacy",
+      "ms": 2655
+    },
+    {
+      "site": "provider",
+      "path": "/api/ops/workspace",
+      "status": 401,
+      "final_url": "https://pros.urbance.ca/api/ops/workspace",
+      "ms": 71
+    },
+    {
+      "site": "provider",
+      "path": "/api/ops/admin",
+      "status": 401,
+      "final_url": "https://pros.urbance.ca/api/ops/admin",
+      "ms": 124
+    }
+  ]
+}

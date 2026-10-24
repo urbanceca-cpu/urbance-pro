@@ -1,0 +1,27 @@
+{
+  "summary": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 1,
+    "critical": 0,
+    "total": 1
+  },
+  "advisories": [
+    {
+      "package": "zod",
+      "severity": "high",
+      "fixAvailable": {
+        "name": "zod",
+        "version": "4.6.7",
+        "isSemVerMajor": true
+      },
+      "advisories": [
+        {
+          "title": "Zod can exhaust memory while validating oversized constrained collections",
+          "url": "https://github.com/advisories/GHSA-mrhx-c7xc-m3w5"
+        }
+      ]
+    }
+  ]
+}
