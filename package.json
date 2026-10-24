@@ -11,6 +11,7 @@
     "test": "node --test tests/*.test.cjs"
   },
   "dependencies": {
+    "@ai-sdk/openai": "4.0.101",
     "@hookform/resolvers": "^3.3.4",
     "@supabase/ssr": "0.8.0",
     "@supabase/supabase-js": "2.93.3",
@@ -20,6 +21,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.48.0",
+    "sharp": "0.35.5",
     "sonner": "^1.2.3",
     "zod": "^3.22.4"
   },

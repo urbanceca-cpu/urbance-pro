@@ -1,7 +1,7 @@
 "use client";
 import BusinessTools, {type BusinessRecordData} from "./BusinessTools";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { IndependentJob } from "@/lib/ops/independent";
 import { api } from "./AuthForm";
 const money=(c:number)=>new Intl.NumberFormat("en-CA",{style:"currency",currency:"CAD"}).format(c/100);
@@ -10,13 +10,14 @@ type Values=Omit<IndependentJob,"id"|"updated_at"> & {id?:string};
 const blank:Values={title:"",customer_name:"",customer_email:"",address:"",scheduled_at:null,status:"lead",duration_minutes:120,revenue_cents:0,materials_cents:0,labour_cents:0,travel_cents:0,overhead_cents:0,notes:""};
 export default function IndependentBusiness({initialJobs,initialRecords}:{initialJobs:IndependentJob[];initialRecords:BusinessRecordData}){
  const [jobs,setJobs]=useState(initialJobs),[values,setValues]=useState<Values>(blank),[error,setError]=useState(""),[notice,setNotice]=useState(""),[busy,setBusy]=useState(false),[query,setQuery]=useState(""),[editing,setEditing]=useState(false),[view,setView]=useState("pipeline"),[tax,setTax]=useState(0),[invoiced,setInvoiced]=useState(false),[toolJob,setToolJob]=useState("");
+ useEffect(()=>{if(new URLSearchParams(window.location.search).get('new')==='1')setEditing(true);},[]);
  const profit=values.revenue_cents-costs.reduce((n,k)=>n+values[k],0);
  const margin=values.revenue_cents?profit/values.revenue_cents*100:0;
  async function save(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");setNotice("");try{const saved=await api<IndependentJob>("business",values);setJobs(rows=>[saved,...rows.filter(j=>j.id!==saved.id)]);setValues(blank);setEditing(false);setNotice("Private job saved. No email was sent.");}catch(e){setError(e instanceof Error?e.message:"Unable to save.");}finally{setBusy(false);}}
  async function draftInvoice(id:string){setBusy(true);setError("");try{const r=await api<{existing:boolean}>("business/invoice",{id,gst_rate:tax});setNotice("Invoice ready in Invoices. Existing snapshots are preserved; new invoices are due in 14 days. No email or charge was made.");setInvoiced(true);}catch(e){setError(e instanceof Error?e.message:"Unable to draft invoice.");}finally{setBusy(false);}}
  async function exportRecords(){setBusy(true);setError("");try{const records=await api<BusinessRecordData>('business/records');const blob=new Blob([JSON.stringify({exported_at:new Date().toISOString(),currency:"CAD",source:"contractor",jobs,...records},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="urbance-private-business.json";a.click();URL.revokeObjectURL(url);}catch(e){setError(e instanceof Error?e.message:"Unable to export.");}finally{setBusy(false);}}
  const active=jobs.filter(j=>!["cancelled","completed"].includes(j.status));
- return <div className="pro-private-business"><section className="pro-card pro-blue-card"><span className="pro-kicker">YOUR CLIENTS. YOUR BUSINESS.</span><h2>A home for the work you bring.</h2><p>Keep your own clients, job pipeline, schedule and cost forecasts together. Free initially. No Urbance marketplace commission on these jobs.</p><p>Private to your business’s owner and billing roles. Adding a job does not contact the client or charge anyone.</p></section>
+ return <div className="pro-private-business"><section className="one-business-heading"><div><span className="pro-kicker">MY BUSINESS · BUILT AROUND YOU</span><h2>Big plans.<br/><span>Beautifully organised.</span></h2><p>One connected place for your clients, jobs, estimates and profit.</p></div><div className="one-business-promise"><span>YOURS TO GROW</span><strong>0%</strong><p>Urbance commission<br/>on your own-client jobs.</p><small>Business tools free initially.</small></div></section>
  <div className="pro-stats"><section className="pro-card"><span>Open opportunities</span><h2>{active.length}</h2></section><section className="pro-card"><span>Open pipeline · before tax</span><h2>{money(active.reduce((n,j)=>n+j.revenue_cents,0))}</h2></section><section className="pro-card"><span>Forecast profit · before tax</span><h2>{money(active.reduce((n,j)=>n+j.revenue_cents-costs.reduce((a,k)=>a+j[k],0),0))}</h2></section></div>
  {invoiced&&<Link className="pro-button" href="/dashboard/invoices">Review invoice drafts →</Link>}
  {error&&<p role="alert" className="pro-error">{error}</p>}{notice&&<p role="status" className="pro-notice">{notice}</p>}

@@ -145,7 +145,7 @@ export default function Workspace({
   );
   const title = nav.find((n) => n[0] === tab)?.[1] || "Workspace";
   return (
-    <div className="pro-workspace">
+    <div className="pro-workspace pro-workspace-v3" data-workspace-release="one-3">
       <a className="pro-skip" href="#workspace-content">
         Skip to content
       </a>
@@ -223,6 +223,7 @@ export default function Workspace({
       </aside>
       <div className="pro-work-area">
         <header className="pro-work-header">
+          <Link className="one-product-name" href="/dashboard">urbance<span>One</span><small>WORKSPACE 3</small></Link>
           <div>
             <span className="pro-kicker">
               {data.business.city.toUpperCase()} · BRITISH COLUMBIA
@@ -314,18 +315,25 @@ export default function Workspace({
             <>
               <section className="pro-command-hero">
                 <div className="pro-command-intro">
-                  <span className="pro-kicker">LESS ADMIN. MORE POSSIBILITY.</span>
-                  <h2>Your work.<br/><span>Beautifully in order.</span></h2>
-                  <p>A little clarity for a big day. Your jobs, your people and your next opportunity, together.</p>
+                  <span className="pro-kicker">A LITTLE CLARITY. A LOT OF POSSIBILITY.</span>
+                  <h2>Everything you do.<br/><span>One clear view.</span></h2>
+                  <p>A beautifully simple home for your working day. Find your next job, grow your own business and keep the details in order.</p>
                   <Link className="pro-button" href="/dashboard/jobs">View my jobs <Icon name="arrow" /></Link>
                 </div>
                 {can("billing.manage") ? <Link className="pro-business-feature" href="/dashboard/business">
                   <span className="pro-feature-icon"><Icon name="business" /></span>
-                  <span className="pro-kicker">MY BUSINESS · FREE TO START</span>
-                  <h3>Make room<br/>for your own work.</h3>
-                  <p>Your clients. Your pipeline. A clearer view of your profit.</p>
+                  <span className="pro-kicker">YOUR BUSINESS, ELEVATED</span>
+                  <h3>Build your business.<br/>On your terms.</h3>
+                  <p>Your clients, estimates, appointments and earnings. Connected from the first conversation to the final invoice.</p>
                   <span className="pro-feature-action">Open My business <Icon name="arrow" /></span>
                 </Link> : <Link className="pro-business-feature" href="/dashboard/jobs"><span className="pro-kicker">YOUR WORKING DAY</span><h3>Every detail.<br/>One place.</h3><p>View your assigned jobs, update progress and keep your work records together.</p><span className="pro-feature-action">Open my jobs <Icon name="arrow" /></span></Link>}
+              </section>
+              <section className="one-launchpad" aria-label="Quick actions">
+                <div className="one-section-title"><h2>Make your next move.</h2><span>Less searching. More doing.</span></div>
+                <div className="one-action-grid">
+                  <Link href="/dashboard/jobs"><span className="one-action-icon"><Icon name="jobs"/></span><strong>Find good work.</strong><p>Requests matched to your skills.</p><Icon name="arrow"/></Link>
+                  {can("billing.manage")&&<><Link href="/dashboard/business?new=1"><span className="one-action-icon"><Icon name="business"/></span><strong>Start a private job.</strong><p>Your own client. Your next opportunity.</p><Icon name="arrow"/></Link><Link href="/dashboard/invoices"><span className="one-action-icon"><Icon name="invoices"/></span><strong>Keep money clear.</strong><p>Review invoices and payment records.</p><Icon name="arrow"/></Link></>}
+                </div>
               </section>
               <div className="pro-stat-grid">
                 {[
