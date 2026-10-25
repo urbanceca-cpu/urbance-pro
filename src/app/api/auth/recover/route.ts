@@ -50,9 +50,10 @@ export async function POST(req: NextRequest) {
       )
     )
       throw new OpsError("Please wait before requesting another link.", 429);
-    await client.auth.resetPasswordForEmail(email, {
+    const {error:sendError}=await client.auth.resetPasswordForEmail(email, {
       redirectTo: "https://pros.urbance.ca/auth/callback?flow=recovery",
     });
+    if(sendError) throw new OpsError("Recovery email could not be requested. Try again later or contact support@urbance.ca.",503);
     return NextResponse.json({
       message:
         "If this address has an eligible account, you’ll receive a recovery email. Check your inbox and spam folder.",
