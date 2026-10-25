@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import PasswordInput from "./PasswordInput";
 export class ApiError extends Error {
@@ -33,6 +33,14 @@ export default function AuthForm({
     [message, setMessage] = useState(""),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
+  const formRef=useRef<HTMLFormElement>(null);
+  function chooseMode(next:typeof current){setCurrent(next);setMessage("");setError("");const input=formRef.current?.elements.namedItem("password") as HTMLInputElement|null;if(input)input.value="";}
+  async function resend(){
+    const email=(formRef.current?.elements.namedItem("email") as HTMLInputElement|null)?.value||"";
+    if(!email){setError("Enter your email first.");return;}
+    setBusy(true);setError("");
+    try{const r=await fetch("/api/auth/session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"resend",email})});const data=await r.json();if(!r.ok)throw new Error(data.error);setMessage(data.message);}catch(e){setError(e instanceof Error?e.message:"Please retry.");}finally{setBusy(false);}
+  }
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
@@ -49,6 +57,7 @@ export default function AuthForm({
       if (data.verifyEmail) {
         setMessage(data.message);
         setCurrent("resume");
+        const input=formRef.current?.elements.namedItem("password") as HTMLInputElement|null;if(input)input.value="";
       } else if (onSuccess) onSuccess();
       else location.assign(data.redirect);
     } catch (e) {
@@ -74,14 +83,15 @@ export default function AuthForm({
           ? "Provider sign-in is available after your application is complete. Approved businesses can manage jobs."
           : current === "signup"
             ? "Create your account, verify your email, then complete your application."
-            : "Sign in to securely continue. Your dashboard opens after the required checks."}
+            : "Use your existing Urbance email and password—even if this is your first provider application. Your customer and provider profiles share one login."}
       </p>
       {message && (
         <div className="pro-notice" role="status">
           {message}
         </div>
       )}
-      <form onSubmit={submit}>
+      {current==="signup"&&<div className="pro-notice"><p>Already use Urbance as a customer or provider?</p><button type="button" className="pro-button pro-button-secondary" onClick={()=>chooseMode("resume")}>Use my existing Urbance account</button></div>}
+      <form ref={formRef} onSubmit={submit}>
         {current === "signup" && (
           <label>
             Full name
@@ -104,7 +114,7 @@ export default function AuthForm({
               current === "signup" ? "new-password" : "current-password"
             }
             required
-            minLength={current === "signup" ? 12 : 8}
+            minLength={current === "signup" ? 12 : undefined}
             maxLength={128}
           />
         {error && (
@@ -125,20 +135,21 @@ export default function AuthForm({
       </form>
       <div className="pro-auth-links">
         {current !== "signup" && (
-          <button type="button" onClick={() => setCurrent("signup")}>
+          <button type="button" onClick={() => chooseMode("signup")}>
             New here? Start an application
           </button>
         )}
         {current !== "resume" && current !== "invite" && (
-          <button type="button" onClick={() => setCurrent("resume")}>
+          <button type="button" onClick={() => chooseMode("resume")}>
             Resume application
           </button>
         )}
         {current !== "login" && current !== "invite" && (
-          <button type="button" onClick={() => setCurrent("login")}>
+          <button type="button" onClick={() => chooseMode("login")}>
             Already submitted? Provider sign-in
           </button>
         )}
+        {(message&&current==="resume")&&<button type="button" disabled={busy} onClick={()=>void resend()}>Resend verification for a new account</button>}
         <Link href="/reset-password">Forgot password?</Link>
       </div>
     </div>
