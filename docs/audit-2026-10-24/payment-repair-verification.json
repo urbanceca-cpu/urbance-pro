@@ -1,0 +1,20 @@
+{
+  "report_date_pacific": "2026-10-23",
+  "customer_tests_passed": 70,
+  "provider_tests_passed": 23,
+  "customer_build": "PASS",
+  "provider_build": "PASS; admin/payments route included",
+  "isolated_postgres_tests": 20,
+  "true_parallel_database_connections_tested": false,
+  "migration": "../urbance-platform/supabase/migrations/20261024060250_atomic_payment_settlement.sql",
+  "migration_sha256": "abb5604b4d1a55858494bc835cb4757135b069a53a34bd3c1d4c460de37d3c6a",
+  "supabase_compile": "PASS inside rolled-back transaction; access assertions pass",
+  "permanent_database_objects_after_rollback": {
+    "settlement_table": null,
+    "settlement_function": null
+  },
+  "stripe_transactions_performed": 0,
+  "emails_sent": 0,
+  "production_changes": false,
+  "staging_verified": false
+}

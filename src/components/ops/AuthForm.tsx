@@ -2,6 +2,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import PasswordInput from "./PasswordInput";
+export class ApiError extends Error {
+  constructor(message: string, public status: number) {
+    super(message);
+  }
+}
 export async function api<T = Record<string, unknown>>(
   path: string,
   body?: unknown,
@@ -14,7 +19,7 @@ export async function api<T = Record<string, unknown>>(
   });
   const data = await response.json();
   if (!response.ok)
-    throw Error(data.error || "Unable to complete your request.");
+    throw new ApiError(data.error || "Unable to complete your request.", response.status);
   return data;
 }
 export default function AuthForm({

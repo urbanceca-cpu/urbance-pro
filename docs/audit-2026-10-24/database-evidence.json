@@ -1,0 +1,30 @@
+{
+  "checked_on": "2026-10-24",
+  "public_tables": 60,
+  "tables_with_rls": 60,
+  "browser_truncate_grants": 80,
+  "profiles_missing_email": 29,
+  "non_demo_businesses": 0,
+  "non_demo_paid_jobs": 0,
+  "unprocessed_webhook_logs": 0,
+  "outbox": {
+    "sent": 3,
+    "cancelled": 1
+  },
+  "cron": {
+    "job": "urbance-provider-operations",
+    "schedule": "*/5 * * * *",
+    "active": true
+  },
+  "private_storage_buckets": [
+    "ops-private",
+    "provider-documents"
+  ],
+  "rollback_checks": [
+    "Revoke unsafe table privileges; assert client reads and service writes remain; ROLLBACK",
+    "Compile corrected signup trigger and revoke direct execution; ROLLBACK"
+  ],
+  "production_changes_applied": false,
+  "email_backfill_candidates": 29,
+  "email_backfill_conflicts": 0
+}

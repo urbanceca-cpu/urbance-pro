@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import AuthForm, { api } from "./AuthForm";
+import AuthForm, { api, ApiError } from "./AuthForm";
 import { PublicShell, Hero } from "./PublicShell";
 import { CATEGORIES, CITIES, POLICY_VERSION } from "@/lib/ops/domain";
 import { createClient } from "@/lib/supabase/client";
@@ -82,15 +82,19 @@ export default function Application() {
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [status, setStatus] = useState("draft");
+  const [loadError, setLoadError] = useState("");
   async function load() {
+    setLoading(true);
+    setLoadError("");
     try {
       const result = await api<ApplicationReply>("application");
       setSigned(true);
       setData({ ...empty, ...result.application?.basic_info });
       setDocs(result.documents);
       setStatus(result.application?.status || "draft");
-    } catch {
-      setSigned(false);
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) setSigned(false);
+      else setLoadError("We couldn’t load your saved application. Please retry. Your progress has not been changed.");
     } finally {
       setLoading(false);
     }
@@ -105,8 +109,10 @@ export default function Application() {
         setDocs(result.documents);
         setStatus(result.application?.status || "draft");
       })
-      .catch(() => {
-        if (live) setSigned(false);
+      .catch((e) => {
+        if (!live) return;
+        if (e instanceof ApiError && e.status === 401) setSigned(false);
+        else setLoadError("We couldn’t load your saved application. Please retry. Your progress has not been changed.");
       })
       .finally(() => {
         if (live) setLoading(false);
@@ -199,6 +205,11 @@ export default function Application() {
         {loading ? (
           <div className="pro-card" role="status">
             Loading your secure application…
+          </div>
+        ) : loadError ? (
+          <div className="pro-card" role="alert">
+            <p>{loadError}</p>
+            <button type="button" className="pro-button" onClick={() => void load()}>Try again</button>
           </div>
         ) : !signed ? (
           <div className="pro-auth-layout">

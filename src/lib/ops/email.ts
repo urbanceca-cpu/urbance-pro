@@ -6,10 +6,11 @@ const escape = (value: string) => value.replace(/[&<>"']/g, (c) => ({"&":"&amp;"
 export function notificationEmail(mail: Notification) {
   const text = mail.body.replace(/\\r\\n|\\n/g, "\n");
   const offer = mail.event_key.startsWith("offer:");
-  const heading = offer ? "Your next job could be here." : mail.event_key.startsWith("job:") ? "An update on your booking." : "You're connected to Urbance.";
+  const paymentAdmin = mail.event_key.startsWith("payment-admin:");
+  const heading = paymentAdmin ? "Your payment control centre." : offer ? "Your next job could be here." : mail.event_key.startsWith("job:") ? "An update on your booking." : "You're connected to Urbance.";
   const paragraphs = text.split(/\n\s*\n/).map((p) => `<p style="margin:0 0 20px;font-size:16px;line-height:26px;color:#42556b;overflow-wrap:anywhere">${escape(p).replace(/\n/g,"<br>")}</p>`).join("");
-  const action = offer ? "View job request" : "View my bookings";
-  const url = offer ? "https://pros.urbance.ca/dashboard/jobs" : "https://www.urbance.ca/bookings";
+  const action = paymentAdmin ? "Review payments" : offer ? "View job request" : "View my bookings";
+  const url = paymentAdmin ? "https://pros.urbance.ca/admin/payments" : offer ? "https://pros.urbance.ca/dashboard/jobs" : "https://www.urbance.ca/bookings";
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light dark"><title>${escape(mail.subject)}</title><style>@media(max-width:600px){.content{padding:28px 24px!important}.heading{font-size:29px!important;line-height:36px!important}}@media(prefers-color-scheme:dark){.outer{background:#101c2c!important}.card{background:#182a40!important}.heading{color:#f4f8ff!important}.content p{color:#ccd8e8!important}.footer{color:#bdcde2!important}}</style></head>
 <body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background:#edf3fa"><div style="display:none;max-height:0;overflow:hidden;mso-hide:all">${escape(mail.subject)} · Your home, in good hands.</div>
 <table role="presentation" class="outer" width="100%" cellspacing="0" cellpadding="0" style="background:#edf3fa"><tr><td align="center" style="padding:32px 12px">
